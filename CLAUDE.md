@@ -154,20 +154,39 @@ solfolio/
    - Always use `--forceExit` flag to prevent hanging tests
 6. **Performance**: Target <2s page load time, <100ms for cached data retrieval
 
-## MANDATORY PR REQUIREMENTS
+## 🚨 MANDATORY PR REQUIREMENTS - NEVER CREATE PR WITHOUT THESE PASSING! 🚨
 
-**CRITICAL**: Before creating any PR, ALL of the following checks MUST pass locally:
+**ABSOLUTE RULE**: You MUST verify ALL checks pass BEFORE creating any PR. This is NON-NEGOTIABLE.
 
-### Frontend:
-- `pnpm run lint` - No errors allowed
-- `pnpm run typecheck` - No TypeScript errors
-- `pnpm run test` - All tests must pass
-- `pnpm run build` - Build must succeed
+### Pre-PR Verification Process (REQUIRED):
 
-### Backend:
-- `pnpm run lint` - No errors allowed  
-- `pnpm run test` - All tests must pass
-- `pnpm run build` - Build must succeed
+#### Step 1: Run Quality Checks
+##### Frontend:
+```bash
+pnpm run lint          # ❌ MUST EXIT WITH CODE 0 - NO ERRORS!
+pnpm run typecheck     # ❌ MUST EXIT WITH CODE 0
+pnpm run test          # ❌ ALL TESTS MUST PASS
+pnpm run build         # ❌ BUILD MUST SUCCEED
+```
+
+##### Backend:
+```bash
+pnpm run lint          # ❌ MUST EXIT WITH CODE 0 - NO ERRORS!
+pnpm run test          # ❌ ALL TESTS MUST PASS
+pnpm run build         # ❌ BUILD MUST SUCCEED
+```
+
+#### Step 2: Verify Lint Status
+```bash
+# ALWAYS run this final check:
+pnpm run lint && echo "✅ OK to create PR" || echo "❌ FIX ERRORS FIRST!"
+```
+
+#### Step 3: Only After ALL Checks Pass
+- NOW you can create the PR
+- If ANY check fails, you MUST fix it before creating PR
+
+**⛔ REMEMBER: Creating a PR with lint errors is UNACCEPTABLE and shows lack of attention to quality.**
 
 **GitHub Actions will automatically run these checks on every PR. PRs with failing checks cannot be merged.**
 
