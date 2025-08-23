@@ -8,24 +8,26 @@ Refer to docs/work-breakdown.md file, let's work on task $ARGUMENTS
 - When implementing, commit to git after completing each logical sub-task with short and concise message, so that we can see the work history that was done to finish a task.
 
 ## MANDATORY CHECKS BEFORE CREATING PR:
-**IMPORTANT: All these checks MUST pass locally before creating a PR**
+**CRITICAL: All these checks MUST pass locally before creating a PR. ALWAYS RUN THESE CHECKS!**
 
 ### Frontend Checks:
 ```bash
 cd frontend
-pnpm run lint          # Must pass with no errors
-pnpm run typecheck      # Must pass with no errors  
-pnpm run test           # All tests must pass
-pnpm run build          # Build must succeed
+pnpm run lint          # Must pass with NO ERRORS (warnings may be ok)
+pnpm run typecheck     # Must pass with no TypeScript errors  
+pnpm run test          # All tests must pass
+pnpm run build         # Build must succeed
 ```
 
 ### Backend Checks:
 ```bash
 cd backend
-pnpm run lint          # Must pass with no errors
-pnpm run test          # All tests must pass
-pnpm run build         # Build must succeed
+pnpm run lint          # Must pass with NO ERRORS (warnings may be ok)
+pnpm run test          # All tests must pass (use --forceExit if needed)
+pnpm run build         # Build must succeed with no TypeScript errors
 ```
+
+**⚠️ IMPORTANT: Always run `pnpm run lint` BEFORE creating a PR. Lint errors will block PR merge!**
 
 ### Overall Project:
 ```bash
