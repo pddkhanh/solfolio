@@ -92,7 +92,7 @@ describe('WalletButton', () => {
         disconnect: mockDisconnect,
         wallet: {
           adapter: {
-            name: 'Phantom',
+            name: 'Phantom' as any,
             url: 'https://phantom.app',
             icon: 'phantom-icon',
             readyState: 'Installed' as any,
@@ -107,7 +107,7 @@ describe('WalletButton', () => {
             signAllTransactions: jest.fn(),
             signMessage: jest.fn(),
             signIn: jest.fn(),
-          },
+          } as any,
           readyState: 'Installed' as any,
         },
         wallets: [],
@@ -230,7 +230,7 @@ describe('WalletButton', () => {
         disconnect: mockDisconnect,
         wallet: {
           adapter: {
-            name: 'Phantom',
+            name: 'Phantom' as any,
             url: 'https://phantom.app',
             icon: 'phantom-icon',
             readyState: 'Installed' as any,
@@ -245,7 +245,7 @@ describe('WalletButton', () => {
             signAllTransactions: jest.fn(),
             signMessage: jest.fn(),
             signIn: jest.fn(),
-          },
+          } as any,
           readyState: 'Installed' as any,
         },
         wallets: [],

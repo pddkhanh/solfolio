@@ -7,7 +7,7 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js', '<rootDir>/jest-setup.ts'],
   testEnvironment: 'jest-environment-jsdom',
   // Timeouts - Unit tests should be FAST!
   testTimeout: 5000, // 5 seconds per test (default is 5000 anyway, but being explicit)
