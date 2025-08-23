@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { BlockchainModule } from './blockchain/blockchain.module';
     }),
     HealthModule,
     BlockchainModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
