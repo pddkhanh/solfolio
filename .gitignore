@@ -173,3 +173,7 @@ out/
 
 # Netlify
 .netlify/
+
+# Claude Code
+.claude/settings.local.json
+.claude/*.local.*
