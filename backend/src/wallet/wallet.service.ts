@@ -44,7 +44,7 @@ export class WalletService {
 
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
     try {
-      await (this.rateLimiter.checkLimit as () => Promise<void>)();
+      await this.rateLimiter.waitForSlot();
 
       const publicKey = new PublicKey(walletAddress);
       const connection = this.blockchainService.getConnection();

@@ -40,7 +40,7 @@ describe('WalletService', () => {
         {
           provide: RateLimiterService,
           useValue: {
-            checkLimit: jest.fn().mockResolvedValue(undefined),
+            waitForSlot: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
@@ -198,7 +198,7 @@ describe('WalletService', () => {
 
       await service.getWalletBalances(testWalletAddress);
 
-      expect(rateLimiter.checkLimit).toHaveBeenCalled();
+      expect(rateLimiter.waitForSlot).toHaveBeenCalled();
     });
 
     it('should handle errors gracefully', async () => {
