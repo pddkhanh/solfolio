@@ -10,6 +10,7 @@ import {
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
+import { TokenMetadataService } from './token-metadata.service';
 
 export interface TokenBalance {
   mint: string;
@@ -44,6 +45,7 @@ export class WalletService {
     private readonly blockchainService: BlockchainService,
     private readonly connectionManager: ConnectionManager,
     private readonly rateLimiter: RateLimiterService,
+    private readonly tokenMetadataService: TokenMetadataService,
   ) {}
 
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
@@ -125,7 +127,7 @@ export class WalletService {
             tokenAccount: account.pubkey.toString(),
           };
 
-          const metadata = await this.fetchTokenMetadata(tokenInfo.mint);
+          const metadata = await this.tokenMetadataService.getTokenMetadata(tokenInfo.mint);
           if (metadata) {
             tokenBalance.symbol = metadata.symbol;
             tokenBalance.name = metadata.name;
@@ -142,28 +144,4 @@ export class WalletService {
     return tokenBalances;
   }
 
-  private async fetchTokenMetadata(mintAddress: string): Promise<{
-    symbol?: string;
-    name?: string;
-    logoUri?: string;
-  } | null> {
-    try {
-      await this.rateLimiter.checkLimit();
-      
-      const connection = this.blockchainService.getConnection();
-      const mintPublicKey = new PublicKey(mintAddress);
-      
-      const mintInfo = await this.connectionManager.executeWithRetry(
-        () => getMint(connection, mintPublicKey),
-      );
-
-      return {
-        symbol: 'Unknown',
-        name: `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
-      };
-    } catch (error) {
-      this.logger.warn(`Failed to fetch metadata for mint ${mintAddress}`, error);
-      return null;
-    }
-  }
 }

@@ -3,6 +3,7 @@ import { WalletService } from './wallet.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
+import { TokenMetadataService } from './token-metadata.service';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 
@@ -38,6 +39,16 @@ describe('WalletService', () => {
           provide: RateLimiterService,
           useValue: {
             checkLimit: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: TokenMetadataService,
+          useValue: {
+            getTokenMetadata: jest.fn().mockResolvedValue({
+              symbol: 'TEST',
+              name: 'Test Token',
+              logoUri: 'https://test.com/logo.png',
+            }),
           },
         },
       ],
