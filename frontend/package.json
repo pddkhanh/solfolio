@@ -9,6 +9,10 @@
     "lint": "next lint",
     "format": "prettier --write ."
   },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "dependencies": {},
   "devDependencies": {}
 }

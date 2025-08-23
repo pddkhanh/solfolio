@@ -1,7 +1,7 @@
 # SolFolio - Solana DeFi Portfolio Tracker
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D22.0.0-green.svg)
 ![Docker](https://img.shields.io/badge/docker-%3E%3D20.10-blue.svg)
 
 A comprehensive portfolio tracker for Solana DeFi protocols, providing unified dashboard views of positions across Marinade, Kamino, Orca, and other major protocols.
@@ -32,7 +32,7 @@ A comprehensive portfolio tracker for Solana DeFi protocols, providing unified d
 
 ## 📦 Prerequisites
 
-- Node.js 18+ 
+- Node.js 22+ 
 - Docker & Docker Compose
 - Git
 - npm or yarn

@@ -17,6 +17,8 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ### Planned Technology Stack
 
+**Runtime**: Node.js 22+ LTS
+
 **Frontend**: Next.js 15+ (App Router), TypeScript, Tailwind CSS, Shadcn UI, Solana Wallet Adapter
 
 **Backend**: gRPC microservices architecture with:
