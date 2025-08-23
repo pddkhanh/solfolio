@@ -64,9 +64,9 @@
 ### 1.2 Wallet Integration
 - [x] **TASK-026** Install and configure Solana wallet adapter (1h) ✅
 - [x] **TASK-027** Create wallet connection button component (1.5h) ✅
-- [x] **TASK-028** Implement wallet disconnect and switching (1h) ✅
-- [x] **TASK-029** Display connected wallet address (0.5h) ✅
-- [x] **TASK-030** Add wallet connection persistence (1h) ✅
+- [x] **TASK-028** Implement wallet disconnect and switching - WITH TESTS (1h) ✅
+- [x] **TASK-029** Display connected wallet address - WITH TESTS (0.5h) ✅
+- [x] **TASK-030** Add wallet connection persistence - WITH TESTS (1h) ✅
 
 ### 1.3 Basic Backend API
 - [ ] **TASK-031** Create simple Express.js backend in /backend (1h)
