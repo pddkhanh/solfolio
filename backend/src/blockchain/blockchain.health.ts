@@ -43,7 +43,7 @@ export class BlockchainHealthIndicator extends HealthIndicator {
     } catch (error) {
       throw new HealthCheckError(
         'Blockchain health check failed',
-        this.getStatus(key, false, { error: error.message }),
+        this.getStatus(key, false, { error: (error as Error).message }),
       );
     }
   }
@@ -55,20 +55,21 @@ export class BlockchainHealthIndicator extends HealthIndicator {
   }> {
     try {
       const connection = this.blockchainService.getConnection();
-      const isConnected = await this.connectionManager.testConnection(connection);
+      const isConnected =
+        await this.connectionManager.testConnection(connection);
       const activeConnections = this.connectionManager.getActiveConnections();
 
       return {
         healthy: isConnected,
-        message: isConnected 
-          ? `Connected to ${activeConnections.length} RPC endpoint(s)` 
+        message: isConnected
+          ? `Connected to ${activeConnections.length} RPC endpoint(s)`
           : 'Connection test failed',
         activeConnections,
       };
     } catch (error) {
       return {
         healthy: false,
-        message: `Connection error: ${error.message}`,
+        message: `Connection error: ${(error as Error).message}`,
       };
     }
   }
@@ -85,14 +86,14 @@ export class BlockchainHealthIndicator extends HealthIndicator {
       return {
         healthy: isHealthy,
         blockHeight,
-        message: isHealthy 
-          ? `Current block height: ${blockHeight}` 
+        message: isHealthy
+          ? `Current block height: ${blockHeight}`
           : 'Unable to fetch block height',
       };
     } catch (error) {
       return {
         healthy: false,
-        message: `Block height check failed: ${error.message}`,
+        message: `Block height check failed: ${(error as Error).message}`,
       };
     }
   }
@@ -113,8 +114,8 @@ export class BlockchainHealthIndicator extends HealthIndicator {
         remainingCapacity: capacity,
         isThrottled,
       },
-      message: isThrottled 
-        ? `Rate limiter is throttling requests (${capacity} slots available)` 
+      message: isThrottled
+        ? `Rate limiter is throttling requests (${capacity} slots available)`
         : `Rate limiter healthy (${capacity} slots available)`,
     };
   }

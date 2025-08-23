@@ -13,6 +13,7 @@ export class RateLimiterService {
   private readonly logger = new Logger(RateLimiterService.name);
   private readonly maxRequestsPerSecond: number;
   private readonly requestQueue: number[] = [];
+  private statsResetInterval: NodeJS.Timeout;
   private stats: RateLimiterStats = {
     totalRequests: 0,
     allowedRequests: 0,
@@ -25,18 +26,19 @@ export class RateLimiterService {
       'RATE_LIMIT_RPC_PER_SECOND',
       100,
     );
-    
+
     this.logger.log(
       `Rate limiter initialized with ${this.maxRequestsPerSecond} requests per second`,
     );
 
-    // Reset stats every hour
-    setInterval(() => this.resetStats(), 3600000);
+    // Reset stats every hour (unref to prevent keeping process alive in tests)
+    this.statsResetInterval = setInterval(() => this.resetStats(), 3600000);
+    this.statsResetInterval.unref();
   }
 
   async waitForSlot(): Promise<void> {
     this.stats.totalRequests++;
-    
+
     const now = Date.now();
     const windowStart = now - 1000; // 1 second window
 
@@ -49,14 +51,14 @@ export class RateLimiterService {
     if (this.requestQueue.length >= this.maxRequestsPerSecond) {
       const oldestRequest = this.requestQueue[0];
       const waitTime = oldestRequest + 1000 - now;
-      
+
       if (waitTime > 0) {
         this.stats.throttledRequests++;
         this.logger.debug(
           `Rate limit reached. Waiting ${waitTime}ms. Queue size: ${this.requestQueue.length}`,
         );
         await this.sleep(waitTime);
-        
+
         // Recursively call to re-check after waiting
         return this.waitForSlot();
       }
@@ -77,7 +79,7 @@ export class RateLimiterService {
 
   private resetStats(): void {
     const previousStats = { ...this.stats };
-    
+
     this.stats = {
       totalRequests: 0,
       allowedRequests: 0,
@@ -86,12 +88,12 @@ export class RateLimiterService {
     };
 
     if (previousStats.totalRequests > 0) {
-      const throttleRate = 
+      const throttleRate =
         (previousStats.throttledRequests / previousStats.totalRequests) * 100;
-      
+
       this.logger.log(
         `Rate limiter stats reset. Previous period: ${previousStats.totalRequests} total, ` +
-        `${previousStats.throttledRequests} throttled (${throttleRate.toFixed(2)}%)`,
+          `${previousStats.throttledRequests} throttled (${throttleRate.toFixed(2)}%)`,
       );
     }
   }
@@ -99,12 +101,12 @@ export class RateLimiterService {
   getCurrentQueueSize(): number {
     const now = Date.now();
     const windowStart = now - 1000;
-    
+
     // Clean up old entries
     while (this.requestQueue.length > 0 && this.requestQueue[0] < windowStart) {
       this.requestQueue.shift();
     }
-    
+
     return this.requestQueue.length;
   }
 
@@ -117,9 +119,7 @@ export class RateLimiterService {
     return this.getCurrentQueueSize() >= this.maxRequestsPerSecond;
   }
 
-  async executeWithRateLimit<T>(
-    operation: () => Promise<T>,
-  ): Promise<T> {
+  async executeWithRateLimit<T>(operation: () => Promise<T>): Promise<T> {
     await this.waitForSlot();
     return operation();
   }

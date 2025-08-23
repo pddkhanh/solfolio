@@ -26,10 +26,7 @@ export class ConnectionManager {
     private readonly rateLimiter: RateLimiterService,
   ) {}
 
-  async createConnection(
-    rpcUrl: string,
-    config?: ConnectionConfig,
-  ): Promise<Connection> {
+  createConnection(rpcUrl: string, config?: ConnectionConfig): Connection {
     const existingConnection = this.connections.get(rpcUrl);
     if (existingConnection) {
       this.logger.debug(`Reusing existing connection for ${rpcUrl}`);
@@ -44,7 +41,7 @@ export class ConnectionManager {
 
     const connection = new Connection(rpcUrl, connectionConfig);
     this.connections.set(rpcUrl, connection);
-    
+
     this.logger.log(`Created new connection to ${rpcUrl}`);
     return connection;
   }
@@ -54,25 +51,25 @@ export class ConnectionManager {
     options?: RetryOptions,
   ): Promise<T> {
     const opts = { ...this.defaultRetryOptions, ...options };
-    let lastError: Error;
-    let delay = opts.initialDelay;
+    let lastError: Error = new Error('Operation failed');
+    let delay = opts.initialDelay!;
 
-    for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
+    for (let attempt = 0; attempt <= opts.maxRetries!; attempt++) {
       try {
         await this.rateLimiter.waitForSlot();
         const result = await operation();
-        
+
         if (attempt > 0) {
           this.logger.debug(`Operation succeeded after ${attempt} retries`);
         }
-        
+
         return result;
       } catch (error) {
         lastError = error as Error;
-        
-        if (attempt === opts.maxRetries) {
+
+        if (attempt === opts.maxRetries!) {
           this.logger.error(
-            `Operation failed after ${opts.maxRetries + 1} attempts`,
+            `Operation failed after ${opts.maxRetries! + 1} attempts`,
             error,
           );
           break;
@@ -86,22 +83,27 @@ export class ConnectionManager {
 
         this.logger.warn(
           `Attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
-          error.message,
+          (error as Error).message,
         );
-        
+
         await this.sleep(delay);
-        delay = Math.min(delay * opts.factor, opts.maxDelay);
+        delay = Math.min(delay * opts.factor!, opts.maxDelay!);
       }
     }
 
     throw lastError;
   }
 
-  private isRetryableError(error: any): boolean {
+  private isRetryableError(error: unknown): boolean {
     if (!error) return false;
 
-    const message = error.message?.toLowerCase() || '';
-    const code = error.code;
+    const errorObj = error as {
+      message?: string;
+      code?: string;
+      status?: number;
+    };
+    const message = errorObj.message?.toLowerCase() || '';
+    const code = errorObj.code;
 
     // Network errors
     if (
@@ -117,7 +119,7 @@ export class ConnectionManager {
     if (
       message.includes('rate limit') ||
       message.includes('too many requests') ||
-      error.status === 429
+      errorObj.status === 429
     ) {
       return true;
     }
@@ -127,7 +129,7 @@ export class ConnectionManager {
       message.includes('blockhash not found') ||
       message.includes('node is behind') ||
       message.includes('service unavailable') ||
-      error.status === 503
+      errorObj.status === 503
     ) {
       return true;
     }
@@ -139,7 +141,7 @@ export class ConnectionManager {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  async closeConnection(rpcUrl: string): Promise<void> {
+  closeConnection(rpcUrl: string): void {
     const connection = this.connections.get(rpcUrl);
     if (connection) {
       this.connections.delete(rpcUrl);
@@ -147,9 +149,9 @@ export class ConnectionManager {
     }
   }
 
-  async closeAllConnections(): Promise<void> {
+  closeAllConnections(): void {
     for (const [url] of this.connections) {
-      await this.closeConnection(url);
+      this.closeConnection(url);
     }
     this.logger.log('Closed all connections');
   }

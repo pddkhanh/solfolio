@@ -20,18 +20,21 @@ export class BlockchainService implements OnModuleInit {
   private async initializeConnection() {
     try {
       const rpcUrl = this.configService.get<string>('HELIUS_RPC_URL');
-      const network = this.configService.get<string>('SOLANA_NETWORK', 'devnet');
-      
+      const network = this.configService.get<string>(
+        'SOLANA_NETWORK',
+        'devnet',
+      );
+
       if (!rpcUrl) {
         throw new Error('HELIUS_RPC_URL is not configured');
       }
 
-      this.connection = await this.connectionManager.createConnection(rpcUrl);
-      
+      this.connection = this.connectionManager.createConnection(rpcUrl);
+
       const version = await this.connection.getVersion();
       this.logger.log(`Connected to Solana ${network} via Helius RPC`);
       this.logger.log(`Solana version: ${JSON.stringify(version)}`);
-      
+
       const slot = await this.connection.getSlot();
       this.logger.log(`Current slot: ${slot}`);
     } catch (error) {
@@ -50,8 +53,8 @@ export class BlockchainService implements OnModuleInit {
   async getBalance(address: string): Promise<number> {
     try {
       const publicKey = new PublicKey(address);
-      const balance = await this.connectionManager.executeWithRetry(
-        async () => this.connection.getBalance(publicKey),
+      const balance = await this.connectionManager.executeWithRetry(async () =>
+        this.connection.getBalance(publicKey),
       );
       return balance / 1e9; // Convert lamports to SOL
     } catch (error) {
@@ -62,8 +65,8 @@ export class BlockchainService implements OnModuleInit {
 
   async getBlockHeight(): Promise<number> {
     try {
-      return await this.connectionManager.executeWithRetry(
-        async () => this.connection.getBlockHeight(),
+      return await this.connectionManager.executeWithRetry(async () =>
+        this.connection.getBlockHeight(),
       );
     } catch (error) {
       this.logger.error('Failed to get block height', error);
@@ -73,8 +76,8 @@ export class BlockchainService implements OnModuleInit {
 
   async getRecentBlockhash() {
     try {
-      return await this.connectionManager.executeWithRetry(
-        async () => this.connection.getLatestBlockhash(),
+      return await this.connectionManager.executeWithRetry(async () =>
+        this.connection.getLatestBlockhash(),
       );
     } catch (error) {
       this.logger.error('Failed to get recent blockhash', error);

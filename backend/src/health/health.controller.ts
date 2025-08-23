@@ -30,7 +30,7 @@ export class HealthController {
 
     // Add blockchain health check if available
     if (this.blockchain) {
-      checks.push(() => this.blockchain.isHealthy('blockchain'));
+      checks.push(() => this.blockchain!.isHealthy('blockchain'));
     }
 
     return this.health.check(checks);
