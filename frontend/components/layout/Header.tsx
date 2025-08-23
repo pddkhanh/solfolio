@@ -3,6 +3,20 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+// Dynamically import WalletButton to prevent SSR issues
+const WalletButton = dynamic(
+  () => import('@/components/wallet/WalletButton'),
+  { 
+    ssr: false,
+    loading: () => (
+      <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4">
+        Connect Wallet
+      </button>
+    )
+  }
+)
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -41,10 +55,10 @@ export default function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
-            {/* Wallet button placeholder */}
-            <button className="hidden md:inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4">
-              Connect Wallet
-            </button>
+            {/* Wallet button */}
+            <div className="hidden md:block">
+              <WalletButton />
+            </div>
 
             {/* Mobile menu button */}
             <button
@@ -70,9 +84,7 @@ export default function Header() {
                   {item.label}
                 </Link>
               ))}
-              <button className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 w-full">
-                Connect Wallet
-              </button>
+              <WalletButton />
             </nav>
           </div>
         )}
