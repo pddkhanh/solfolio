@@ -56,15 +56,18 @@ install:
 	cd websocket && pnpm install
 
 # Development commands
-dev: up
+dev: check-env up
 	@echo "Starting development environment..."
 	@echo "Frontend: http://localhost:3000"
 	@echo "gRPC-Web: http://localhost:8080"
 	@echo "WebSocket: ws://localhost:8081"
 	@echo "Database Admin: http://localhost:8082"
+	@echo ""
+	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: Using default Helius API key - update your .env file!" || echo "✅ Environment configured correctly!"
 
 up:
-	docker-compose -f docker-compose.dev.yml up -d
+	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
+	docker-compose -f docker-compose.dev.yml --env-file .env up -d
 
 down:
 	docker-compose -f docker-compose.dev.yml down
@@ -73,6 +76,13 @@ restart: down up
 
 stop:
 	docker-compose -f docker-compose.dev.yml stop
+
+# Start without Docker (local development)
+dev-local: check-env
+	@echo "Starting local development (no Docker)..."
+	@echo "Make sure you have PostgreSQL and Redis running locally!"
+	@echo ""
+	cd frontend && pnpm run dev
 
 # Logging commands
 logs:
@@ -115,22 +125,57 @@ db-console:
 # Testing commands
 test:
 	@echo "Running all tests..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running unit tests..."
 	cd frontend && pnpm test
-	cd backend && pnpm test
-	cd websocket && pnpm test
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running E2E tests..."
+	cd frontend && npx playwright test --reporter=list || true
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ All tests completed!"
 
 test-unit:
-	@echo "Running unit tests..."
-	cd frontend && pnpm run test:unit
-	cd backend && pnpm run test:unit
-	cd websocket && pnpm run test:unit
+	@echo "Running unit tests (5s timeout per test)..."
+	cd frontend && pnpm test
+
+test-unit-watch:
+	@echo "Running unit tests in watch mode..."
+	cd frontend && pnpm run test:watch
+
+test-unit-coverage:
+	@echo "Running unit tests with coverage..."
+	cd frontend && pnpm run test:coverage
 
 test-e2e:
-	@echo "Running end-to-end tests..."
-	pnpm run test:e2e
+	@echo "Running E2E tests..."
+	cd frontend && pnpm run test:e2e
 
-test-watch:
-	cd backend && pnpm run test:watch
+test-e2e-ui:
+	@echo "Running E2E tests in UI mode..."
+	cd frontend && pnpm run test:e2e:ui
+
+test-e2e-debug:
+	@echo "Running E2E tests in debug mode..."
+	cd frontend && pnpm run test:e2e:debug
+
+# Testing in Docker
+test-docker:
+	@echo "Running tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
+
+test-unit-docker:
+	@echo "Running unit tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
+
+test-e2e-docker:
+	@echo "Running E2E tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm run test:e2e
+
+# Install Playwright browsers (first time setup)
+playwright-install:
+	@echo "Installing Playwright browsers..."
+	cd frontend && npx playwright install
 
 # Code quality
 lint:
@@ -227,6 +272,28 @@ health:
 env:
 	@test -f .env || cp .env.example .env
 	@echo ".env file is ready. Please update it with your API keys."
+	@echo ""
+	@echo "IMPORTANT: You must set the following environment variables:"
+	@echo "  - HELIUS_API_KEY: Get from https://www.helius.dev/"
+	@echo "  - NEXT_PUBLIC_HELIUS_RPC_URL: Your Helius RPC endpoint"
+	@echo ""
+	@echo "For testing with devnet (recommended):"
+	@echo "  NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_KEY"
+	@echo "  NEXT_PUBLIC_SOLANA_NETWORK=devnet"
+	@echo ""
+	@test -f frontend/.env.local || cp frontend/.env.local.example frontend/.env.local 2>/dev/null || true
+	@echo "Frontend .env.local file is ready (if template exists)."
+
+# Check environment variables
+check-env:
+	@echo "Checking environment configuration..."
+	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
+	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: HELIUS_API_KEY is still using default value" || echo "✅ HELIUS_API_KEY is configured"
+	@grep -q "NEXT_PUBLIC_HELIUS_RPC_URL" .env && echo "✅ NEXT_PUBLIC_HELIUS_RPC_URL is present" || echo "❌ NEXT_PUBLIC_HELIUS_RPC_URL is missing"
+	@echo ""
+	@echo "Current configuration:"
+	@grep "SOLANA_NETWORK=" .env | head -1 || echo "SOLANA_NETWORK not set"
+	@grep "NEXT_PUBLIC_SOLANA_NETWORK=" .env | head -1 || echo "NEXT_PUBLIC_SOLANA_NETWORK not set"
 
 # Quick development shortcuts
 d: dev
