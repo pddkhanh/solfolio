@@ -1,304 +1,153 @@
-.PHONY: help setup dev up down restart logs clean build test lint proto migrate seed
+.PHONY: help dev up down restart logs clean test lint
 
-# Default target
+# Default - show help
 help:
 	@echo "SolFolio Development Commands"
-	@echo "=============================="
+	@echo "============================="
 	@echo ""
-	@echo "Setup & Installation:"
-	@echo "  make setup          - Initial project setup (run this first)"
-	@echo "  make install        - Install all dependencies"
+	@echo "Quick Start:"
+	@echo "  make dev       - Start all services in development mode"
+	@echo "  make down      - Stop all services"
+	@echo "  make restart   - Restart all services"
+	@echo "  make logs      - View logs from all services"
 	@echo ""
-	@echo "Development:"
-	@echo "  make dev            - Start all services in development mode"
-	@echo "  make up             - Start Docker containers"
-	@echo "  make down           - Stop Docker containers"
-	@echo "  make restart        - Restart all services"
-	@echo "  make logs           - View logs from all services"
-	@echo "  make logs-[service] - View logs for specific service (e.g., logs-backend)"
+	@echo "Testing:"
+	@echo "  make test      - Run all tests (frontend + backend + E2E)"
+	@echo "  make test-fe   - Run frontend unit tests only"
+	@echo "  make test-be   - Run backend unit tests only"
+	@echo "  make test-e2e  - Run E2E tests only"
 	@echo ""
-	@echo "Database:"
-	@echo "  make db-migrate     - Run database migrations"
-	@echo "  make db-seed        - Seed database with test data"
-	@echo "  make db-reset       - Reset database (drop, create, migrate, seed)"
+	@echo "Code Quality:"
+	@echo "  make lint      - Run linters"
+	@echo "  make format    - Format code"
 	@echo ""
-	@echo "Testing & Quality:"
-	@echo "  make test           - Run all tests"
-	@echo "  make test-unit      - Run unit tests"
-	@echo "  make test-e2e       - Run end-to-end tests"
-	@echo "  make lint           - Run linters"
-	@echo "  make format         - Format code"
-	@echo ""
-	@echo "Building:"
-	@echo "  make build          - Build all Docker images"
-	@echo "  make build-prod     - Build production images"
-	@echo "  make proto          - Generate code from proto files"
-	@echo ""
-	@echo "Utilities:"
-	@echo "  make clean          - Clean up containers, volumes, and generated files"
-	@echo "  make ps             - Show running containers"
-	@echo "  make shell-[service]- Open shell in service container"
-	@echo ""
-	@echo "Tools:"
-	@echo "  make adminer        - Open database admin UI (http://localhost:8082)"
-	@echo "  make redis-commander- Open Redis admin UI (http://localhost:8083)"
+	@echo "Other:"
+	@echo "  make build     - Build Docker images"
+	@echo "  make clean     - Clean up containers and volumes"
+	@echo "  make health    - Check service health"
+	@echo "  make shell-be  - Open backend container shell"
+	@echo "  make shell-fe  - Open frontend container shell"
 
-# Setup and installation
-setup:
-	@echo "Setting up SolFolio development environment..."
-	@./scripts/setup.sh
-
-install:
-	@echo "Installing dependencies..."
-	pnpm install
-	cd frontend && pnpm install
-	cd backend && pnpm install
-	cd websocket && pnpm install
-
-# Development commands
-dev: check-env up
-	@echo "Starting development environment..."
-	@echo "Frontend: http://localhost:3000"
-	@echo "gRPC-Web: http://localhost:8080"
-	@echo "WebSocket: ws://localhost:8081"
-	@echo "Database Admin: http://localhost:8082"
+# === DEVELOPMENT ===
+dev: check-env
+	@docker-compose -f docker-compose.dev.yml up -d
 	@echo ""
-	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: Using default Helius API key - update your .env file!" || echo "✅ Environment configured correctly!"
+	@echo "🚀 Services started:"
+	@echo "  Frontend:  http://localhost:3000"
+	@echo "  Backend:   http://localhost:3001/health"
+	@echo "  WebSocket: ws://localhost:8081"
+	@echo ""
 
-up:
-	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
-	docker-compose -f docker-compose.dev.yml --env-file .env up -d
+up: dev
 
 down:
-	docker-compose -f docker-compose.dev.yml down
+	@docker-compose -f docker-compose.dev.yml down
 
-restart: down up
+restart: down dev
 
-stop:
-	docker-compose -f docker-compose.dev.yml stop
-
-# Start without Docker (local development)
-dev-local: check-env
-	@echo "Starting local development (no Docker)..."
-	@echo "Make sure you have PostgreSQL and Redis running locally!"
-	@echo ""
-	cd frontend && pnpm run dev
-
-# Logging commands
 logs:
-	docker-compose -f docker-compose.dev.yml logs -f
+	@docker-compose -f docker-compose.dev.yml logs -f
 
-logs-backend:
-	docker-compose -f docker-compose.dev.yml logs -f backend
+logs-%:
+	@docker-compose -f docker-compose.dev.yml logs -f $*
 
-logs-frontend:
-	docker-compose -f docker-compose.dev.yml logs -f frontend
-
-logs-websocket:
-	docker-compose -f docker-compose.dev.yml logs -f websocket
-
-logs-postgres:
-	docker-compose -f docker-compose.dev.yml logs -f postgres
-
-logs-redis:
-	docker-compose -f docker-compose.dev.yml logs -f redis
-
-logs-envoy:
-	docker-compose -f docker-compose.dev.yml logs -f envoy
-
-# Database commands
-db-migrate:
-	@echo "Running database migrations..."
-	cd backend && pnpm run db:migrate
-
-db-seed:
-	@echo "Seeding database..."
-	cd backend && pnpm run db:seed
-
-db-reset:
-	@echo "Resetting database..."
-	cd backend && pnpm run db:reset
-
-db-console:
-	docker exec -it solfolio-postgres psql -U solfolio -d solfolio_dev
-
-# Testing commands
+# === TESTING ===
 test:
 	@echo "Running all tests..."
-	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@echo "Running unit tests..."
-	cd frontend && pnpm test
+	@echo "━━━━━━━━━━━━━━━━━━━"
+	@$(MAKE) test-fe
 	@echo ""
-	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@echo "Running E2E tests..."
-	cd frontend && npx playwright test --reporter=list || true
-	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@$(MAKE) test-be
+	@echo ""
+	@$(MAKE) test-e2e
+	@echo "━━━━━━━━━━━━━━━━━━━"
 	@echo "✅ All tests completed!"
 
-test-unit:
-	@echo "Running unit tests (5s timeout per test)..."
-	cd frontend && pnpm test
+test-fe:
+	@echo "Frontend tests..."
+	@cd frontend && pnpm test -- --forceExit
 
-test-unit-watch:
-	@echo "Running unit tests in watch mode..."
-	cd frontend && pnpm run test:watch
-
-test-unit-coverage:
-	@echo "Running unit tests with coverage..."
-	cd frontend && pnpm run test:coverage
+test-be:
+	@echo "Backend tests..."
+	@cd backend && pnpm test -- --forceExit
 
 test-e2e:
-	@echo "Running E2E tests..."
-	cd frontend && pnpm run test:e2e
+	@echo "E2E tests..."
+	@cd frontend && pnpm run test:e2e
 
-test-e2e-ui:
-	@echo "Running E2E tests in UI mode..."
-	cd frontend && pnpm run test:e2e:ui
+test-watch:
+	@echo "Select service to watch tests:"
+	@echo "1) Frontend"
+	@echo "2) Backend"
+	@read -p "Choice: " choice; \
+	case $$choice in \
+		1) cd frontend && pnpm run test:watch ;; \
+		2) cd backend && pnpm run test:watch ;; \
+		*) echo "Invalid choice" ;; \
+	esac
 
-test-e2e-debug:
-	@echo "Running E2E tests in debug mode..."
-	cd frontend && pnpm run test:e2e:debug
-
-# Testing in Docker
-test-docker:
-	@echo "Running tests in Docker..."
-	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
-
-test-unit-docker:
-	@echo "Running unit tests in Docker..."
-	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
-
-test-e2e-docker:
-	@echo "Running E2E tests in Docker..."
-	docker-compose -f docker-compose.dev.yml exec frontend pnpm run test:e2e
-
-# Install Playwright browsers (first time setup)
-playwright-install:
-	@echo "Installing Playwright browsers..."
-	cd frontend && npx playwright install
-
-# Code quality
+# === CODE QUALITY ===
 lint:
-	@echo "Running linters..."
-	cd frontend && pnpm run lint
-	cd backend && pnpm run lint
-	cd websocket && pnpm run lint
+	@echo "Linting..."
+	@cd frontend && pnpm run lint
+	@cd backend && pnpm run lint
 
 format:
-	@echo "Formatting code..."
-	cd frontend && pnpm run format
-	cd backend && pnpm run format
-	cd websocket && pnpm run format
+	@echo "Formatting..."
+	@cd frontend && pnpm run format
+	@cd backend && pnpm run format
 
-# Building
+# === BUILD ===
 build:
-	@echo "Building Docker images..."
-	docker-compose -f docker-compose.dev.yml build
+	@docker-compose -f docker-compose.dev.yml build
 
 build-prod:
-	@echo "Building production images..."
-	docker-compose -f docker-compose.prod.yml build
+	@docker-compose -f docker-compose.prod.yml build
 
-build-frontend:
-	cd frontend && pnpm run build
-
-build-backend:
-	cd backend && pnpm run build
-
-proto:
-	@echo "Generating code from proto files..."
-	cd proto && ./generate.sh
-
-# Container management
-ps:
-	docker-compose -f docker-compose.dev.yml ps
-
-shell-backend:
-	docker exec -it solfolio-backend /bin/sh
-
-shell-frontend:
-	docker exec -it solfolio-frontend /bin/sh
-
-shell-websocket:
-	docker exec -it solfolio-websocket /bin/sh
-
-shell-postgres:
-	docker exec -it solfolio-postgres /bin/bash
-
-shell-redis:
-	docker exec -it solfolio-redis /bin/sh
-
-# Development tools
-adminer:
-	@echo "Opening Adminer (Database Admin)..."
-	@echo "URL: http://localhost:8082"
-	@echo "System: PostgreSQL"
-	@echo "Server: postgres"
-	@echo "Username: solfolio"
-	@echo "Password: devpassword"
-	@echo "Database: solfolio_dev"
-	docker-compose -f docker-compose.dev.yml --profile tools up -d adminer
-
-redis-commander:
-	@echo "Opening Redis Commander..."
-	@echo "URL: http://localhost:8083"
-	docker-compose -f docker-compose.dev.yml --profile tools up -d redis-commander
-
-# Cleanup
-clean:
-	@echo "Cleaning up..."
-	docker-compose -f docker-compose.dev.yml down -v
-	rm -rf frontend/node_modules frontend/.next frontend/out
-	rm -rf backend/node_modules backend/dist
-	rm -rf websocket/node_modules websocket/dist
-	rm -rf node_modules
-	find . -name "*.log" -type f -delete
-	find . -name ".DS_Store" -type f -delete
-
-clean-docker:
-	@echo "Cleaning Docker resources..."
-	docker-compose -f docker-compose.dev.yml down -v --rmi all
-
-# Health checks
+# === HEALTH CHECK ===
 health:
-	@echo "Checking service health..."
-	@curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Frontend is healthy" || echo "✗ Frontend is not responding"
-	@curl -f http://localhost:8080 > /dev/null 2>&1 && echo "✓ Envoy is healthy" || echo "✗ Envoy is not responding"
-	@curl -f http://localhost:8081 > /dev/null 2>&1 && echo "✓ WebSocket is healthy" || echo "✗ WebSocket is not responding"
-	@docker exec solfolio-postgres pg_isready > /dev/null 2>&1 && echo "✓ PostgreSQL is healthy" || echo "✗ PostgreSQL is not responding"
-	@docker exec solfolio-redis redis-cli ping > /dev/null 2>&1 && echo "✓ Redis is healthy" || echo "✗ Redis is not responding"
+	@echo "Checking services..."
+	@curl -sf http://localhost:3000 > /dev/null && echo "✅ Frontend" || echo "❌ Frontend"
+	@curl -sf http://localhost:3001/health > /dev/null && echo "✅ Backend" || echo "❌ Backend"
+	@curl -sf http://localhost:8081 > /dev/null && echo "✅ WebSocket" || echo "❌ WebSocket"
+	@docker exec solfolio-postgres pg_isready > /dev/null 2>&1 && echo "✅ PostgreSQL" || echo "❌ PostgreSQL"
+	@docker exec solfolio-redis redis-cli ping > /dev/null 2>&1 && echo "✅ Redis" || echo "❌ Redis"
 
-# Environment setup
+# === UTILITIES ===
+shell-fe:
+	@docker exec -it solfolio-frontend /bin/sh
+
+shell-be:
+	@docker exec -it solfolio-backend /bin/sh
+
+shell-db:
+	@docker exec -it solfolio-postgres psql -U solfolio -d solfolio_dev
+
+clean:
+	@docker-compose -f docker-compose.dev.yml down -v
+	@echo "✅ Cleaned Docker volumes"
+
+clean-all: clean
+	@rm -rf */node_modules */.next */dist
+	@echo "✅ Cleaned all build artifacts"
+
+# === SETUP ===
+install:
+	@pnpm install
+	@cd frontend && pnpm install
+	@cd backend && pnpm install
+
 env:
 	@test -f .env || cp .env.example .env
-	@echo ".env file is ready. Please update it with your API keys."
-	@echo ""
-	@echo "IMPORTANT: You must set the following environment variables:"
-	@echo "  - HELIUS_API_KEY: Get from https://www.helius.dev/"
-	@echo "  - NEXT_PUBLIC_HELIUS_RPC_URL: Your Helius RPC endpoint"
-	@echo ""
-	@echo "For testing with devnet (recommended):"
-	@echo "  NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_KEY"
-	@echo "  NEXT_PUBLIC_SOLANA_NETWORK=devnet"
-	@echo ""
-	@test -f frontend/.env.local || cp frontend/.env.local.example frontend/.env.local 2>/dev/null || true
-	@echo "Frontend .env.local file is ready (if template exists)."
+	@echo "✅ .env file ready - update with your API keys"
 
-# Check environment variables
 check-env:
-	@echo "Checking environment configuration..."
-	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
-	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: HELIUS_API_KEY is still using default value" || echo "✅ HELIUS_API_KEY is configured"
-	@grep -q "NEXT_PUBLIC_HELIUS_RPC_URL" .env && echo "✅ NEXT_PUBLIC_HELIUS_RPC_URL is present" || echo "❌ NEXT_PUBLIC_HELIUS_RPC_URL is missing"
-	@echo ""
-	@echo "Current configuration:"
-	@grep "SOLANA_NETWORK=" .env | head -1 || echo "SOLANA_NETWORK not set"
-	@grep "NEXT_PUBLIC_SOLANA_NETWORK=" .env | head -1 || echo "NEXT_PUBLIC_SOLANA_NETWORK not set"
+	@test -f .env || (echo "❌ Missing .env file. Run 'make env' first" && exit 1)
 
-# Quick development shortcuts
+# === SHORTCUTS ===
 d: dev
-u: up
-s: stop
+s: down
 r: restart
 l: logs
+t: test
 c: clean

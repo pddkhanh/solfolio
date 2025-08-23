@@ -25,10 +25,12 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 **Frontend**: Next.js 15+ (App Router), TypeScript, Tailwind CSS, Shadcn UI, Solana Wallet Adapter
 
-**Backend**: gRPC microservices architecture with:
-- Protocol Buffers for service definitions
-- WebSocket Gateway for real-time updates
+**Backend**: NestJS with microservices architecture:
+- NestJS framework with TypeScript
+- Built-in gRPC support with Protocol Buffers
+- WebSocket Gateway using Socket.io for real-time updates
 - Multi-layer caching: Memory → Redis → PostgreSQL
+- Health checks with @nestjs/terminus
 - Docker containerization
 - Envoy Proxy for gRPC-Web translation
 
@@ -39,17 +41,34 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ## Development Commands
 
-### Quick Start
+### Quick Start with Make
 ```bash
-# Start development environment
-make dev
+# Essential commands
+make dev        # Start all services
+make down       # Stop all services
+make test       # Run all tests (frontend + backend + E2E)
+make health     # Check service health
 
-# Run all tests
-make test
+# Testing
+make test-fe    # Frontend unit tests only
+make test-be    # Backend unit tests only
+make test-e2e   # E2E tests only
+make test-watch # Watch mode (interactive)
 
-# Run specific test types
-make test-unit    # Unit tests only
-make test-e2e     # E2E tests only
+# Utilities
+make lint       # Run linters
+make format     # Format code
+make logs       # View all logs
+make logs-backend # View specific service logs
+make shell-be   # Backend container shell
+make shell-fe   # Frontend container shell
+make clean      # Clean Docker volumes
+
+# Shortcuts
+make d          # dev
+make s          # down
+make t          # test
+make l          # logs
 ```
 
 ### Frontend Commands
@@ -74,32 +93,34 @@ pnpm run test:e2e:debug # E2E tests in debug mode
 npx playwright install  # Install Playwright browsers
 ```
 
-### Docker Commands
+
+### Backend Commands
 ```bash
-# Core commands
-make dev          # Start all services in development mode
-make down         # Stop all services
-make restart      # Restart all services
-make build        # Rebuild Docker images
-make logs         # View logs for all services
-make logs-frontend # View frontend logs only
+cd backend
 
-# Testing in Docker
-make test         # Run all tests (unit + E2E)
-make test-unit    # Run unit tests in Docker
-make test-e2e     # Run E2E tests in Docker
+# Development
+pnpm run start:dev    # Development server with hot-reload
+pnpm run start:debug  # Debug mode
+pnpm run start:prod   # Production mode
 
-# Utility commands
-make clean        # Clean Docker volumes and cache
-make shell-frontend # Open shell in frontend container
-```
+# Building
+pnpm run build        # Build for production
 
-### Backend Services (when implemented)
-```bash
-cd services/[service-name]
-pnpm run dev      # Development with nodemon
-pnpm run build    # TypeScript compilation
-pnpm test         # Run tests
+# Testing
+pnpm run test         # Run unit tests
+pnpm run test:watch   # Run tests in watch mode
+pnpm run test:cov     # Generate test coverage
+pnpm run test:e2e     # Run e2e tests
+
+# Code quality
+pnpm run lint         # Run ESLint
+pnpm run format       # Format code with Prettier
+
+# Health Check Endpoints
+# http://localhost:3001/health       - Full health check
+# http://localhost:3001/health/ping  - Simple ping
+# http://localhost:3001/health/ready - Readiness check
+# http://localhost:3001/health/live  - Liveness check
 ```
 
 ## Project Structure (Planned)
