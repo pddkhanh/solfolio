@@ -93,27 +93,33 @@ Helius provides fast, reliable RPC access to Solana:
 
 #### 2. Environment Configuration
 
-Create/update the `.env.local` file in the `frontend` directory:
+You need to configure environment variables in TWO places:
 
+##### For Docker Development (`.env` in root directory):
 ```bash
-# frontend/.env.local
-
-# Network Configuration (use 'devnet' for testing)
-NEXT_PUBLIC_SOLANA_NETWORK=devnet
-
-# Helius RPC URL (recommended for better performance)
-# Get your key from https://helius.dev
+# Root .env file (for Docker)
+HELIUS_API_KEY=YOUR_HELIUS_API_KEY_HERE
+HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_HELIUS_API_KEY_HERE
 NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_HELIUS_API_KEY_HERE
-
-# Alternative: Use public Solana RPC (slower, may have rate limits)
-# NEXT_PUBLIC_CUSTOM_RPC_URL=https://api.devnet.solana.com
-
-# Future: Jupiter Price API (for token prices)
-# No API key needed, but included for reference
-NEXT_PUBLIC_JUPITER_API_URL=https://price.jup.ag/v4
+SOLANA_NETWORK=devnet
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
 ```
 
-**Note:** Never commit `.env.local` to git! It's already in `.gitignore`.
+##### For Local Development (`frontend/.env.local`):
+```bash
+# frontend/.env.local
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_HELIUS_API_KEY_HERE
+
+# Optional: Fallback to public RPC (slower, may have rate limits)
+# NEXT_PUBLIC_CUSTOM_RPC_URL=https://api.devnet.solana.com
+```
+
+**Important Notes:**
+- Replace `YOUR_HELIUS_API_KEY_HERE` with your actual API key from Helius
+- Both files need the same network configuration (devnet for testing)
+- Never commit `.env` or `.env.local` to git! They're in `.gitignore`
+- The `NEXT_PUBLIC_` prefix is required for frontend environment variables
 
 ---
 
