@@ -53,8 +53,9 @@ export class PriceService {
     // Fetch prices for tokens not in cache
     if (mintsToFetch.length > 0) {
       try {
-        const freshPrices = await this.jupiterPriceService.getTokenPrices(mintsToFetch);
-        
+        const freshPrices =
+          await this.jupiterPriceService.getTokenPrices(mintsToFetch);
+
         // Update cache and result
         for (const [mint, price] of freshPrices) {
           this.priceCache.set(mint, {
@@ -70,7 +71,9 @@ export class PriceService {
           const cached = this.priceCache.get(mint);
           if (cached) {
             result.set(mint, cached.price);
-            this.logger.warn(`Using expired cache for ${mint} due to fetch error`);
+            this.logger.warn(
+              `Using expired cache for ${mint} due to fetch error`,
+            );
           }
         }
       }
@@ -134,7 +137,9 @@ export class PriceService {
 
     const totalValue = tokenValues.reduce((sum, tv) => sum + tv.usdValue, 0);
 
-    this.logger.log(`Calculated total portfolio value: $${totalValue.toFixed(2)}`);
+    this.logger.log(
+      `Calculated total portfolio value: $${totalValue.toFixed(2)}`,
+    );
 
     return {
       totalValue,
@@ -158,10 +163,12 @@ export class PriceService {
     entries: Array<{ mint: string; age: number }>;
   } {
     const now = Date.now();
-    const entries = Array.from(this.priceCache.entries()).map(([mint, cached]) => ({
-      mint,
-      age: Math.round((now - cached.timestamp) / 1000), // age in seconds
-    }));
+    const entries = Array.from(this.priceCache.entries()).map(
+      ([mint, cached]) => ({
+        mint,
+        age: Math.round((now - cached.timestamp) / 1000), // age in seconds
+      }),
+    );
 
     return {
       size: this.priceCache.size,

@@ -77,9 +77,9 @@ export class WalletService {
 
       // Get real token prices including SOL
       const SOL_MINT = 'So11111111111111111111111111111111111112';
-      const tokenMints = [SOL_MINT, ...tokenBalances.map(t => t.mint)];
+      const tokenMints = [SOL_MINT, ...tokenBalances.map((t) => t.mint)];
       const prices = await this.priceService.getTokenPrices(tokenMints);
-      
+
       // Update token balances with real USD values
       const solPrice = prices.get(SOL_MINT) || 0;
       for (const token of tokenBalances) {

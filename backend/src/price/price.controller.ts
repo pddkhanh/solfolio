@@ -21,7 +21,8 @@ export class PriceController {
     name: 'mints',
     required: true,
     description: 'Comma-separated list of token mint addresses',
-    example: 'So11111111111111111111111111111111111112,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    example:
+      'So11111111111111111111111111111111111112,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
   })
   @ApiQuery({
     name: 'refresh',
@@ -49,7 +50,10 @@ export class PriceController {
     }
 
     const forceRefresh = refresh === 'true';
-    const prices = await this.priceService.getTokenPrices(mintArray, forceRefresh);
+    const prices = await this.priceService.getTokenPrices(
+      mintArray,
+      forceRefresh,
+    );
 
     const result = Array.from(prices.entries()).map(([mint, price]) => ({
       mint,

@@ -49,7 +49,7 @@ export class JupiterPriceService {
     try {
       const uniqueMints = [...new Set(tokenMints)];
       const ids = uniqueMints.join(',');
-      
+
       const url = `${this.JUPITER_PRICE_API}/price`;
       const params = {
         ids,
@@ -57,23 +57,27 @@ export class JupiterPriceService {
       };
 
       this.logger.debug(`Fetching prices for ${uniqueMints.length} tokens`);
-      
+
       const response = await firstValueFrom(
         this.httpService.get<JupiterPriceResponse>(url, { params }),
       );
 
       const priceMap = new Map<string, number>();
-      
+
       if (response.data && response.data.data) {
         for (const [mint, priceData] of Object.entries(response.data.data)) {
           if (priceData && priceData.price) {
             priceMap.set(mint, priceData.price);
-            this.logger.debug(`Price for ${priceData.mintSymbol || mint}: $${priceData.price}`);
+            this.logger.debug(
+              `Price for ${priceData.mintSymbol || mint}: $${priceData.price}`,
+            );
           }
         }
       }
 
-      this.logger.log(`Successfully fetched prices for ${priceMap.size}/${uniqueMints.length} tokens`);
+      this.logger.log(
+        `Successfully fetched prices for ${priceMap.size}/${uniqueMints.length} tokens`,
+      );
       return priceMap;
     } catch (error) {
       this.logger.error('Failed to fetch token prices from Jupiter', error);
@@ -98,11 +102,11 @@ export class JupiterPriceService {
   async getSolPrice(): Promise<number> {
     const SOL_MINT = 'So11111111111111111111111111111111111112';
     const price = await this.getTokenPrice(SOL_MINT);
-    
+
     if (!price) {
       throw new Error('Failed to fetch SOL price');
     }
-    
+
     return price;
   }
 }

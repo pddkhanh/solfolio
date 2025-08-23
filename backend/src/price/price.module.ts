@@ -6,10 +6,7 @@ import { JupiterPriceService } from './jupiter-price.service';
 import { PriceController } from './price.controller';
 
 @Module({
-  imports: [
-    HttpModule,
-    ConfigModule,
-  ],
+  imports: [HttpModule, ConfigModule],
   controllers: [PriceController],
   providers: [PriceService, JupiterPriceService],
   exports: [PriceService, JupiterPriceService],
