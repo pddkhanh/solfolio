@@ -4,6 +4,7 @@ import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
 import { TokenMetadataService } from './token-metadata.service';
+import { PriceService } from '../price/price.service';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 
@@ -51,6 +52,17 @@ describe('WalletService', () => {
               name: 'Test Token',
               logoUri: 'https://test.com/logo.png',
             }),
+          },
+        },
+        {
+          provide: PriceService,
+          useValue: {
+            getTokenPrices: jest.fn().mockResolvedValue(
+              new Map([
+                ['So11111111111111111111111111111111111112', 100],
+                ['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 1],
+              ]),
+            ),
           },
         },
       ],
