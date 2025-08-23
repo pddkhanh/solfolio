@@ -41,4 +41,5 @@ export class HealthController {
   @Get('live')
   liveness() {
     return { status: 'alive', timestamp: new Date().toISOString() };
-  }}
+  }
+}

@@ -70,7 +70,7 @@ describe('WalletInfo', () => {
         connected: true,
         wallet: {
           adapter: {
-            name: 'Phantom',
+            name: 'Phantom' as any,
             url: 'https://phantom.app',
             icon: 'phantom-icon',
             readyState: 'Installed' as any,
@@ -85,7 +85,7 @@ describe('WalletInfo', () => {
             signAllTransactions: jest.fn(),
             signMessage: jest.fn(),
             signIn: jest.fn(),
-          },
+          } as any,
           readyState: 'Installed' as any,
         },
         connecting: false,
@@ -249,7 +249,7 @@ describe('WalletInfo', () => {
         connected: true,
         wallet: {
           adapter: {
-            name: 'Phantom',
+            name: 'Phantom' as any,
             url: 'https://phantom.app',
             icon: 'phantom-icon',
             readyState: 'Installed' as any,
@@ -264,7 +264,7 @@ describe('WalletInfo', () => {
             signAllTransactions: jest.fn(),
             signMessage: jest.fn(),
             signIn: jest.fn(),
-          },
+          } as any,
           readyState: 'Installed' as any,
         },
         connecting: false,
@@ -295,7 +295,7 @@ describe('WalletInfo', () => {
         connected: true,
         wallet: {
           adapter: {
-            name: 'Solflare',
+            name: 'Solflare' as any,
             url: 'https://solflare.com',
             icon: 'solflare-icon',
             readyState: 'Installed' as any,
@@ -310,7 +310,7 @@ describe('WalletInfo', () => {
             signAllTransactions: jest.fn(),
             signMessage: jest.fn(),
             signIn: jest.fn(),
-          },
+          } as any,
           readyState: 'Installed' as any,
         },
         connecting: false,

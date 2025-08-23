@@ -4,10 +4,34 @@ Refer to docs/work-breakdown.md file, let's work on task $ARGUMENTS
 - From main branch, pull the latest from remote.
 - Create new branch with descriptive name (e.g., feat/wallet-connection, fix/cache-issue, chore/update-deps).
 - Implement the feature/fix with proper error handling and edge cases.
-- Tests much be included for new functionality (unit tests, integration tests as appropriate).
-- Run existing tests and ensure all pass (run `make test`).
-- Run lint and type checks before committing (npm run lint, npm run typecheck, etc.).
+- Tests must be included for new functionality (unit tests, integration tests as appropriate).
 - When implementing, commit to git after completing each logical sub-task with short and concise message, so that we can see the work history that was done to finish a task.
+
+## MANDATORY CHECKS BEFORE CREATING PR:
+**IMPORTANT: All these checks MUST pass locally before creating a PR**
+
+### Frontend Checks:
+```bash
+cd frontend
+pnpm run lint          # Must pass with no errors
+pnpm run typecheck      # Must pass with no errors  
+pnpm run test           # All tests must pass
+pnpm run build          # Build must succeed
+```
+
+### Backend Checks:
+```bash
+cd backend
+pnpm run lint          # Must pass with no errors
+pnpm run test          # All tests must pass
+pnpm run build         # Build must succeed
+```
+
+### Overall Project:
+```bash
+make test              # Run all project tests (or test each service individually above)
+```
+
 - After completed, update the docs/work-breakdown.md file to mark the corresponding task(s) as completed.
 - Update related docs/files (only if necessary). For example to update the README.md / CLAUDE.md if introducing new service / component / command that will be used across the development process.
 - Push and create PR to main with clear description of changes, testing done, and any breaking changes (use gh CLI).

@@ -154,6 +154,23 @@ solfolio/
    - Always use `--forceExit` flag to prevent hanging tests
 6. **Performance**: Target <2s page load time, <100ms for cached data retrieval
 
+## MANDATORY PR REQUIREMENTS
+
+**CRITICAL**: Before creating any PR, ALL of the following checks MUST pass locally:
+
+### Frontend:
+- `pnpm run lint` - No errors allowed
+- `pnpm run typecheck` - No TypeScript errors
+- `pnpm run test` - All tests must pass
+- `pnpm run build` - Build must succeed
+
+### Backend:
+- `pnpm run lint` - No errors allowed  
+- `pnpm run test` - All tests must pass
+- `pnpm run build` - Build must succeed
+
+**GitHub Actions will automatically run these checks on every PR. PRs with failing checks cannot be merged.**
+
 ## Implementation Phases
 
 Follow the iterative approach in `docs/work-breakdown.md`:
