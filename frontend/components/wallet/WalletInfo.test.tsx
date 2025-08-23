@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useWallet, useConnection } from '@solana/wallet-adapter-react'
 import { PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
@@ -194,7 +194,10 @@ describe('WalletInfo', () => {
       
       // Simulate account change with new balance
       const newBalance = 2.5 * LAMPORTS_PER_SOL
-      callback({ lamports: newBalance })
+      
+      await act(async () => {
+        callback({ lamports: newBalance })
+      })
       
       await waitFor(() => {
         expect(screen.getByText('2.5000 SOL')).toBeInTheDocument()
@@ -233,8 +236,8 @@ describe('WalletInfo', () => {
 
   describe('wallet switching', () => {
     it('refetches balance when wallet changes', async () => {
-      const publicKey1 = new PublicKey('11111111111111111111111111111111')
-      const publicKey2 = new PublicKey('22222222222222222222222222222222')
+      const publicKey1 = new PublicKey('11111111111111111111111111111112')
+      const publicKey2 = new PublicKey('11111111111111111111111111111113')
       
       const { rerender } = render(<WalletInfo />)
       

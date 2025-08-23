@@ -8,11 +8,14 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ## Current Status
 
-**Active Development** - Phase 1 in progress (1/15 tasks completed):
+**Active Development** - Phase 1 in progress (9/15 tasks completed - 60%):
 - Product Requirements Document: `docs/prd.md`
 - Technical Architecture: `docs/tech-arch.md`
 - Work Breakdown Structure: `docs/work-breakdown.md`
 - Frontend initialized with Next.js 15, TypeScript, and Tailwind CSS
+- Wallet connection fully implemented with tests
+- E2E testing infrastructure set up with Playwright
+- Comprehensive Web3 testing documentation: `WEB3_TESTING_SETUP.md`
 
 ## Architecture Overview
 
@@ -36,40 +39,67 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ## Development Commands
 
-Since the project hasn't been initialized yet, when setting up:
-
-### Initial Setup (Phase 0)
+### Quick Start
 ```bash
-# Install pnpm globally
-npm install -g pnpm@9.14.2
+# Start development environment
+make dev
 
-# Create monorepo structure
-mkdir -p apps/web apps/backend services packages/proto
-cd apps/web && pnpm create next-app@latest . --typescript --tailwind --app
-cd ../backend && pnpm init
+# Run all tests
+make test
+
+# Run specific test types
+make test-unit    # Unit tests only
+make test-e2e     # E2E tests only
 ```
 
-### Future Development Commands (once initialized)
+### Frontend Commands
 ```bash
-# Frontend
-cd apps/web
-pnpm run dev      # Development server
-pnpm run build    # Production build
-pnpm run lint     # Linting
+cd frontend
 
-# Backend services
+# Development
+pnpm run dev          # Development server
+pnpm run build        # Production build
+pnpm run lint         # Linting
+pnpm run format       # Format code with Prettier
+
+# Testing
+pnpm run test         # Unit tests with Jest
+pnpm run test:watch   # Unit tests in watch mode
+pnpm run test:coverage # Unit tests with coverage report
+pnpm run test:e2e     # E2E tests with Playwright
+pnpm run test:e2e:ui  # E2E tests in UI mode (recommended for debugging)
+pnpm run test:e2e:debug # E2E tests in debug mode
+
+# First time E2E setup
+npx playwright install  # Install Playwright browsers
+```
+
+### Docker Commands
+```bash
+# Core commands
+make dev          # Start all services in development mode
+make down         # Stop all services
+make restart      # Restart all services
+make build        # Rebuild Docker images
+make logs         # View logs for all services
+make logs-frontend # View frontend logs only
+
+# Testing in Docker
+make test         # Run all tests (unit + E2E)
+make test-unit    # Run unit tests in Docker
+make test-e2e     # Run E2E tests in Docker
+
+# Utility commands
+make clean        # Clean Docker volumes and cache
+make shell-frontend # Open shell in frontend container
+```
+
+### Backend Services (when implemented)
+```bash
 cd services/[service-name]
 pnpm run dev      # Development with nodemon
 pnpm run build    # TypeScript compilation
 pnpm test         # Run tests
-
-# Protocol Buffers
-cd packages/proto
-pnpm run generate # Generate TypeScript/JS from .proto files
-
-# Docker
-docker-compose up -d     # Start all services
-docker-compose logs -f   # View logs
 ```
 
 ## Project Structure (Planned)

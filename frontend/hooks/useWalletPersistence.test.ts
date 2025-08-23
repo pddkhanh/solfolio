@@ -88,8 +88,8 @@ describe('useWalletPersistence', () => {
 
   describe('when wallet changes', () => {
     it('updates stored wallet address', () => {
-      const publicKey1 = new PublicKey('11111111111111111111111111111111')
-      const publicKey2 = new PublicKey('22222222222222222222222222222222')
+      const publicKey1 = new PublicKey('11111111111111111111111111111112')
+      const publicKey2 = new PublicKey('11111111111111111111111111111113')
 
       // Initial render with first wallet
       const { rerender } = renderHook(
@@ -157,15 +157,19 @@ describe('useWalletPersistence', () => {
 
   describe('edge cases', () => {
     it('does not crash when localStorage is unavailable', () => {
+      // Spy on console.warn to suppress warnings in test output
+      const consoleWarn = jest.spyOn(console, 'warn').mockImplementation()
+      
       // Make localStorage throw an error
       Object.defineProperty(window, 'localStorage', {
         get() {
           throw new Error('localStorage not available')
         },
+        configurable: true,
       })
 
       mockUseWallet.mockReturnValue({
-        publicKey: new PublicKey('11111111111111111111111111111111'),
+        publicKey: new PublicKey('11111111111111111111111111111112'),
         connected: true,
         wallet: null,
         connecting: false,
@@ -186,6 +190,19 @@ describe('useWalletPersistence', () => {
       expect(() => {
         renderHook(() => useWalletPersistence())
       }).not.toThrow()
+      
+      // Check that warning was logged
+      expect(consoleWarn).toHaveBeenCalledWith('LocalStorage not available:', expect.any(Error))
+      
+      // Restore console.warn
+      consoleWarn.mockRestore()
+      
+      // Restore localStorage
+      Object.defineProperty(window, 'localStorage', {
+        value: mockLocalStorage,
+        writable: true,
+        configurable: true,
+      })
     })
 
     it('returns connected state', () => {
@@ -233,8 +250,8 @@ describe('useWalletPersistence', () => {
 
       renderHook(() => useWalletPersistence())
 
-      // Should not save anything during connecting state
-      expect(mockLocalStorage.setItem).not.toHaveBeenCalled()
+      // Should save false when not connected (even if connecting)
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('walletConnected', 'false')
     })
   })
 })

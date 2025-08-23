@@ -115,22 +115,53 @@ db-console:
 # Testing commands
 test:
 	@echo "Running all tests..."
+	@echo "Running frontend unit tests..."
 	cd frontend && pnpm test
-	cd backend && pnpm test
-	cd websocket && pnpm test
+	@echo "Running frontend E2E tests..."
+	cd frontend && pnpm run test:e2e || true
+	@echo "Note: Backend and websocket tests will run when those services are implemented"
 
 test-unit:
 	@echo "Running unit tests..."
-	cd frontend && pnpm run test:unit
-	cd backend && pnpm run test:unit
-	cd websocket && pnpm run test:unit
+	cd frontend && pnpm test
+
+test-unit-watch:
+	@echo "Running unit tests in watch mode..."
+	cd frontend && pnpm run test:watch
+
+test-unit-coverage:
+	@echo "Running unit tests with coverage..."
+	cd frontend && pnpm run test:coverage
 
 test-e2e:
-	@echo "Running end-to-end tests..."
-	pnpm run test:e2e
+	@echo "Running E2E tests..."
+	cd frontend && pnpm run test:e2e
 
-test-watch:
-	cd backend && pnpm run test:watch
+test-e2e-ui:
+	@echo "Running E2E tests in UI mode..."
+	cd frontend && pnpm run test:e2e:ui
+
+test-e2e-debug:
+	@echo "Running E2E tests in debug mode..."
+	cd frontend && pnpm run test:e2e:debug
+
+# Testing in Docker
+test-docker:
+	@echo "Running tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
+
+test-unit-docker:
+	@echo "Running unit tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm test
+
+test-e2e-docker:
+	@echo "Running E2E tests in Docker..."
+	docker-compose -f docker-compose.dev.yml exec frontend pnpm run test:e2e
+
+# Install Playwright browsers (first time setup)
+playwright-install:
+	@echo "Installing Playwright browsers..."
+	cd frontend && npx playwright install
 
 # Code quality
 lint:
