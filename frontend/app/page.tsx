@@ -1,68 +1,77 @@
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Welcome to&nbsp;
-          <code className="font-mono font-bold">SolFolio</code>
+    <div className="container mx-auto px-4 py-12">
+      {/* Hero Section */}
+      <section className="text-center mb-16">
+        <div className="relative inline-block">
+          <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-blue-400 via-purple-500 to-pink-400 opacity-30 rounded-full"></div>
+          <h1 className="relative text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Solana DeFi Portfolio Tracker
+          </h1>
+        </div>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          Track all your DeFi positions across Marinade, Kamino, Orca, Raydium and more in one unified dashboard.
         </p>
-      </div>
+        <button className="inline-flex items-center justify-center rounded-md text-base font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8">
+          Connect Wallet to Get Started
+        </button>
+      </section>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <h1 className="text-4xl font-bold text-center">
-          Solana DeFi Portfolio Tracker
-        </h1>
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">
-            Connect Wallet{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Connect your Solana wallet to start tracking your DeFi positions.
+      {/* Features Grid */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="group rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:border-primary/50">
+          <div className="mb-4 h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
+            1
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Connect Wallet</h3>
+          <p className="text-sm text-muted-foreground">
+            Securely connect your Solana wallet to start tracking your DeFi positions.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">
-            View Positions{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            See all your DeFi positions across multiple protocols in one place.
+        <div className="group rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:border-primary/50">
+          <div className="mb-4 h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold">
+            2
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Auto-Detection</h3>
+          <p className="text-sm text-muted-foreground">
+            Automatically detect and display all your positions across supported protocols.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">
-            Track Performance{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Monitor your portfolio performance with real-time price updates.
+        <div className="group rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:border-primary/50">
+          <div className="mb-4 h-12 w-12 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center text-white font-bold">
+            3
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Real-Time Updates</h3>
+          <p className="text-sm text-muted-foreground">
+            Monitor your portfolio with live price updates and position changes.
           </p>
         </div>
 
-        <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30">
-          <h2 className="mb-3 text-2xl font-semibold">
-            Export Data{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Export your portfolio data for tax reporting and analysis.
+        <div className="group rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:border-primary/50">
+          <div className="mb-4 h-12 w-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
+            4
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Export & Analyze</h3>
+          <p className="text-sm text-muted-foreground">
+            Export your data for tax reporting and deeper portfolio analysis.
           </p>
         </div>
-      </div>
-    </main>
+      </section>
+
+      {/* Supported Protocols */}
+      <section className="text-center">
+        <h2 className="text-3xl font-bold mb-8">Supported Protocols</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          {['Marinade', 'Kamino', 'Orca', 'Raydium', 'Jito', 'Marginfi', 'Drift', 'Meteora'].map((protocol) => (
+            <div key={protocol} className="rounded-lg border bg-card p-4 hover:border-primary/50 transition-colors">
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 mx-auto mb-2"></div>
+              <p className="text-sm font-medium">{protocol}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
   )
 }
