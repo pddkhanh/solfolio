@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PublicKey } from '@solana/web3.js';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
-import { 
+import {
   findMetadataPda,
   fetchMetadata,
   Metadata,
@@ -56,7 +56,7 @@ export class TokenMetadataService {
         symbol: 'Unknown',
         name: `Token (${mintAddress.slice(0, 4)}...${mintAddress.slice(-4)})`,
       };
-      
+
       this.cacheMetadata(mintAddress, basicMetadata);
       return basicMetadata;
     } catch (error) {
@@ -68,11 +68,11 @@ export class TokenMetadataService {
   private getCachedMetadata(mintAddress: string): TokenMetadata | null {
     const cached = this.metadataCache.get(mintAddress);
     const timestamp = this.cacheTimestamps.get(mintAddress);
-    
+
     if (cached && timestamp && Date.now() - timestamp < this.CACHE_TTL) {
       return cached;
     }
-    
+
     return null;
   }
 
@@ -81,13 +81,15 @@ export class TokenMetadataService {
     this.cacheTimestamps.set(mintAddress, Date.now());
   }
 
-  private async fetchOnChainMetadata(mintAddress: string): Promise<TokenMetadata | null> {
+  private async fetchOnChainMetadata(
+    mintAddress: string,
+  ): Promise<TokenMetadata | null> {
     try {
       const mintPubkey = publicKey(mintAddress);
       const metadataPda = findMetadataPda(this.umi, { mint: mintPubkey });
-      
+
       const metadata = await fetchMetadata(this.umi, metadataPda);
-      
+
       if (metadata) {
         const tokenMetadata: TokenMetadata = {
           symbol: metadata.symbol || 'Unknown',
@@ -102,7 +104,9 @@ export class TokenMetadataService {
               tokenMetadata.logoUri = response.data.image;
             }
           } catch (error) {
-            this.logger.debug(`Failed to fetch off-chain metadata from ${metadata.uri}`);
+            this.logger.debug(
+              `Failed to fetch off-chain metadata from ${metadata.uri}`,
+            );
           }
         }
 
@@ -111,19 +115,21 @@ export class TokenMetadataService {
     } catch (error) {
       this.logger.debug(`Failed to fetch on-chain metadata for ${mintAddress}`);
     }
-    
+
     return null;
   }
 
-  private async fetchJupiterMetadata(mintAddress: string): Promise<TokenMetadata | null> {
+  private async fetchJupiterMetadata(
+    mintAddress: string,
+  ): Promise<TokenMetadata | null> {
     try {
-      const response = await axios.get('https://token.jup.ag/all', { 
-        timeout: 10000 
+      const response = await axios.get('https://token.jup.ag/all', {
+        timeout: 10000,
       });
-      
+
       if (response.data && Array.isArray(response.data)) {
         const token = response.data.find((t: any) => t.address === mintAddress);
-        
+
         if (token) {
           return {
             symbol: token.symbol || 'Unknown',
@@ -136,47 +142,51 @@ export class TokenMetadataService {
     } catch (error) {
       this.logger.debug('Failed to fetch Jupiter token list');
     }
-    
+
     return null;
   }
 
   async getCommonTokenMetadata(): Promise<Map<string, TokenMetadata>> {
     const commonTokens = new Map<string, TokenMetadata>();
-    
+
     // Add common Solana tokens
     commonTokens.set('So11111111111111111111111111111111111111112', {
       symbol: 'SOL',
       name: 'Solana',
-      logoUri: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
+      logoUri:
+        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png',
       decimals: 9,
     });
-    
+
     commonTokens.set('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', {
       symbol: 'USDC',
       name: 'USD Coin',
-      logoUri: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+      logoUri:
+        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
       decimals: 6,
     });
-    
+
     commonTokens.set('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB', {
       symbol: 'USDT',
       name: 'USDT',
-      logoUri: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
+      logoUri:
+        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png',
       decimals: 6,
     });
-    
+
     commonTokens.set('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So', {
       symbol: 'mSOL',
       name: 'Marinade staked SOL',
-      logoUri: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+      logoUri:
+        'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
       decimals: 9,
     });
-    
+
     // Cache all common tokens
     commonTokens.forEach((metadata, mint) => {
       this.cacheMetadata(mint, metadata);
     });
-    
+
     return commonTokens;
   }
 }

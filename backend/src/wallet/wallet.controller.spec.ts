@@ -16,12 +16,12 @@ describe('WalletController', () => {
     },
     tokens: [
       {
-        mint: 'TokenMint11111111111111111111111111111111111',
+        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         owner: '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
         amount: '1000000',
         decimals: 6,
         uiAmount: 1,
-        tokenAccount: 'TokenAccount11111111111111111111111111111111',
+        tokenAccount: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
       },
     ],
     totalAccounts: 1,
@@ -63,15 +63,23 @@ describe('WalletController', () => {
     it('should throw BAD_REQUEST for invalid address format', async () => {
       const invalidAddress = 'invalid-address';
 
-      await expect(controller.getWalletBalances(invalidAddress)).rejects.toThrow(
-        new HttpException('Invalid Solana wallet address', HttpStatus.BAD_REQUEST),
+      await expect(
+        controller.getWalletBalances(invalidAddress),
+      ).rejects.toThrow(
+        new HttpException(
+          'Invalid Solana wallet address',
+          HttpStatus.BAD_REQUEST,
+        ),
       );
       expect(walletService.getWalletBalances).not.toHaveBeenCalled();
     });
 
     it('should throw BAD_REQUEST for empty address', async () => {
       await expect(controller.getWalletBalances('')).rejects.toThrow(
-        new HttpException('Invalid Solana wallet address', HttpStatus.BAD_REQUEST),
+        new HttpException(
+          'Invalid Solana wallet address',
+          HttpStatus.BAD_REQUEST,
+        ),
       );
       expect(walletService.getWalletBalances).not.toHaveBeenCalled();
     });
@@ -79,8 +87,13 @@ describe('WalletController', () => {
     it('should throw BAD_REQUEST for address with invalid characters', async () => {
       const invalidAddress = '0OIl+/=address';
 
-      await expect(controller.getWalletBalances(invalidAddress)).rejects.toThrow(
-        new HttpException('Invalid Solana wallet address', HttpStatus.BAD_REQUEST),
+      await expect(
+        controller.getWalletBalances(invalidAddress),
+      ).rejects.toThrow(
+        new HttpException(
+          'Invalid Solana wallet address',
+          HttpStatus.BAD_REQUEST,
+        ),
       );
       expect(walletService.getWalletBalances).not.toHaveBeenCalled();
     });
@@ -91,16 +104,24 @@ describe('WalletController', () => {
       walletService.getWalletBalances.mockRejectedValue(error);
 
       await expect(controller.getWalletBalances(address)).rejects.toThrow(
-        new HttpException('Failed to fetch wallet balances', HttpStatus.INTERNAL_SERVER_ERROR),
+        new HttpException(
+          'Failed to fetch wallet balances',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
       );
     });
 
     it('should rethrow HttpExceptions from service', async () => {
       const address = '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
-      const httpException = new HttpException('Service error', HttpStatus.SERVICE_UNAVAILABLE);
+      const httpException = new HttpException(
+        'Service error',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
       walletService.getWalletBalances.mockRejectedValue(httpException);
 
-      await expect(controller.getWalletBalances(address)).rejects.toThrow(httpException);
+      await expect(controller.getWalletBalances(address)).rejects.toThrow(
+        httpException,
+      );
     });
   });
 });

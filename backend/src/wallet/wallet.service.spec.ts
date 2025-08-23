@@ -86,14 +86,14 @@ describe('WalletService', () => {
 
     it('should fetch token accounts', async () => {
       mockConnection.getBalance.mockResolvedValue(0);
-      
+
       const mockTokenAccount = {
-        pubkey: new PublicKey('TokenAccount11111111111111111111111111111111'),
+        pubkey: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         account: {
           data: {
             parsed: {
               info: {
-                mint: 'TokenMint11111111111111111111111111111111111',
+                mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
                 owner: testWalletAddress,
                 tokenAmount: {
                   amount: '1000000',
@@ -109,7 +109,7 @@ describe('WalletService', () => {
       mockConnection.getParsedTokenAccountsByOwner.mockResolvedValueOnce({
         value: [mockTokenAccount],
       } as any);
-      
+
       mockConnection.getParsedTokenAccountsByOwner.mockResolvedValueOnce({
         value: [],
       } as any);
@@ -118,25 +118,27 @@ describe('WalletService', () => {
 
       expect(result.tokens).toHaveLength(1);
       expect(result.tokens[0]).toMatchObject({
-        mint: 'TokenMint11111111111111111111111111111111111',
+        mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         owner: testWalletAddress,
         amount: '1000000',
         decimals: 6,
         uiAmount: 1,
+        symbol: 'TEST',
+        name: 'Test Token',
       });
       expect(result.totalAccounts).toBe(1);
     });
 
     it('should filter out zero balance tokens', async () => {
       mockConnection.getBalance.mockResolvedValue(0);
-      
+
       const mockTokenAccount = {
-        pubkey: new PublicKey('TokenAccount11111111111111111111111111111111'),
+        pubkey: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
         account: {
           data: {
             parsed: {
               info: {
-                mint: 'TokenMint11111111111111111111111111111111111',
+                mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
                 owner: testWalletAddress,
                 tokenAmount: {
                   amount: '0',
@@ -167,14 +169,16 @@ describe('WalletService', () => {
 
       await service.getWalletBalances(testWalletAddress);
 
-      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledTimes(2);
+      expect(
+        mockConnection.getParsedTokenAccountsByOwner,
+      ).toHaveBeenCalledTimes(2);
       expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
         expect.any(PublicKey),
-        { programId: TOKEN_PROGRAM_ID }
+        { programId: TOKEN_PROGRAM_ID },
       );
       expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
         expect.any(PublicKey),
-        { programId: TOKEN_2022_PROGRAM_ID }
+        { programId: TOKEN_2022_PROGRAM_ID },
       );
     });
 
@@ -193,7 +197,9 @@ describe('WalletService', () => {
       const error = new Error('Connection failed');
       mockConnection.getBalance.mockRejectedValue(error);
 
-      await expect(service.getWalletBalances(testWalletAddress)).rejects.toThrow(error);
+      await expect(
+        service.getWalletBalances(testWalletAddress),
+      ).rejects.toThrow(error);
     });
   });
 });

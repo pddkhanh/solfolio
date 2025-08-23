@@ -51,7 +51,7 @@ export class WalletService {
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
     try {
       await this.rateLimiter.checkLimit();
-      
+
       const publicKey = new PublicKey(walletAddress);
       const connection = this.blockchainService.getConnection();
 
@@ -60,7 +60,10 @@ export class WalletService {
         this.getTokenAccounts(publicKey, connection),
       ]);
 
-      const tokenBalances = await this.parseTokenAccounts(tokenAccounts, connection);
+      const tokenBalances = await this.parseTokenAccounts(
+        tokenAccounts,
+        connection,
+      );
 
       return {
         wallet: walletAddress,
@@ -70,7 +73,10 @@ export class WalletService {
         fetchedAt: new Date(),
       };
     } catch (error) {
-      this.logger.error(`Failed to get wallet balances for ${walletAddress}`, error);
+      this.logger.error(
+        `Failed to get wallet balances for ${walletAddress}`,
+        error,
+      );
       throw error;
     }
   }
@@ -79,8 +85,8 @@ export class WalletService {
     publicKey: PublicKey,
     connection: Connection,
   ): Promise<{ amount: string; decimals: number; uiAmount: number }> {
-    const balance = await this.connectionManager.executeWithRetry(
-      () => connection.getBalance(publicKey),
+    const balance = await this.connectionManager.executeWithRetry(() =>
+      connection.getBalance(publicKey),
     );
 
     return {
@@ -91,16 +97,17 @@ export class WalletService {
   }
 
   private async getTokenAccounts(publicKey: PublicKey, connection: Connection) {
-    const tokenAccounts = await this.connectionManager.executeWithRetry(
-      () => connection.getParsedTokenAccountsByOwner(publicKey, {
+    const tokenAccounts = await this.connectionManager.executeWithRetry(() =>
+      connection.getParsedTokenAccountsByOwner(publicKey, {
         programId: TOKEN_PROGRAM_ID,
       }),
     );
 
     const token2022Accounts = await this.connectionManager.executeWithRetry(
-      () => connection.getParsedTokenAccountsByOwner(publicKey, {
-        programId: TOKEN_2022_PROGRAM_ID,
-      }),
+      () =>
+        connection.getParsedTokenAccountsByOwner(publicKey, {
+          programId: TOKEN_2022_PROGRAM_ID,
+        }),
     );
 
     return [...tokenAccounts.value, ...token2022Accounts.value];
@@ -127,7 +134,9 @@ export class WalletService {
             tokenAccount: account.pubkey.toString(),
           };
 
-          const metadata = await this.tokenMetadataService.getTokenMetadata(tokenInfo.mint);
+          const metadata = await this.tokenMetadataService.getTokenMetadata(
+            tokenInfo.mint,
+          );
           if (metadata) {
             tokenBalance.symbol = metadata.symbol;
             tokenBalance.name = metadata.name;
@@ -137,11 +146,13 @@ export class WalletService {
           tokenBalances.push(tokenBalance);
         }
       } catch (error) {
-        this.logger.warn(`Failed to parse token account ${account.pubkey.toString()}`, error);
+        this.logger.warn(
+          `Failed to parse token account ${account.pubkey.toString()}`,
+          error,
+        );
       }
     }
 
     return tokenBalances;
   }
-
 }

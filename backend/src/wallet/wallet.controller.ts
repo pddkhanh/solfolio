@@ -15,7 +15,9 @@ export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Get(':address/balances')
-  async getWalletBalances(@Param('address') address: string): Promise<WalletBalances> {
+  async getWalletBalances(
+    @Param('address') address: string,
+  ): Promise<WalletBalances> {
     try {
       if (!this.isValidSolanaAddress(address)) {
         throw new HttpException(
@@ -26,18 +28,21 @@ export class WalletController {
 
       this.logger.log(`Fetching balances for wallet: ${address}`);
       const balances = await this.walletService.getWalletBalances(address);
-      
+
       this.logger.log(
         `Found ${balances.totalAccounts} token accounts for wallet ${address}`,
       );
-      
+
       return balances;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      
-      this.logger.error(`Failed to fetch wallet balances: ${error.message}`, error.stack);
+
+      this.logger.error(
+        `Failed to fetch wallet balances: ${error.message}`,
+        error.stack,
+      );
       throw new HttpException(
         'Failed to fetch wallet balances',
         HttpStatus.INTERNAL_SERVER_ERROR,
