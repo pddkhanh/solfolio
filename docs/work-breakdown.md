@@ -6,7 +6,7 @@
 ## Progress Tracker
 - **Phase 0**: 10/20 tasks completed (50%) ✅ [KEEP EXISTING]
 - **Phase 1**: 14/15 tasks completed (93%) - Basic Working App (Day 3-4)
-- **Phase 2**: 0/18 tasks - Token Balances & Prices (Day 5-6)  
+- **Phase 2**: 4/18 tasks completed (22%) - Token Balances & Prices (Day 5-6)  
 - **Phase 3**: 0/20 tasks - First Protocol Integration (Day 7-9)
 - **Phase 4**: 0/18 tasks - Multi-Protocol Support (Day 10-12)
 - **Phase 5**: 0/16 tasks - Real-time Updates (Day 13-14)
@@ -15,7 +15,7 @@
 - **Phase 8**: 0/18 tasks - Production Deployment (Day 19-20)
 - **Phase 9**: 0/12 tasks - Monitoring & Launch (Day 21-22)
 
-**Total**: 24/167 tasks (14.4%)
+**Total**: 28/167 tasks (16.8%)
 
 ---
 
@@ -83,10 +83,10 @@
 **Goal**: Display user's token balances with USD values
 
 ### 2.1 Blockchain Connection
-- [ ] **TASK-036** Set up Helius RPC connection in backend (1h)
-- [ ] **TASK-037** Create connection manager with retry logic (1.5h)
-- [ ] **TASK-038** Implement rate limiting for RPC calls (1h)
-- [ ] **TASK-039** Add connection health monitoring (1h)
+- [x] **TASK-036** Set up Helius RPC connection in backend (1h) ✅
+- [x] **TASK-037** Create connection manager with retry logic (1.5h) ✅
+- [x] **TASK-038** Implement rate limiting for RPC calls (1h) ✅
+- [x] **TASK-039** Add connection health monitoring (1h) ✅
 
 ### 2.2 Token Balance Fetching
 - [ ] **TASK-040** Create endpoint to fetch wallet token accounts (2h)
