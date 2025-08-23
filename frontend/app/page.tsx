@@ -1,6 +1,27 @@
+'use client'
+
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useWalletModal } from '@solana/wallet-adapter-react-ui'
+import dynamic from 'next/dynamic'
+
+const WalletInfo = dynamic(
+  () => import('@/components/wallet/WalletInfo'),
+  { ssr: false }
+)
+
 export default function Home() {
+  const { connected } = useWallet()
+  const { setVisible } = useWalletModal()
+
   return (
     <div className="container mx-auto px-4 py-12">
+      {/* Show wallet info if connected */}
+      {connected && (
+        <section className="mb-16 max-w-2xl mx-auto">
+          <WalletInfo />
+        </section>
+      )}
+
       {/* Hero Section */}
       <section className="text-center mb-16">
         <div className="relative inline-block">
@@ -12,9 +33,14 @@ export default function Home() {
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
           Track all your DeFi positions across Marinade, Kamino, Orca, Raydium and more in one unified dashboard.
         </p>
-        <button className="inline-flex items-center justify-center rounded-md text-base font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8">
-          Connect Wallet to Get Started
-        </button>
+        {!connected && (
+          <button 
+            onClick={() => setVisible(true)}
+            className="inline-flex items-center justify-center rounded-md text-base font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8"
+          >
+            Connect Wallet to Get Started
+          </button>
+        )}
       </section>
 
       {/* Features Grid */}
