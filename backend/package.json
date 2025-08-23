@@ -36,6 +36,7 @@
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.4",
     "axios": "^1.11.0",
+    "lucide-react": "^0.541.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
