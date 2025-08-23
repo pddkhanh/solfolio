@@ -79,7 +79,7 @@ describe('HealthController', () => {
           memory_rss: { status: 'up' },
         },
       });
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(healthCheckService.check).toHaveBeenCalled();
     });
   });
@@ -96,7 +96,7 @@ describe('HealthController', () => {
     it('should return readiness status', async () => {
       const result = await controller.readiness();
       expect(result).toBeDefined();
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(healthCheckService.check).toHaveBeenCalled();
     });
   });

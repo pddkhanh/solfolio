@@ -57,7 +57,9 @@ describe('WalletController', () => {
       const result = await controller.getWalletBalances(address);
 
       expect(result).toEqual(mockWalletBalances);
-      expect(walletService.getWalletBalances).toHaveBeenCalledWith(address);
+      expect(walletService.getWalletBalances as jest.Mock).toHaveBeenCalledWith(
+        address,
+      );
     });
 
     it('should throw BAD_REQUEST for invalid address format', async () => {
@@ -71,7 +73,9 @@ describe('WalletController', () => {
           HttpStatus.BAD_REQUEST,
         ),
       );
-      expect(walletService.getWalletBalances).not.toHaveBeenCalled();
+      expect(
+        walletService.getWalletBalances as jest.Mock,
+      ).not.toHaveBeenCalled();
     });
 
     it('should throw BAD_REQUEST for empty address', async () => {
@@ -81,7 +85,9 @@ describe('WalletController', () => {
           HttpStatus.BAD_REQUEST,
         ),
       );
-      expect(walletService.getWalletBalances).not.toHaveBeenCalled();
+      expect(
+        walletService.getWalletBalances as jest.Mock,
+      ).not.toHaveBeenCalled();
     });
 
     it('should throw BAD_REQUEST for address with invalid characters', async () => {
@@ -95,7 +101,9 @@ describe('WalletController', () => {
           HttpStatus.BAD_REQUEST,
         ),
       );
-      expect(walletService.getWalletBalances).not.toHaveBeenCalled();
+      expect(
+        walletService.getWalletBalances as jest.Mock,
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle service errors gracefully', async () => {

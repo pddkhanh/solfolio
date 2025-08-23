@@ -34,7 +34,7 @@ describe('WalletService', () => {
           useValue: {
             executeWithRetry: jest
               .fn()
-              .mockImplementation((fn: () => any) => fn()),
+              .mockImplementation(<T>(fn: () => T): T => fn()),
           },
         },
         {
@@ -176,16 +176,18 @@ describe('WalletService', () => {
       await service.getWalletBalances(testWalletAddress);
 
       expect(
-        mockConnection.getParsedTokenAccountsByOwner,
+        mockConnection.getParsedTokenAccountsByOwner as jest.Mock,
       ).toHaveBeenCalledTimes(2);
-      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
-        expect.any(PublicKey),
-        { programId: TOKEN_PROGRAM_ID },
-      );
-      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
-        expect.any(PublicKey),
-        { programId: TOKEN_2022_PROGRAM_ID },
-      );
+      expect(
+        mockConnection.getParsedTokenAccountsByOwner as jest.Mock,
+      ).toHaveBeenCalledWith(expect.any(PublicKey), {
+        programId: TOKEN_PROGRAM_ID,
+      });
+      expect(
+        mockConnection.getParsedTokenAccountsByOwner as jest.Mock,
+      ).toHaveBeenCalledWith(expect.any(PublicKey), {
+        programId: TOKEN_2022_PROGRAM_ID,
+      });
     });
 
     it('should check rate limits before making requests', async () => {
