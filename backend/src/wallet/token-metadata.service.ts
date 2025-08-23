@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PublicKey } from '@solana/web3.js';
 import { createUmi } from '@metaplex-foundation/umi-bundle-defaults';
 import {
   findMetadataPda,
   fetchMetadata,
-  Metadata,
 } from '@metaplex-foundation/mpl-token-metadata';
 import { publicKey } from '@metaplex-foundation/umi';
 import axios from 'axios';
@@ -86,9 +84,11 @@ export class TokenMetadataService {
   ): Promise<TokenMetadata | null> {
     try {
       const mintPubkey = publicKey(mintAddress);
-      const metadataPda = findMetadataPda(this.umi, { mint: mintPubkey });
+      const metadataPda = findMetadataPda(this.umi, {
+        mint: mintPubkey,
+      });
 
-      const metadata = await fetchMetadata(this.umi, metadataPda);
+      const metadata = await fetchMetadata(this.umi, metadataPda as any);
 
       if (metadata) {
         const tokenMetadata: TokenMetadata = {
@@ -99,11 +99,13 @@ export class TokenMetadataService {
         // Try to fetch off-chain metadata if URI exists
         if (metadata.uri) {
           try {
-            const response = await axios.get(metadata.uri, { timeout: 5000 });
+            const response = await axios.get<{ image?: string }>(metadata.uri, {
+              timeout: 5000,
+            });
             if (response.data && response.data.image) {
               tokenMetadata.logoUri = response.data.image;
             }
-          } catch (error) {
+          } catch {
             this.logger.debug(
               `Failed to fetch off-chain metadata from ${metadata.uri}`,
             );
@@ -112,7 +114,7 @@ export class TokenMetadataService {
 
         return tokenMetadata;
       }
-    } catch (error) {
+    } catch {
       this.logger.debug(`Failed to fetch on-chain metadata for ${mintAddress}`);
     }
 
@@ -123,12 +125,23 @@ export class TokenMetadataService {
     mintAddress: string,
   ): Promise<TokenMetadata | null> {
     try {
-      const response = await axios.get('https://token.jup.ag/all', {
-        timeout: 10000,
-      });
+      interface JupiterToken {
+        address: string;
+        symbol?: string;
+        name?: string;
+        logoURI?: string;
+        decimals?: number;
+      }
+
+      const response = await axios.get<JupiterToken[]>(
+        'https://token.jup.ag/all',
+        {
+          timeout: 10000,
+        },
+      );
 
       if (response.data && Array.isArray(response.data)) {
-        const token = response.data.find((t: any) => t.address === mintAddress);
+        const token = response.data.find((t) => t.address === mintAddress);
 
         if (token) {
           return {
@@ -139,14 +152,14 @@ export class TokenMetadataService {
           };
         }
       }
-    } catch (error) {
+    } catch {
       this.logger.debug('Failed to fetch Jupiter token list');
     }
 
     return null;
   }
 
-  async getCommonTokenMetadata(): Promise<Map<string, TokenMetadata>> {
+  getCommonTokenMetadata(): Map<string, TokenMetadata> {
     const commonTokens = new Map<string, TokenMetadata>();
 
     // Add common Solana tokens

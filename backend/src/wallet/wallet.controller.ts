@@ -40,8 +40,8 @@ export class WalletController {
       }
 
       this.logger.error(
-        `Failed to fetch wallet balances: ${error.message}`,
-        error.stack,
+        `Failed to fetch wallet balances: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new HttpException(
         'Failed to fetch wallet balances',

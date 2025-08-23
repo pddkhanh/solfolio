@@ -18,7 +18,7 @@ describe('WalletService', () => {
     mockConnection = {
       getBalance: jest.fn(),
       getParsedTokenAccountsByOwner: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<Connection>;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -32,7 +32,9 @@ describe('WalletService', () => {
         {
           provide: ConnectionManager,
           useValue: {
-            executeWithRetry: jest.fn((fn) => fn()),
+            executeWithRetry: jest
+              .fn()
+              .mockImplementation((fn: () => any) => fn()),
           },
         },
         {
@@ -58,6 +60,10 @@ describe('WalletService', () => {
     blockchainService = module.get(BlockchainService);
     connectionManager = module.get(ConnectionManager);
     rateLimiter = module.get(RateLimiterService);
+
+    // Ensure services are defined
+    expect(blockchainService).toBeDefined();
+    expect(connectionManager).toBeDefined();
   });
 
   it('should be defined', () => {

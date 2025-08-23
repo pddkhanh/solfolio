@@ -1,12 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PublicKey, Connection, ParsedAccountData } from '@solana/web3.js';
-import {
-  TOKEN_PROGRAM_ID,
-  TOKEN_2022_PROGRAM_ID,
-  getAccount,
-  getMint,
-  Account,
-} from '@solana/spl-token';
+import { PublicKey, Connection } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
@@ -50,7 +44,7 @@ export class WalletService {
 
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
     try {
-      await this.rateLimiter.checkLimit();
+      await (this.rateLimiter.checkLimit as () => Promise<void>)();
 
       const publicKey = new PublicKey(walletAddress);
       const connection = this.blockchainService.getConnection();
@@ -60,10 +54,7 @@ export class WalletService {
         this.getTokenAccounts(publicKey, connection),
       ]);
 
-      const tokenBalances = await this.parseTokenAccounts(
-        tokenAccounts,
-        connection,
-      );
+      const tokenBalances = await this.parseTokenAccounts(tokenAccounts as any);
 
       return {
         wallet: walletAddress,
@@ -114,8 +105,24 @@ export class WalletService {
   }
 
   private async parseTokenAccounts(
-    accounts: any[],
-    connection: Connection,
+    accounts: Array<{
+      pubkey: PublicKey;
+      account: {
+        data: {
+          parsed: {
+            info: {
+              mint: string;
+              owner: string;
+              tokenAmount: {
+                amount: string;
+                decimals: number;
+                uiAmount: number;
+              };
+            };
+          };
+        };
+      };
+    }>,
   ): Promise<TokenBalance[]> {
     const tokenBalances: TokenBalance[] = [];
 
