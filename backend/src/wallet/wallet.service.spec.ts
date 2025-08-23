@@ -1,0 +1,188 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { WalletService } from './wallet.service';
+import { BlockchainService } from '../blockchain/blockchain.service';
+import { ConnectionManager } from '../blockchain/connection-manager.service';
+import { RateLimiterService } from '../blockchain/rate-limiter.service';
+import { PublicKey, Connection } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+
+describe('WalletService', () => {
+  let service: WalletService;
+  let blockchainService: jest.Mocked<BlockchainService>;
+  let connectionManager: jest.Mocked<ConnectionManager>;
+  let rateLimiter: jest.Mocked<RateLimiterService>;
+  let mockConnection: jest.Mocked<Connection>;
+
+  beforeEach(async () => {
+    mockConnection = {
+      getBalance: jest.fn(),
+      getParsedTokenAccountsByOwner: jest.fn(),
+    } as any;
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WalletService,
+        {
+          provide: BlockchainService,
+          useValue: {
+            getConnection: jest.fn().mockReturnValue(mockConnection),
+          },
+        },
+        {
+          provide: ConnectionManager,
+          useValue: {
+            executeWithRetry: jest.fn((fn) => fn()),
+          },
+        },
+        {
+          provide: RateLimiterService,
+          useValue: {
+            checkLimit: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<WalletService>(WalletService);
+    blockchainService = module.get(BlockchainService);
+    connectionManager = module.get(ConnectionManager);
+    rateLimiter = module.get(RateLimiterService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('getWalletBalances', () => {
+    const testWalletAddress = '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv';
+
+    it('should fetch native SOL balance', async () => {
+      const mockBalance = 1000000000; // 1 SOL in lamports
+      mockConnection.getBalance.mockResolvedValue(mockBalance);
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValue({
+        value: [],
+      } as any);
+
+      const result = await service.getWalletBalances(testWalletAddress);
+
+      expect(result.nativeSol).toEqual({
+        amount: '1000000000',
+        decimals: 9,
+        uiAmount: 1,
+      });
+      expect(result.wallet).toBe(testWalletAddress);
+    });
+
+    it('should fetch token accounts', async () => {
+      mockConnection.getBalance.mockResolvedValue(0);
+      
+      const mockTokenAccount = {
+        pubkey: new PublicKey('TokenAccount11111111111111111111111111111111'),
+        account: {
+          data: {
+            parsed: {
+              info: {
+                mint: 'TokenMint11111111111111111111111111111111111',
+                owner: testWalletAddress,
+                tokenAmount: {
+                  amount: '1000000',
+                  decimals: 6,
+                  uiAmount: 1,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValueOnce({
+        value: [mockTokenAccount],
+      } as any);
+      
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValueOnce({
+        value: [],
+      } as any);
+
+      const result = await service.getWalletBalances(testWalletAddress);
+
+      expect(result.tokens).toHaveLength(1);
+      expect(result.tokens[0]).toMatchObject({
+        mint: 'TokenMint11111111111111111111111111111111111',
+        owner: testWalletAddress,
+        amount: '1000000',
+        decimals: 6,
+        uiAmount: 1,
+      });
+      expect(result.totalAccounts).toBe(1);
+    });
+
+    it('should filter out zero balance tokens', async () => {
+      mockConnection.getBalance.mockResolvedValue(0);
+      
+      const mockTokenAccount = {
+        pubkey: new PublicKey('TokenAccount11111111111111111111111111111111'),
+        account: {
+          data: {
+            parsed: {
+              info: {
+                mint: 'TokenMint11111111111111111111111111111111111',
+                owner: testWalletAddress,
+                tokenAmount: {
+                  amount: '0',
+                  decimals: 6,
+                  uiAmount: 0,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValue({
+        value: [mockTokenAccount],
+      } as any);
+
+      const result = await service.getWalletBalances(testWalletAddress);
+
+      expect(result.tokens).toHaveLength(0);
+      expect(result.totalAccounts).toBe(0);
+    });
+
+    it('should fetch both TOKEN_PROGRAM and TOKEN_2022_PROGRAM accounts', async () => {
+      mockConnection.getBalance.mockResolvedValue(0);
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValue({
+        value: [],
+      } as any);
+
+      await service.getWalletBalances(testWalletAddress);
+
+      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledTimes(2);
+      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
+        expect.any(PublicKey),
+        { programId: TOKEN_PROGRAM_ID }
+      );
+      expect(mockConnection.getParsedTokenAccountsByOwner).toHaveBeenCalledWith(
+        expect.any(PublicKey),
+        { programId: TOKEN_2022_PROGRAM_ID }
+      );
+    });
+
+    it('should check rate limits before making requests', async () => {
+      mockConnection.getBalance.mockResolvedValue(0);
+      mockConnection.getParsedTokenAccountsByOwner.mockResolvedValue({
+        value: [],
+      } as any);
+
+      await service.getWalletBalances(testWalletAddress);
+
+      expect(rateLimiter.checkLimit).toHaveBeenCalled();
+    });
+
+    it('should handle errors gracefully', async () => {
+      const error = new Error('Connection failed');
+      mockConnection.getBalance.mockRejectedValue(error);
+
+      await expect(service.getWalletBalances(testWalletAddress)).rejects.toThrow(error);
+    });
+  });
+});

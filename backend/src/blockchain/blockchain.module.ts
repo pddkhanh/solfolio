@@ -13,6 +13,6 @@ import { BlockchainHealthIndicator } from './blockchain.health';
     RateLimiterService,
     BlockchainHealthIndicator,
   ],
-  exports: [BlockchainService, ConnectionManager, BlockchainHealthIndicator],
+  exports: [BlockchainService, ConnectionManager, RateLimiterService, BlockchainHealthIndicator],
 })
 export class BlockchainModule {}
