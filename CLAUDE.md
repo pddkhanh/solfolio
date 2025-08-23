@@ -117,3 +117,13 @@ Follow the work breakdown structure in `docs/work-breakdown.md`:
 - **Database**: Use connection pooling, max 20 connections for PostgreSQL
 - **Security**: Never expose RPC API keys in frontend, use environment variables
 - **Monitoring**: Implement Prometheus metrics from day one for all services
+
+## Git Guidelines
+
+**NEVER perform destructive Git operations:**
+- Never use `git push --force` or `git push -f`
+- Never use `git reset --hard` on shared branches
+- Never rewrite history on branches that others may be using
+- Never delete branches without confirming with the user
+- Always use safe operations like `git revert` for undoing changes on shared branches
+- Always create new branches for features rather than working directly on main/master
