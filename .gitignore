@@ -1,0 +1,175 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.pid
+*.seed
+*.pid.lock
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids
+lib-cov
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Redis
+dump.rdb
+appendonly.aof
+
+# Protocol Buffers generated files
+*.pb.go
+*.pb.js
+*.pb.ts
+*_pb.d.ts
+*_grpc_pb.js
+*_grpc_pb.d.ts
+
+# Build artifacts
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.cache/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Python (for any scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv
+
+# Terraform (if using for infrastructure)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes
+*.kubeconfig
+kubeconfig
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Monitoring
+grafana-storage/
+prometheus-data/
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+
+# Solana/Anchor specific
+target/
+.anchor/
+test-ledger/
+.program-logs/
+
+# Build directories
+build/
+dist/
+out/
+
+# Webpack
+.webpack/
+
+# Parcel
+.parcel-cache/
+
+# Turbo
+.turbo/
+
+# Vercel
+.vercel
+
+# Netlify
+.netlify/
