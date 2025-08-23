@@ -20,7 +20,7 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI ? 'dot' : 'list',
   /* Test timeout - E2E tests can be slower but not too slow */
   timeout: 30 * 1000, // 30 seconds per test
   /* Global timeout for the whole test run */
@@ -41,6 +41,10 @@ export default defineConfig({
     actionTimeout: 10 * 1000, // 10 seconds
     /* Navigation timeout */
     navigationTimeout: 30 * 1000, // 30 seconds
+    /* Run in headless mode for CI/automation */
+    headless: true,
+    /* Viewport size */
+    viewport: { width: 1280, height: 720 },
   },
 
   /* Configure projects for major browsers */

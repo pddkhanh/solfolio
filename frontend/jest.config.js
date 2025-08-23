@@ -23,7 +23,7 @@ const customJestConfig = {
     '@solana/wallet-adapter-react': '<rootDir>/__mocks__/@solana/wallet-adapter-react.js',
     '@solana/wallet-adapter-react-ui': '<rootDir>/__mocks__/@solana/wallet-adapter-react-ui.js',
   },
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/e2e/'],
   moduleDirectories: ['node_modules', '<rootDir>/'],
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$|@solana|@solana-mobile|@wallet-standard))',

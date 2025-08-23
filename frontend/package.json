@@ -11,9 +11,10 @@
     "test": "jest --watchAll=false --forceExit --detectOpenHandles --maxWorkers=50%",
     "test:watch": "jest --watch --maxWorkers=50%",
     "test:coverage": "jest --coverage --watchAll=false --forceExit --maxWorkers=50%",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --reporter=list",
+    "test:e2e:headless": "playwright test --reporter=list --workers=1",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug --headed"
   },
   "engines": {
     "node": ">=22.0.0",

@@ -56,7 +56,9 @@ export default function WalletButton() {
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       } catch (error) {
-        console.error('Failed to copy address:', error)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Failed to copy address:', error)
+        }
       }
     }
   }

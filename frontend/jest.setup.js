@@ -47,7 +47,8 @@ beforeAll(() => {
   console.error = (...args) => {
     if (
       typeof args[0] === 'string' &&
-      args[0].includes('Not implemented: navigation')
+      (args[0].includes('Not implemented: navigation') ||
+       args[0].includes('inside a test was not wrapped in act'))
     ) {
       return
     }

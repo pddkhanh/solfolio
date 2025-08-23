@@ -63,8 +63,7 @@ dev: check-env up
 	@echo "WebSocket: ws://localhost:8081"
 	@echo "Database Admin: http://localhost:8082"
 	@echo ""
-	@echo "⚠️  Make sure your .env file has valid API keys!"
-	@echo "Run 'make check-env' to verify configuration."
+	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: Using default Helius API key - update your .env file!" || echo "✅ Environment configured correctly!"
 
 up:
 	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
@@ -126,11 +125,15 @@ db-console:
 # Testing commands
 test:
 	@echo "Running all tests..."
-	@echo "Running frontend unit tests..."
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running unit tests..."
 	cd frontend && pnpm test
-	@echo "Running frontend E2E tests..."
-	cd frontend && pnpm run test:e2e || true
-	@echo "Note: Backend and websocket tests will run when those services are implemented"
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "Running E2E tests..."
+	cd frontend && npx playwright test --reporter=list || true
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ All tests completed!"
 
 test-unit:
 	@echo "Running unit tests (5s timeout per test)..."

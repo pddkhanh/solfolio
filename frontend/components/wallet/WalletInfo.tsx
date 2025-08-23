@@ -17,6 +17,8 @@ export default function WalletInfo() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    let isMounted = true
+    
     const fetchBalance = async () => {
       if (!publicKey) {
         setBalance(null)
@@ -26,12 +28,20 @@ export default function WalletInfo() {
       setLoading(true)
       try {
         const bal = await connection.getBalance(publicKey)
-        setBalance(bal / LAMPORTS_PER_SOL)
+        if (isMounted) {
+          setBalance(bal / LAMPORTS_PER_SOL)
+        }
       } catch (error) {
-        console.error('Error fetching balance:', error)
-        setBalance(null)
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('Error fetching balance:', error)
+        }
+        if (isMounted) {
+          setBalance(null)
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
@@ -42,13 +52,20 @@ export default function WalletInfo() {
       const subscriptionId = connection.onAccountChange(
         publicKey,
         (accountInfo) => {
-          setBalance(accountInfo.lamports / LAMPORTS_PER_SOL)
+          if (isMounted) {
+            setBalance(accountInfo.lamports / LAMPORTS_PER_SOL)
+          }
         }
       )
       
       return () => {
+        isMounted = false
         connection.removeAccountChangeListener(subscriptionId)
       }
+    }
+    
+    return () => {
+      isMounted = false
     }
   }, [publicKey, connection])
 

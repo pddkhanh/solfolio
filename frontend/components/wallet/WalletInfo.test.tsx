@@ -119,7 +119,9 @@ describe('WalletInfo', () => {
     })
 
     it('fetches and displays SOL balance', async () => {
-      render(<WalletInfo />)
+      await act(async () => {
+        render(<WalletInfo />)
+      })
       
       await waitFor(() => {
         expect(screen.getByText('1.5000 SOL')).toBeInTheDocument()
