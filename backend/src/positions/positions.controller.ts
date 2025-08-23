@@ -33,7 +33,8 @@ export class PositionsController {
       }
 
       // Check cache first
-      const cached = await this.positionsService.getCachedPortfolio(walletAddress);
+      const cached =
+        await this.positionsService.getCachedPortfolio(walletAddress);
       if (cached) {
         this.logger.log(`Returning cached positions for ${walletAddress}`);
         return {
@@ -52,8 +53,11 @@ export class PositionsController {
         cached: false,
       };
     } catch (error) {
-      this.logger.error(`Error fetching positions for ${walletAddress}:`, error);
-      
+      this.logger.error(
+        `Error fetching positions for ${walletAddress}:`,
+        error,
+      );
+
       if (error instanceof HttpException) {
         throw error;
       }
@@ -86,7 +90,8 @@ export class PositionsController {
 
       // Check cache first (unless refresh is requested)
       if (refresh !== 'true') {
-        const cached = await this.positionsService.getCachedPortfolio(walletAddress);
+        const cached =
+          await this.positionsService.getCachedPortfolio(walletAddress);
         if (cached) {
           this.logger.log(`Returning cached portfolio for ${walletAddress}`);
           return {
@@ -98,7 +103,8 @@ export class PositionsController {
       }
 
       // Fetch fresh portfolio summary
-      const summary = await this.positionsService.getPortfolioSummary(walletAddress);
+      const summary =
+        await this.positionsService.getPortfolioSummary(walletAddress);
 
       return {
         success: true,
@@ -106,8 +112,11 @@ export class PositionsController {
         cached: false,
       };
     } catch (error) {
-      this.logger.error(`Error fetching portfolio summary for ${walletAddress}:`, error);
-      
+      this.logger.error(
+        `Error fetching portfolio summary for ${walletAddress}:`,
+        error,
+      );
+
       if (error instanceof HttpException) {
         throw error;
       }
@@ -135,7 +144,8 @@ export class PositionsController {
         );
       }
 
-      const totalValue = await this.positionsService.calculateTotalValue(walletAddress);
+      const totalValue =
+        await this.positionsService.calculateTotalValue(walletAddress);
 
       return {
         success: true,
@@ -146,8 +156,11 @@ export class PositionsController {
         },
       };
     } catch (error) {
-      this.logger.error(`Error calculating total value for ${walletAddress}:`, error);
-      
+      this.logger.error(
+        `Error calculating total value for ${walletAddress}:`,
+        error,
+      );
+
       if (error instanceof HttpException) {
         throw error;
       }
@@ -174,7 +187,7 @@ export class PositionsController {
       };
     } catch (error) {
       this.logger.error('Error fetching Marinade stats:', error);
-      
+
       throw new HttpException(
         'Failed to fetch Marinade stats',
         HttpStatus.INTERNAL_SERVER_ERROR,

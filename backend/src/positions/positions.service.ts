@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaClient, Position, Balance } from '@prisma/client';
-import { MarinadeService, MarinadePosition } from '../marinade/marinade.service';
+import {
+  MarinadeService,
+  MarinadePosition,
+} from '../marinade/marinade.service';
 import { WalletService } from '../wallet/wallet.service';
 import { PriceService } from '../price/price.service';
 
@@ -52,14 +55,16 @@ export class PositionsService {
       const positions: PortfolioPosition[] = [];
 
       // Get Marinade positions
-      const marinadePositions = await this.marinadeService.getPositions(walletAddress);
+      const marinadePositions =
+        await this.marinadeService.getPositions(walletAddress);
       positions.push(
         ...marinadePositions.map((pos) => ({
           ...pos,
           protocolName: 'Marinade Finance',
           tokenSymbol: 'mSOL',
           tokenName: 'Marinade staked SOL',
-          logoUri: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+          logoUri:
+            'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
         })),
       );
 
@@ -70,7 +75,10 @@ export class PositionsService {
 
       return positions;
     } catch (error) {
-      this.logger.error(`Error fetching positions for ${walletAddress}:`, error);
+      this.logger.error(
+        `Error fetching positions for ${walletAddress}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -84,11 +92,18 @@ export class PositionsService {
       const positions = await this.getPositions(walletAddress);
 
       // Get token balances
-      const balances = await this.walletService.getWalletBalances(walletAddress);
+      const balances =
+        await this.walletService.getWalletBalances(walletAddress);
 
       // Calculate total values
-      const totalPositionValue = positions.reduce((sum, pos) => sum + pos.usdValue, 0);
-      const totalBalanceValue = balances.reduce((sum, bal) => sum + (bal.usdValue || 0), 0);
+      const totalPositionValue = positions.reduce(
+        (sum, pos) => sum + pos.usdValue,
+        0,
+      );
+      const totalBalanceValue = balances.reduce(
+        (sum, bal) => sum + (bal.usdValue || 0),
+        0,
+      );
       const totalValue = totalPositionValue + totalBalanceValue;
 
       // Calculate breakdown by type
@@ -104,14 +119,17 @@ export class PositionsService {
           .filter((p) => p.positionType === 'LP_POSITION')
           .reduce((sum, p) => sum + p.usdValue, 0),
         other: positions
-          .filter((p) => !['STAKING', 'LENDING', 'LP_POSITION'].includes(p.positionType))
+          .filter(
+            (p) =>
+              !['STAKING', 'LENDING', 'LP_POSITION'].includes(p.positionType),
+          )
           .reduce((sum, p) => sum + p.usdValue, 0),
       };
 
       // Calculate performance metrics
       const weightedApy = positions.reduce((sum, pos) => {
         const weight = pos.usdValue / totalPositionValue;
-        return sum + (pos.apy * weight);
+        return sum + pos.apy * weight;
       }, 0);
 
       const dailyRewards = positions.reduce((sum, pos) => sum + pos.rewards, 0);
@@ -136,7 +154,10 @@ export class PositionsService {
 
       return summary;
     } catch (error) {
-      this.logger.error(`Error generating portfolio summary for ${walletAddress}:`, error);
+      this.logger.error(
+        `Error generating portfolio summary for ${walletAddress}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -213,7 +234,9 @@ export class PositionsService {
   /**
    * Get cached portfolio summary
    */
-  async getCachedPortfolio(walletAddress: string): Promise<PortfolioSummary | null> {
+  async getCachedPortfolio(
+    walletAddress: string,
+  ): Promise<PortfolioSummary | null> {
     try {
       const cache = await this.prisma.cache.findFirst({
         where: {
