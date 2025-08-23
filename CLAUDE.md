@@ -17,6 +17,8 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ### Planned Technology Stack
 
+**Runtime**: Node.js 22+ LTS
+
 **Frontend**: Next.js 15+ (App Router), TypeScript, Tailwind CSS, Shadcn UI, Solana Wallet Adapter
 
 **Backend**: gRPC microservices architecture with:
@@ -37,29 +39,32 @@ Since the project hasn't been initialized yet, when setting up:
 
 ### Initial Setup (Phase 0)
 ```bash
+# Install pnpm globally
+npm install -g pnpm@9.14.2
+
 # Create monorepo structure
 mkdir -p apps/web apps/backend services packages/proto
-cd apps/web && npx create-next-app@latest . --typescript --tailwind --app
-cd ../backend && npm init -y
+cd apps/web && pnpm create next-app@latest . --typescript --tailwind --app
+cd ../backend && pnpm init
 ```
 
 ### Future Development Commands (once initialized)
 ```bash
 # Frontend
 cd apps/web
-npm run dev      # Development server
-npm run build    # Production build
-npm run lint     # Linting
+pnpm run dev      # Development server
+pnpm run build    # Production build
+pnpm run lint     # Linting
 
 # Backend services
 cd services/[service-name]
-npm run dev      # Development with nodemon
-npm run build    # TypeScript compilation
-npm test         # Run tests
+pnpm run dev      # Development with nodemon
+pnpm run build    # TypeScript compilation
+pnpm test         # Run tests
 
 # Protocol Buffers
 cd packages/proto
-npm run generate # Generate TypeScript/JS from .proto files
+pnpm run generate # Generate TypeScript/JS from .proto files
 
 # Docker
 docker-compose up -d     # Start all services
@@ -112,3 +117,13 @@ Follow the work breakdown structure in `docs/work-breakdown.md`:
 - **Database**: Use connection pooling, max 20 connections for PostgreSQL
 - **Security**: Never expose RPC API keys in frontend, use environment variables
 - **Monitoring**: Implement Prometheus metrics from day one for all services
+
+## Git Guidelines
+
+**NEVER perform destructive Git operations:**
+- Never use `git push --force` or `git push -f`
+- Never use `git reset --hard` on shared branches
+- Never rewrite history on branches that others may be using
+- Never delete branches without confirming with the user
+- Always use safe operations like `git revert` for undoing changes on shared branches
+- Always create new branches for features rather than working directly on main/master

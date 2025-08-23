@@ -1,0 +1,19 @@
+{
+  "name": "solfolio",
+  "version": "0.1.0",
+  "description": "Solana DeFi Portfolio Tracker",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.14.2",
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "husky": "^8.0.3"
+  }
+}
