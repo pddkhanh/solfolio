@@ -1,5 +1,7 @@
 # Web3 Testing Setup Guide for SolFolio
 
+> **Note:** For environment variable configuration details, see [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md)
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [Wallet Setup for Testing](#wallet-setup-for-testing)

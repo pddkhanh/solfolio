@@ -56,15 +56,19 @@ install:
 	cd websocket && pnpm install
 
 # Development commands
-dev: up
+dev: check-env up
 	@echo "Starting development environment..."
 	@echo "Frontend: http://localhost:3000"
 	@echo "gRPC-Web: http://localhost:8080"
 	@echo "WebSocket: ws://localhost:8081"
 	@echo "Database Admin: http://localhost:8082"
+	@echo ""
+	@echo "⚠️  Make sure your .env file has valid API keys!"
+	@echo "Run 'make check-env' to verify configuration."
 
 up:
-	docker-compose -f docker-compose.dev.yml up -d
+	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
+	docker-compose -f docker-compose.dev.yml --env-file .env up -d
 
 down:
 	docker-compose -f docker-compose.dev.yml down
@@ -73,6 +77,13 @@ restart: down up
 
 stop:
 	docker-compose -f docker-compose.dev.yml stop
+
+# Start without Docker (local development)
+dev-local: check-env
+	@echo "Starting local development (no Docker)..."
+	@echo "Make sure you have PostgreSQL and Redis running locally!"
+	@echo ""
+	cd frontend && pnpm run dev
 
 # Logging commands
 logs:
@@ -258,6 +269,28 @@ health:
 env:
 	@test -f .env || cp .env.example .env
 	@echo ".env file is ready. Please update it with your API keys."
+	@echo ""
+	@echo "IMPORTANT: You must set the following environment variables:"
+	@echo "  - HELIUS_API_KEY: Get from https://www.helius.dev/"
+	@echo "  - NEXT_PUBLIC_HELIUS_RPC_URL: Your Helius RPC endpoint"
+	@echo ""
+	@echo "For testing with devnet (recommended):"
+	@echo "  NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_KEY"
+	@echo "  NEXT_PUBLIC_SOLANA_NETWORK=devnet"
+	@echo ""
+	@test -f frontend/.env.local || cp frontend/.env.local.example frontend/.env.local 2>/dev/null || true
+	@echo "Frontend .env.local file is ready (if template exists)."
+
+# Check environment variables
+check-env:
+	@echo "Checking environment configuration..."
+	@test -f .env || (echo "❌ .env file not found. Run 'make env' first." && exit 1)
+	@grep -q "HELIUS_API_KEY=your_helius_api_key_here" .env && echo "⚠️  WARNING: HELIUS_API_KEY is still using default value" || echo "✅ HELIUS_API_KEY is configured"
+	@grep -q "NEXT_PUBLIC_HELIUS_RPC_URL" .env && echo "✅ NEXT_PUBLIC_HELIUS_RPC_URL is present" || echo "❌ NEXT_PUBLIC_HELIUS_RPC_URL is missing"
+	@echo ""
+	@echo "Current configuration:"
+	@grep "SOLANA_NETWORK=" .env | head -1 || echo "SOLANA_NETWORK not set"
+	@grep "NEXT_PUBLIC_SOLANA_NETWORK=" .env | head -1 || echo "NEXT_PUBLIC_SOLANA_NETWORK not set"
 
 # Quick development shortcuts
 d: dev
