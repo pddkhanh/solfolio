@@ -5,6 +5,7 @@ import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
 import { TokenMetadataService } from './token-metadata.service';
+import { PriceService } from '../price/price.service';
 
 export interface TokenBalance {
   mint: string;
@@ -51,6 +52,7 @@ export class WalletService {
     private readonly connectionManager: ConnectionManager,
     private readonly rateLimiter: RateLimiterService,
     private readonly tokenMetadataService: TokenMetadataService,
+    private readonly priceService: PriceService,
   ) {}
 
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
@@ -73,10 +75,22 @@ export class WalletService {
 
       const tokenBalances = await this.parseTokenAccounts(tokenAccounts as any);
 
-      // Calculate total value in USD (simplified - would need real price data)
+      // Get real token prices including SOL
+      const SOL_MINT = 'So11111111111111111111111111111111111112';
+      const tokenMints = [SOL_MINT, ...tokenBalances.map(t => t.mint)];
+      const prices = await this.priceService.getTokenPrices(tokenMints);
+      
+      // Update token balances with real USD values
+      const solPrice = prices.get(SOL_MINT) || 0;
+      for (const token of tokenBalances) {
+        const price = prices.get(token.mint) || 0;
+        token.valueUSD = (token.uiAmount || 0) * price;
+      }
+
+      // Calculate total value in USD with real prices
       const totalValueUSD = tokenBalances.reduce(
         (sum, token) => sum + (token.valueUSD || 0),
-        nativeBalance.uiAmount * 100, // Assume SOL price is $100 for now
+        nativeBalance.uiAmount * solPrice,
       );
 
       return {
@@ -169,7 +183,7 @@ export class WalletService {
             amount: tokenInfo.tokenAmount.amount, // For backward compatibility
             decimals: tokenInfo.tokenAmount.decimals,
             uiAmount: tokenInfo.tokenAmount.uiAmount,
-            valueUSD: tokenInfo.tokenAmount.uiAmount * 10, // Mock price for now
+            valueUSD: 0, // Will be updated with real price later
             tokenAccount: account.pubkey.toString(),
           };
 
