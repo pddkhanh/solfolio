@@ -1,19 +1,25 @@
-# SolFolio MVP Work Breakdown Structure
+# SolFolio MVP Work Breakdown Structure (Iterative Approach)
+
+## Development Philosophy
+**Deliver working features incrementally** - Each phase produces a deployable, testable feature that provides value. We build vertical slices through the entire stack rather than horizontal layers.
 
 ## Progress Tracker
-- **Phase 0**: 9/20 tasks completed (45%) ✅ 
-- **Phase 1**: 0/22 tasks completed (0%)
-- **Phase 2**: 0/27 tasks completed (0%)
-- **Phase 3**: 0/17 tasks completed (0%)
-- **Phase 4**: 0/33 tasks completed (0%)
-- **Phase 5**: 0/16 tasks completed (0%)
-- **Phase 6**: 0/13 tasks completed (0%)
-- **Phase 7**: 0/21 tasks completed (0%)
-- **Phase 8**: 0/14 tasks completed (0%)
+- **Phase 0**: 9/20 tasks completed (45%) ✅ [KEEP EXISTING]
+- **Phase 1**: 0/15 tasks - Basic Working App (Day 3-4)
+- **Phase 2**: 0/18 tasks - Token Balances & Prices (Day 5-6)  
+- **Phase 3**: 0/20 tasks - First Protocol Integration (Day 7-9)
+- **Phase 4**: 0/18 tasks - Multi-Protocol Support (Day 10-12)
+- **Phase 5**: 0/16 tasks - Real-time Updates (Day 13-14)
+- **Phase 6**: 0/14 tasks - Advanced Features (Day 15-16)
+- **Phase 7**: 0/16 tasks - Performance & Polish (Day 17-18)
+- **Phase 8**: 0/18 tasks - Production Deployment (Day 19-20)
+- **Phase 9**: 0/12 tasks - Monitoring & Launch (Day 21-22)
 
-**Overall**: 9/183 tasks completed (4.9%)
+**Total**: 9/167 tasks (5.4%)
 
-## Phase 0: Project Setup & Infrastructure (Day 1-2)
+---
+
+## Phase 0: Project Setup & Infrastructure (Day 1-2) [KEEP EXISTING]
 
 ### 0.1 Repository & Version Control
 - [x] **TASK-001** Create GitHub repository "solfolio" with README (0.5h) ✅
@@ -21,15 +27,6 @@
 - [ ] **TASK-003** Create branch protection rules for main branch (0.5h)
 - [x] **TASK-004** Set up conventional commits with commitlint (1h) ✅
 - [x] **TASK-005** Create initial project structure folders (1h) ✅
-  ```
-  /frontend
-  /backend
-  /websocket
-  /proto
-  /docker
-  /scripts
-  /docs
-  ```
 
 ### 0.2 AWS Lightsail Setup
 - [ ] **TASK-006** Create AWS Lightsail instance (Ubuntu 22.04, 4GB RAM) (1h)
@@ -54,332 +51,319 @@
 
 ---
 
-## Phase 1: Backend Infrastructure (Day 3-5)
+## Phase 1: Basic Working Application (Day 3-4)
+**Goal**: Working web app with wallet connection and basic UI
 
-### 1.1 Database Setup
-- [ ] **TASK-021** Create Dockerfile.postgres with initialization scripts (1h)
-- [ ] **TASK-022** Write database schema SQL file (2h)
-- [ ] **TASK-023** Create database migration setup with Prisma (2h)
-- [ ] **TASK-024** Write seed data script for testing (1h)
-- [ ] **TASK-025** Test database container and connections (1h)
+### 1.1 Next.js Frontend Setup
+- [ ] **TASK-021** Initialize Next.js 14 app with TypeScript in /frontend (1h)
+- [ ] **TASK-022** Configure Tailwind CSS and Shadcn UI (1h)
+- [ ] **TASK-023** Create basic layout with header and main content area (1.5h)
+- [ ] **TASK-024** Add dark/light mode toggle (1h)
+- [ ] **TASK-025** Create responsive navigation component (1h)
 
-### 1.2 Redis Setup
-- [ ] **TASK-026** Configure Redis Docker container (0.5h)
-- [ ] **TASK-027** Create Redis configuration file (persistence, memory limits) (1h)
-- [ ] **TASK-028** Write Redis connection manager class (1.5h)
-- [ ] **TASK-029** Implement Redis pub/sub base class (2h)
-- [ ] **TASK-030** Test Redis container and connections (0.5h)
+### 1.2 Wallet Integration
+- [ ] **TASK-026** Install and configure Solana wallet adapter (1h)
+- [ ] **TASK-027** Create wallet connection button component (1.5h)
+- [ ] **TASK-028** Implement wallet disconnect and switching (1h)
+- [ ] **TASK-029** Display connected wallet address (0.5h)
+- [ ] **TASK-030** Add wallet connection persistence (1h)
 
-### 1.3 gRPC Service Foundation
-- [ ] **TASK-031** Create backend Node.js project with TypeScript (1h)
-- [ ] **TASK-032** Install gRPC and Protocol Buffer dependencies (0.5h)
-- [ ] **TASK-033** Write portfolio.proto file with basic messages (2h)
-- [ ] **TASK-034** Create proto compilation script (1h)
-- [ ] **TASK-035** Generate TypeScript types from protos (1h)
-- [ ] **TASK-036** Implement basic gRPC server setup (2h)
-- [ ] **TASK-037** Create health check endpoint (1h)
-- [ ] **TASK-038** Write Dockerfile.backend (1.5h)
+### 1.3 Basic Backend API
+- [ ] **TASK-031** Create simple Express.js backend in /backend (1h)
+- [ ] **TASK-032** Set up TypeScript and basic project structure (1h)
+- [ ] **TASK-033** Create health check endpoint (0.5h)
+- [ ] **TASK-034** Add CORS configuration for frontend (0.5h)
+- [ ] **TASK-035** Create Dockerfile for backend (1h)
 
-### 1.4 Envoy Proxy Setup
-- [ ] **TASK-039** Create envoy.yaml configuration file (2h)
-- [ ] **TASK-040** Set up Envoy Docker container (1h)
-- [ ] **TASK-041** Configure gRPC-Web transcoding (1.5h)
-- [ ] **TASK-042** Test Envoy proxy with gRPC server (1h)
+**Deliverable**: Users can visit site, connect wallet, see their address
 
 ---
 
-## Phase 2: Blockchain Integration Layer (Day 6-9)
+## Phase 2: Token Balances & Prices (Day 5-6)
+**Goal**: Display user's token balances with USD values
 
-### 2.1 RPC Connection Setup
-- [ ] **TASK-043** Sign up for Helius API key (0.5h)
-- [ ] **TASK-044** Create Solana connection manager class (2h)
-- [ ] **TASK-045** Implement connection pooling and failover (2h)
-- [ ] **TASK-046** Add connection health monitoring (1.5h)
-- [ ] **TASK-047** Create RPC rate limiter (1.5h)
+### 2.1 Blockchain Connection
+- [ ] **TASK-036** Set up Helius RPC connection in backend (1h)
+- [ ] **TASK-037** Create connection manager with retry logic (1.5h)
+- [ ] **TASK-038** Implement rate limiting for RPC calls (1h)
+- [ ] **TASK-039** Add connection health monitoring (1h)
 
-### 2.2 Wallet & Token Detection
-- [ ] **TASK-048** Implement wallet token account fetcher (2h)
-- [ ] **TASK-049** Create token metadata resolver (2h)
-- [ ] **TASK-050** Build SPL token balance calculator (1.5h)
-- [ ] **TASK-051** Add USD price fetching from Jupiter API (2h)
-- [ ] **TASK-052** Implement token price caching layer (1.5h)
+### 2.2 Token Balance Fetching
+- [ ] **TASK-040** Create endpoint to fetch wallet token accounts (2h)
+- [ ] **TASK-041** Parse SPL token balances (1.5h)
+- [ ] **TASK-042** Fetch token metadata (name, symbol, decimals) (1.5h)
+- [ ] **TASK-043** Handle native SOL balance (1h)
 
-### 2.3 Protocol Adapter: Marinade
-- [ ] **TASK-053** Install Marinade SDK (0.5h)
-- [ ] **TASK-054** Create Marinade adapter class structure (1h)
-- [ ] **TASK-055** Implement mSOL position detection (2h)
-- [ ] **TASK-056** Add mSOL to SOL conversion logic (1.5h)
-- [ ] **TASK-057** Fetch Marinade APY data (1.5h)
-- [ ] **TASK-058** Write Marinade adapter tests (2h)
+### 2.3 Price Integration
+- [ ] **TASK-044** Integrate Jupiter Price API (1.5h)
+- [ ] **TASK-045** Create price fetching service (1h)
+- [ ] **TASK-046** Calculate USD values for all tokens (1h)
+- [ ] **TASK-047** Implement basic in-memory price caching (1h)
 
-### 2.4 Protocol Adapter: Kamino
-- [ ] **TASK-059** Install Kamino SDK (0.5h)
-- [ ] **TASK-060** Create Kamino adapter class structure (1h)
-- [ ] **TASK-061** Implement lending position detection (2h)
-- [ ] **TASK-062** Add vault position detection (2h)
-- [ ] **TASK-063** Calculate position values and APY (2h)
-- [ ] **TASK-064** Write Kamino adapter tests (2h)
+### 2.4 Frontend Display
+- [ ] **TASK-048** Create portfolio overview component (2h)
+- [ ] **TASK-049** Build token list component with icons (2h)
+- [ ] **TASK-050** Add USD value calculations and display (1h)
+- [ ] **TASK-051** Implement loading and error states (1h)
+- [ ] **TASK-052** Add manual refresh button (0.5h)
+- [ ] **TASK-053** Format numbers and currencies properly (1h)
 
-### 2.5 Protocol Registry
-- [ ] **TASK-065** Create protocol registry manager (1.5h)
-- [ ] **TASK-066** Implement adapter registration system (1h)
-- [ ] **TASK-067** Add parallel position fetching (2h)
-- [ ] **TASK-068** Implement error handling and fallbacks (1.5h)
-- [ ] **TASK-069** Add protocol registry tests (1.5h)
+**Deliverable**: Users can see all their token balances with USD values
 
 ---
 
-## Phase 3: Cache & Real-time Systems (Day 10-12)
+## Phase 3: First Protocol Integration - Marinade (Day 7-9)
+**Goal**: Detect and display Marinade staking positions
 
-### 3.1 Cache Manager
-- [ ] **TASK-070** Create multi-layer cache manager class (2h)
-- [ ] **TASK-071** Implement L1 memory cache with LRU (1.5h)
-- [ ] **TASK-072** Implement L2 Redis cache layer (1.5h)
-- [ ] **TASK-073** Implement L3 database cache layer (1.5h)
-- [ ] **TASK-074** Add dynamic TTL calculation logic (2h)
-- [ ] **TASK-075** Create cache invalidation system (2h)
+### 3.1 Database Setup
+- [ ] **TASK-054** Set up PostgreSQL container in Docker (1h)
+- [ ] **TASK-055** Create database schema with Prisma (2h)
+- [ ] **TASK-056** Design tables for positions and cache (1.5h)
+- [ ] **TASK-057** Set up database migrations (1h)
+- [ ] **TASK-058** Create seed data for testing (1h)
 
-### 3.2 WebSocket Gateway
-- [ ] **TASK-076** Create WebSocket server project (1h)
-- [ ] **TASK-077** Implement Socket.io server setup (1.5h)
-- [ ] **TASK-078** Add wallet subscription handling (2h)
-- [ ] **TASK-079** Create price subscription system (2h)
-- [ ] **TASK-080** Implement Redis pub/sub integration (2h)
-- [ ] **TASK-081** Write Dockerfile.websocket (1h)
+### 3.2 Marinade Integration
+- [ ] **TASK-059** Install Marinade SDK (0.5h)
+- [ ] **TASK-060** Create Marinade service class (1h)
+- [ ] **TASK-061** Implement mSOL position detection (2h)
+- [ ] **TASK-062** Calculate SOL value from mSOL (1.5h)
+- [ ] **TASK-063** Fetch current Marinade APY (1h)
+- [ ] **TASK-064** Add rewards calculation (1.5h)
 
-### 3.3 Real-time Updates
-- [ ] **TASK-082** Create blockchain event monitor (2h)
-- [ ] **TASK-083** Implement Helius WebSocket connection (2h)
-- [ ] **TASK-084** Add account change detection (2h)
-- [ ] **TASK-085** Create update broadcaster system (1.5h)
-- [ ] **TASK-086** Add reconnection logic (1.5h)
+### 3.3 API Enhancement
+- [ ] **TASK-065** Create positions endpoint in API (1.5h)
+- [ ] **TASK-066** Combine token balances with positions (1h)
+- [ ] **TASK-067** Calculate total portfolio value (1h)
+- [ ] **TASK-068** Store positions in database (1.5h)
 
----
+### 3.4 Frontend Position Display
+- [ ] **TASK-069** Create position card component (2h)
+- [ ] **TASK-070** Display staking positions separately (1.5h)
+- [ ] **TASK-071** Show APY and rewards (1h)
+- [ ] **TASK-072** Add link to Marinade app (0.5h)
+- [ ] **TASK-073** Update portfolio total with positions (1h)
 
-## Phase 4: Frontend Application (Day 13-16)
-
-### 4.1 Next.js Setup
-- [ ] **TASK-087** Create Next.js 14 app with TypeScript (1h)
-- [ ] **TASK-088** Configure Tailwind CSS (0.5h)
-- [ ] **TASK-089** Install and configure Shadcn UI (1h)
-- [ ] **TASK-090** Set up environment variables (0.5h)
-- [ ] **TASK-091** Create basic layout structure (1.5h)
-- [ ] **TASK-092** Write Dockerfile.frontend (1h)
-
-### 4.2 Wallet Integration
-- [ ] **TASK-093** Install Solana wallet adapter (0.5h)
-- [ ] **TASK-094** Create wallet provider component (1.5h)
-- [ ] **TASK-095** Build wallet connect button (1.5h)
-- [ ] **TASK-096** Add wallet disconnect handling (1h)
-- [ ] **TASK-097** Implement multi-wallet support UI (2h)
-
-### 4.3 gRPC-Web Client
-- [ ] **TASK-098** Install gRPC-Web dependencies (0.5h)
-- [ ] **TASK-099** Generate client stubs from protos (1h)
-- [ ] **TASK-100** Create gRPC client service class (2h)
-- [ ] **TASK-101** Implement portfolio fetch method (1.5h)
-- [ ] **TASK-102** Add error handling and retries (1.5h)
-
-### 4.4 Portfolio Display
-- [ ] **TASK-103** Create portfolio overview component (2h)
-- [ ] **TASK-104** Build token balance list component (2h)
-- [ ] **TASK-105** Create position card component (2h)
-- [ ] **TASK-106** Add USD value calculations display (1.5h)
-- [ ] **TASK-107** Implement loading states (1h)
-- [ ] **TASK-108** Add error states UI (1h)
-
-### 4.5 Real-time Features
-- [ ] **TASK-109** Create WebSocket hook (useWebSocket) (2h)
-- [ ] **TASK-110** Build useRealtimePortfolio hook (2h)
-- [ ] **TASK-111** Add real-time price updates (2h)
-- [ ] **TASK-112** Implement update animations (1.5h)
-- [ ] **TASK-113** Add connection status indicator (1h)
-
-### 4.6 UI Polish
-- [ ] **TASK-114** Create dark/light mode toggle (1.5h)
-- [ ] **TASK-115** Add responsive design breakpoints (2h)
-- [ ] **TASK-116** Build portfolio chart component (2h)
-- [ ] **TASK-117** Create protocol breakdown view (2h)
-- [ ] **TASK-118** Add refresh button with animation (1h)
-- [ ] **TASK-119** Implement number formatting utilities (1h)
+**Deliverable**: Users can see their Marinade staking positions
 
 ---
 
-## Phase 5: API Integration & Testing (Day 17-18)
+## Phase 4: Multi-Protocol Support (Day 10-12)
+**Goal**: Add Kamino, Jito, and basic LP positions
 
-### 5.1 gRPC Service Implementation
-- [ ] **TASK-120** Implement GetPortfolio RPC method (2h)
-- [ ] **TASK-121** Add StreamPortfolioUpdates method (2h)
-- [ ] **TASK-122** Create portfolio calculation logic (2h)
-- [ ] **TASK-123** Add comprehensive error handling (1.5h)
-- [ ] **TASK-124** Implement request validation (1.5h)
+### 4.1 Redis Caching Layer
+- [ ] **TASK-074** Set up Redis container (0.5h)
+- [ ] **TASK-075** Create Redis connection manager (1h)
+- [ ] **TASK-076** Implement cache service with TTL (1.5h)
+- [ ] **TASK-077** Cache position data (1h)
+- [ ] **TASK-078** Cache price data with 1-minute TTL (1h)
 
-### 5.2 Integration Testing
-- [ ] **TASK-125** Write wallet integration tests (2h)
-- [ ] **TASK-126** Test Marinade adapter integration (1.5h)
-- [ ] **TASK-127** Test Kamino adapter integration (1.5h)
-- [ ] **TASK-128** Test cache layer functionality (2h)
-- [ ] **TASK-129** Test WebSocket connections (1.5h)
-- [ ] **TASK-130** Test gRPC streaming (1.5h)
+### 4.2 Protocol Adapter System
+- [ ] **TASK-079** Create protocol adapter interface (1.5h)
+- [ ] **TASK-080** Implement adapter registry (1h)
+- [ ] **TASK-081** Refactor Marinade to use adapter pattern (1.5h)
+- [ ] **TASK-082** Add parallel position fetching (1.5h)
 
-### 5.3 End-to-End Testing
-- [ ] **TASK-131** Create E2E test environment setup (2h)
-- [ ] **TASK-132** Write wallet connection E2E test (1.5h)
-- [ ] **TASK-133** Write portfolio fetch E2E test (1.5h)
-- [ ] **TASK-134** Test real-time updates E2E (2h)
-- [ ] **TASK-135** Add performance benchmarks (2h)
+### 4.3 Kamino Integration
+- [ ] **TASK-083** Install Kamino SDK (0.5h)
+- [ ] **TASK-084** Create Kamino adapter (1h)
+- [ ] **TASK-085** Detect lending positions (2h)
+- [ ] **TASK-086** Detect vault positions (2h)
+- [ ] **TASK-087** Calculate position values and APY (1.5h)
 
----
+### 4.4 Additional Protocols
+- [ ] **TASK-088** Add Jito staking detection (jitoSOL) (2h)
+- [ ] **TASK-089** Add basic Orca LP detection (2h)
+- [ ] **TASK-090** Add basic Raydium LP detection (2h)
+- [ ] **TASK-091** Update frontend to show all protocols (2h)
 
-## Phase 6: Monitoring & Observability (Day 19)
-
-### 6.1 Metrics Setup
-- [ ] **TASK-136** Add Prometheus client to backend (1h)
-- [ ] **TASK-137** Create metrics collector class (2h)
-- [ ] **TASK-138** Add cache metrics (hit/miss rates) (1.5h)
-- [ ] **TASK-139** Add gRPC metrics (latency, errors) (1.5h)
-- [ ] **TASK-140** Add WebSocket metrics (1h)
-
-### 6.2 Logging
-- [ ] **TASK-141** Set up Winston logger (1h)
-- [ ] **TASK-142** Add structured logging to services (2h)
-- [ ] **TASK-143** Configure log rotation (1h)
-- [ ] **TASK-144** Add request ID tracking (1.5h)
-
-### 6.3 Health Checks
-- [ ] **TASK-145** Create health check endpoints (1.5h)
-- [ ] **TASK-146** Add dependency health checks (1.5h)
-- [ ] **TASK-147** Implement readiness probes (1h)
-- [ ] **TASK-148** Add liveness probes (1h)
+**Deliverable**: Users can see positions across multiple protocols
 
 ---
 
-## Phase 7: Production Deployment (Day 20-21)
+## Phase 5: Real-time Updates (Day 13-14)
+**Goal**: Add WebSocket support for live updates
 
-### 7.1 Production Configuration
-- [ ] **TASK-149** Create docker-compose.prod.yml (2h)
-- [ ] **TASK-150** Set up production environment variables (1h)
-- [ ] **TASK-151** Configure production database (1h)
-- [ ] **TASK-152** Set up Redis persistence (1h)
-- [ ] **TASK-153** Create backup scripts (2h)
+### 5.1 WebSocket Server
+- [ ] **TASK-092** Create WebSocket server with Socket.io (1.5h)
+- [ ] **TASK-093** Implement room-based subscriptions (1.5h)
+- [ ] **TASK-094** Create WebSocket Docker container (1h)
+- [ ] **TASK-095** Add authentication for WebSocket (1h)
 
-### 7.2 CI/CD Pipeline
-- [ ] **TASK-154** Create GitHub Actions workflow file (2h)
-- [ ] **TASK-155** Add build and test jobs (1.5h)
-- [ ] **TASK-156** Add Docker image building (1.5h)
-- [ ] **TASK-157** Set up deployment secrets (1h)
-- [ ] **TASK-158** Add deployment job to Lightsail (2h)
+### 5.2 Real-time Price Updates
+- [ ] **TASK-096** Subscribe to Jupiter price stream (2h)
+- [ ] **TASK-097** Broadcast price updates to clients (1.5h)
+- [ ] **TASK-098** Implement Redis pub/sub for updates (1.5h)
+- [ ] **TASK-099** Add connection status indicator (1h)
 
-### 7.3 Deployment Scripts
-- [ ] **TASK-159** Write deployment script (deploy.sh) (2h)
-- [ ] **TASK-160** Create rollback script (1.5h)
-- [ ] **TASK-161** Add health check validation (1h)
-- [ ] **TASK-162** Create database migration script (1h)
-- [ ] **TASK-163** Write monitoring setup script (1.5h)
+### 5.3 Frontend WebSocket Integration
+- [ ] **TASK-100** Create WebSocket hook (1.5h)
+- [ ] **TASK-101** Update prices in real-time (1.5h)
+- [ ] **TASK-102** Add update animations (1h)
+- [ ] **TASK-103** Handle reconnection logic (1h)
 
-### 7.4 Initial Deployment
-- [ ] **TASK-164** Build Docker images locally (1h)
-- [ ] **TASK-165** Push images to registry (1h)
-- [ ] **TASK-166** Run deployment script on Lightsail (1h)
-- [ ] **TASK-167** Verify all services are running (1h)
-- [ ] **TASK-168** Test production endpoints (1.5h)
-- [ ] **TASK-169** Verify CloudFlare integration (1h)
+### 5.4 Position Change Detection
+- [ ] **TASK-104** Monitor wallet for transaction changes (2h)
+- [ ] **TASK-105** Detect position changes (2h)
+- [ ] **TASK-106** Auto-refresh affected positions (1.5h)
+- [ ] **TASK-107** Notify frontend of changes (1h)
+
+**Deliverable**: Portfolio updates in real-time without refresh
 
 ---
 
-## Phase 8: Final Testing & Launch (Day 22)
+## Phase 6: Advanced Features (Day 15-16)
+**Goal**: Add charts, filters, and enhanced UX
 
-### 8.1 Production Testing
-- [ ] **TASK-170** Test wallet connection in production (1h)
-- [ ] **TASK-171** Verify portfolio data accuracy (2h)
-- [ ] **TASK-172** Test real-time updates (1.5h)
-- [ ] **TASK-173** Load test with multiple wallets (2h)
-- [ ] **TASK-174** Test error scenarios (1.5h)
+### 6.1 Portfolio Analytics
+- [ ] **TASK-108** Create portfolio pie chart (2h)
+- [ ] **TASK-109** Add protocol breakdown view (1.5h)
+- [ ] **TASK-110** Build historical value chart (2h)
+- [ ] **TASK-111** Add 24h/7d/30d change indicators (1.5h)
 
-### 8.2 Documentation
-- [ ] **TASK-175** Write deployment documentation (2h)
-- [ ] **TASK-176** Create API documentation (2h)
-- [ ] **TASK-177** Write troubleshooting guide (1.5h)
-- [ ] **TASK-178** Update README with setup instructions (1h)
+### 6.2 Filtering and Sorting
+- [ ] **TASK-112** Add token/position filters (1.5h)
+- [ ] **TASK-113** Implement sort by value/APY/protocol (1h)
+- [ ] **TASK-114** Add search functionality (1h)
+- [ ] **TASK-115** Create hide small balances toggle (1h)
 
-### 8.3 Launch Preparation
-- [ ] **TASK-179** Set up error tracking (Sentry) (1.5h)
-- [ ] **TASK-180** Configure uptime monitoring (1h)
-- [ ] **TASK-181** Create launch checklist (1h)
-- [ ] **TASK-182** Prepare rollback plan (1h)
-- [ ] **TASK-183** Final production smoke test (1h)
+### 6.3 Export and Sharing
+- [ ] **TASK-116** Implement CSV export (1.5h)
+- [ ] **TASK-117** Add portfolio snapshot sharing (2h)
+- [ ] **TASK-118** Create printable report view (1.5h)
+
+### 6.4 Multi-wallet Support
+- [ ] **TASK-119** Add wallet switching UI (1.5h)
+- [ ] **TASK-120** Support multiple wallet tracking (2h)
+- [ ] **TASK-121** Aggregate multi-wallet portfolios (1.5h)
+
+**Deliverable**: Rich analytics and data management features
 
 ---
 
-## Summary Statistics
+## Phase 7: Performance & Polish (Day 17-18)
+**Goal**: Optimize performance and polish UI/UX
 
-- **Total Tasks**: 183 (9 completed, 174 remaining)
-- **Estimated Total Hours**: ~250 hours (~12 hours completed)
-- **Estimated Duration**: 22 working days (assuming 6-8 productive hours/day)
-- **Critical Path**: Infrastructure → Backend → Blockchain → Frontend → Deployment
-- **Current Status**: Phase 0 partially complete (0.1 and 0.4 done, 0.2 and 0.3 pending for production)
+### 7.1 Performance Optimization
+- [ ] **TASK-122** Implement request batching for RPC calls (2h)
+- [ ] **TASK-123** Add CDN caching for static assets (1h)
+- [ ] **TASK-124** Optimize database queries with indexes (1.5h)
+- [ ] **TASK-125** Implement lazy loading for positions (1.5h)
 
-## Sprint Breakdown (2-week sprints)
+### 7.2 gRPC Migration (Optional but recommended)
+- [ ] **TASK-126** Set up basic gRPC server (2h)
+- [ ] **TASK-127** Create portfolio.proto definitions (1.5h)
+- [ ] **TASK-128** Implement gRPC service methods (2h)
+- [ ] **TASK-129** Add Envoy proxy for gRPC-Web (1.5h)
+- [ ] **TASK-130** Migrate frontend to use gRPC-Web (2h)
 
-### Sprint 1 (Days 1-10)
-- Phase 0: Project Setup & Infrastructure
-- Phase 1: Backend Infrastructure  
-- Phase 2: Blockchain Integration Layer (start)
-- **Deliverable**: Working backend with basic blockchain integration
+### 7.3 Error Handling & Recovery
+- [ ] **TASK-131** Add comprehensive error boundaries (1h)
+- [ ] **TASK-132** Implement retry mechanisms (1.5h)
+- [ ] **TASK-133** Add fallback RPC providers (1.5h)
+- [ ] **TASK-134** Create user-friendly error messages (1h)
 
-### Sprint 2 (Days 11-20)
-- Phase 2: Blockchain Integration Layer (complete)
-- Phase 3: Cache & Real-time Systems
-- Phase 4: Frontend Application
-- Phase 5: API Integration & Testing
-- Phase 6: Monitoring & Observability
-- **Deliverable**: Complete application with frontend
+### 7.4 UI Polish
+- [ ] **TASK-135** Add loading skeletons (1.5h)
+- [ ] **TASK-136** Implement smooth transitions (1h)
+- [ ] **TASK-137** Polish responsive design (2h)
 
-### Sprint 3 (Days 21-22 + buffer)
-- Phase 7: Production Deployment
-- Phase 8: Final Testing & Launch
-- **Deliverable**: Production-deployed MVP
+**Deliverable**: Fast, polished, production-ready application
 
-## Risk Mitigation Tasks (Optional, but recommended)
+---
 
-- [ ] **RISK-001** Set up staging environment (4h)
-- [ ] **RISK-002** Create data backup automation (2h)
-- [ ] **RISK-003** Implement rate limiting on all endpoints (3h)
-- [ ] **RISK-004** Add DDoS protection rules (2h)
-- [ ] **RISK-005** Create incident response playbook (2h)
+## Phase 8: Production Deployment (Day 19-20)
+**Goal**: Deploy to production environment
 
-## Post-MVP High Priority
+### 8.1 Production Configuration
+- [ ] **TASK-138** Create production Docker Compose file (2h)
+- [ ] **TASK-139** Set up production environment variables (1h)
+- [ ] **TASK-140** Configure production database (1h)
+- [ ] **TASK-141** Set up Redis persistence (1h)
+- [ ] **TASK-142** Create backup scripts (1.5h)
 
-- [ ] **POST-001** Add more protocol adapters (Orca, Marginfi)
-- [ ] **POST-002** Implement portfolio history tracking
-- [ ] **POST-003** Add CSV export functionality
-- [ ] **POST-004** Create mobile-responsive improvements
-- [ ] **POST-005** Add user preferences persistence
+### 8.2 CI/CD Pipeline
+- [ ] **TASK-143** Create GitHub Actions workflow (2h)
+- [ ] **TASK-144** Add automated testing (1.5h)
+- [ ] **TASK-145** Set up Docker image building (1.5h)
+- [ ] **TASK-146** Configure deployment to Lightsail (2h)
 
-## Notes for Execution
+### 8.3 Security Hardening
+- [ ] **TASK-147** Implement rate limiting (1.5h)
+- [ ] **TASK-148** Add request validation (1h)
+- [ ] **TASK-149** Set up CORS properly (0.5h)
+- [ ] **TASK-150** Configure security headers (1h)
 
-1. **Parallel Work**: Many tasks can be done in parallel by different team members:
-   - Frontend and backend can progress simultaneously after Phase 1
-   - Protocol adapters can be built independently
-   - Documentation can be written alongside development
+### 8.4 Testing
+- [ ] **TASK-151** Write integration tests for APIs (2h)
+- [ ] **TASK-152** Add E2E tests for critical flows (2h)
+- [ ] **TASK-153** Perform load testing (1.5h)
+- [ ] **TASK-154** Test failover scenarios (1.5h)
+- [ ] **TASK-155** Security audit checklist (1h)
 
-2. **Testing Strategy**: 
-   - Write tests as you go (included in estimates)
-   - Don't skip integration tests - they catch most issues
+**Deliverable**: Application deployed to production
 
-3. **Daily Checklist**:
-   - Commit code at end of each task
-   - Update task status in project board
-   - Test in Docker environment before marking complete
+---
 
-4. **Dependencies to Install Early**:
-   - Helius API key (needed for blockchain data)
-   - CloudFlare account (for SSL)
-   - AWS account (for Lightsail)
-   - Domain name (for production)
+## Phase 9: Monitoring & Launch (Day 21-22)
+**Goal**: Add monitoring and officially launch
 
-5. **Critical Path Items** (blockers if delayed):
-   - Docker environment setup
-   - gRPC service foundation
-   - Wallet integration
-   - Production deployment scripts
+### 9.1 Monitoring Setup
+- [ ] **TASK-156** Set up Prometheus metrics (1.5h)
+- [ ] **TASK-157** Configure Grafana dashboards (2h)
+- [ ] **TASK-158** Add application logging with Winston (1.5h)
+- [ ] **TASK-159** Set up error tracking (Sentry) (1.5h)
+- [ ] **TASK-160** Configure uptime monitoring (1h)
+
+### 9.2 Documentation
+- [ ] **TASK-161** Write API documentation (2h)
+- [ ] **TASK-162** Create user guide (1.5h)
+- [ ] **TASK-163** Document deployment process (1h)
+- [ ] **TASK-164** Write troubleshooting guide (1h)
+
+### 9.3 Launch Activities
+- [ ] **TASK-165** Final production testing (2h)
+- [ ] **TASK-166** Create launch announcement (1h)
+- [ ] **TASK-167** Submit to Solana ecosystem sites (1h)
+
+**Deliverable**: Production application with monitoring
+
+---
+
+## Summary Comparison
+
+### Old Approach Problems:
+- Days 1-12: Building infrastructure with no visible output
+- Day 13: Finally starting frontend
+- Late integration = high risk
+- No feedback loop until very late
+
+### New Approach Benefits:
+- **Day 3-4**: Working app with wallet connection (visible progress!)
+- **Day 5-6**: Shows real token balances (immediate value!)
+- **Day 7-9**: First protocol integration (incremental feature)
+- **Every 2-3 days**: New visible feature deployed
+- **Continuous integration**: Each phase integrates all layers
+- **Early feedback**: Can test and validate assumptions from Day 3
+- **Lower risk**: Problems discovered early
+- **Better morale**: Constant visible progress
+
+### Development Principles:
+1. **Vertical Slices**: Each phase cuts through all layers (frontend → backend → blockchain)
+2. **MVP First**: Get basic functionality working, then enhance
+3. **Iterative Enhancement**: Start simple (Express), migrate to gRPC later if needed
+4. **User Value**: Every phase delivers something users can see and use
+5. **Fail Fast**: Discover integration issues early when they're cheaper to fix
+
+### Key Differences:
+- **Database**: Added only when needed (Phase 3) not upfront
+- **Redis**: Added when caching becomes necessary (Phase 4)
+- **gRPC**: Optional optimization in Phase 7 (can ship without it)
+- **WebSockets**: Added as enhancement (Phase 5) not core requirement
+- **Complex architecture**: Built incrementally as needed, not all upfront
+
+This approach allows you to:
+- Show progress to stakeholders every few days
+- Get user feedback early
+- Pivot if needed based on learnings
+- Maintain momentum and morale
+- Reduce technical risk through continuous integration
