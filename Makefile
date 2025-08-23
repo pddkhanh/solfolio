@@ -12,10 +12,10 @@ help:
 	@echo "  make logs      - View logs from all services"
 	@echo ""
 	@echo "Testing:"
-	@echo "  make test      - Run all tests (frontend + backend)"
-	@echo "  make test-fe   - Run frontend tests only"
-	@echo "  make test-be   - Run backend tests only"
-	@echo "  make test-e2e  - Run E2E tests"
+	@echo "  make test      - Run all tests (frontend + backend + E2E)"
+	@echo "  make test-fe   - Run frontend unit tests only"
+	@echo "  make test-be   - Run backend unit tests only"
+	@echo "  make test-e2e  - Run E2E tests only"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint      - Run linters"
@@ -58,6 +58,8 @@ test:
 	@$(MAKE) test-fe
 	@echo ""
 	@$(MAKE) test-be
+	@echo ""
+	@$(MAKE) test-e2e
 	@echo "━━━━━━━━━━━━━━━━━━━"
 	@echo "✅ All tests completed!"
 

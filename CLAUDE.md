@@ -46,13 +46,13 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 # Essential commands
 make dev        # Start all services
 make down       # Stop all services
-make test       # Run all tests (frontend + backend)
+make test       # Run all tests (frontend + backend + E2E)
 make health     # Check service health
 
 # Testing
-make test-fe    # Frontend tests only
-make test-be    # Backend tests only
-make test-e2e   # E2E tests
+make test-fe    # Frontend unit tests only
+make test-be    # Backend unit tests only
+make test-e2e   # E2E tests only
 make test-watch # Watch mode (interactive)
 
 # Utilities
