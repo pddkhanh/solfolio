@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Web3 Testing Setup Guide for SolFolio</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="web3-testing-setup-guide-for-solfolio">Web3 Testing Setup Guide for SolFolio</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#wallet-setup-for-testing">Wallet Setup for Testing</a></li>
+<li><a href="#api-keys-and-configuration">API Keys and Configuration</a></li>
+<li><a href="#testing-your-wallet-connection">Testing Your Wallet Connection</a></li>
+<li><a href="#running-tests">Running Tests</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr>
+<h2 id="overview">Overview</h2>
+<p>This guide will help you set up everything needed to test SolFolio's Web3 functionality. As someone new to Web3 development, you'll learn how to:</p>
+<ul>
+<li>Set up a test wallet (separate from your production wallet)</li>
+<li>Configure the necessary API keys</li>
+<li>Test wallet connections safely</li>
+<li>Run automated tests</li>
+</ul>
+<p><strong>Important:</strong> Never use your production wallet for testing! We'll create a separate test wallet.</p>
+<hr>
+<h2 id="wallet-setup-for-testing">Wallet Setup for Testing</h2>
+<h3 id="why-use-a-test-wallet">Why Use a Test Wallet?</h3>
+<ul>
+<li><strong>Safety</strong>: Test wallets have no real funds, so there's no risk</li>
+<li><strong>Isolation</strong>: Keeps your production assets separate from development</li>
+<li><strong>Network</strong>: We use Solana Devnet (test network) where tokens have no real value</li>
+</ul>
+<h3 id="step-1-install-phantom-wallet">Step 1: Install Phantom Wallet</h3>
+<ol>
+<li>Go to <a href="https://phantom.app">phantom.app</a></li>
+<li>Click &quot;Download&quot; and install the browser extension</li>
+<li>Choose your browser (Chrome, Firefox, Brave, or Edge)</li>
+</ol>
+<h3 id="step-2-create-a-test-wallet">Step 2: Create a Test Wallet</h3>
+<ol>
+<li><strong>Open Phantom</strong> extension in your browser</li>
+<li>Click <strong>&quot;Create a new wallet&quot;</strong></li>
+<li><strong>IMPORTANT</strong>: Write down your recovery phrase and store it safely (even for test wallets)</li>
+<li>Set a password for the wallet</li>
+<li>Complete the setup</li>
+</ol>
+<h3 id="step-3-switch-to-devnet">Step 3: Switch to Devnet</h3>
+<p>This is crucial for testing:</p>
+<ol>
+<li><strong>Open Phantom</strong> wallet</li>
+<li>Click the <strong>settings icon</strong> (gear icon)</li>
+<li>Go to <strong>&quot;Developer Settings&quot;</strong></li>
+<li>Toggle ON <strong>&quot;Testnet Mode&quot;</strong></li>
+<li>In <strong>&quot;Network&quot;</strong>, select <strong>&quot;Devnet&quot;</strong></li>
+<li>You should see &quot;Devnet&quot; in the top-left of your wallet</li>
+</ol>
+<h3 id="step-4-get-free-test-sol">Step 4: Get Free Test SOL</h3>
+<p>You need test SOL for transactions:</p>
+<ol>
+<li><strong>Copy your wallet address</strong> (click the address at the top of Phantom)</li>
+<li>Go to <a href="https://faucet.solana.com/">Solana Faucet</a></li>
+<li>Paste your wallet address</li>
+<li>Select &quot;Devnet&quot; as the network</li>
+<li>Click &quot;Request Airdrop&quot;</li>
+<li>You should receive 2 SOL (test tokens) within seconds</li>
+</ol>
+<p><strong>Alternative method using CLI:</strong></p>
+<pre><code class="language-bash"><span class="hljs-comment"># If you have Solana CLI installed</span>
+solana airdrop 2 YOUR_WALLET_ADDRESS --url devnet
+</code></pre>
+<hr>
+<h2 id="api-keys-and-configuration">API Keys and Configuration</h2>
+<h3 id="required-services">Required Services</h3>
+<p>For full functionality, you'll need accounts with these services (all have free tiers):</p>
+<h4 id="1-helius-rpc-recommended">1. Helius RPC (Recommended)</h4>
+<p>Helius provides fast, reliable RPC access to Solana:</p>
+<ol>
+<li><strong>Sign up</strong> at <a href="https://helius.dev">helius.dev</a></li>
+<li><strong>Create a new project</strong></li>
+<li><strong>Get your API key</strong> from the dashboard</li>
+<li><strong>Select &quot;Devnet&quot;</strong> as your network</li>
+</ol>
+<h4 id="2-environment-configuration">2. Environment Configuration</h4>
+<p>Create/update the <code>.env.local</code> file in the <code>frontend</code> directory:</p>
+<pre><code class="language-bash"><span class="hljs-comment"># frontend/.env.local</span>
+
+<span class="hljs-comment"># Network Configuration (use &#x27;devnet&#x27; for testing)</span>
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+
+<span class="hljs-comment"># Helius RPC URL (recommended for better performance)</span>
+<span class="hljs-comment"># Get your key from https://helius.dev</span>
+NEXT_PUBLIC_HELIUS_RPC_URL=https://rpc-devnet.helius.xyz/?api-key=YOUR_HELIUS_API_KEY_HERE
+
+<span class="hljs-comment"># Alternative: Use public Solana RPC (slower, may have rate limits)</span>
+<span class="hljs-comment"># NEXT_PUBLIC_CUSTOM_RPC_URL=https://api.devnet.solana.com</span>
+
+<span class="hljs-comment"># Future: Jupiter Price API (for token prices)</span>
+<span class="hljs-comment"># No API key needed, but included for reference</span>
+NEXT_PUBLIC_JUPITER_API_URL=https://price.jup.ag/v4
+</code></pre>
+<p><strong>Note:</strong> Never commit <code>.env.local</code> to git! It's already in <code>.gitignore</code>.</p>
+<hr>
+<h2 id="testing-your-wallet-connection">Testing Your Wallet Connection</h2>
+<h3 id="manual-testing-steps">Manual Testing Steps</h3>
+<h4 id="1-start-the-development-environment">1. Start the Development Environment</h4>
+<pre><code class="language-bash"><span class="hljs-comment"># Using Docker (recommended)</span>
+make dev
+
+<span class="hljs-comment"># Or run directly</span>
+<span class="hljs-built_in">cd</span> frontend
+pnpm dev
+</code></pre>
+<h4 id="2-access-the-application">2. Access the Application</h4>
+<p>Open your browser and go to: <code>http://localhost:3000</code></p>
+<h4 id="3-connect-your-test-wallet">3. Connect Your Test Wallet</h4>
+<ol>
+<li><strong>Click &quot;Connect Wallet&quot;</strong> button</li>
+<li><strong>Select Phantom</strong> from the modal</li>
+<li><strong>Phantom will pop up</strong> - review the connection request</li>
+<li><strong>Check the following</strong>:
+<ul>
+<li>It shows &quot;Devnet&quot; in Phantom</li>
+<li>The website is localhost:3000</li>
+<li>No real funds are at risk</li>
+</ul>
+</li>
+<li><strong>Click &quot;Connect&quot;</strong> in Phantom</li>
+</ol>
+<h4 id="4-verify-connection">4. Verify Connection</h4>
+<p>After connecting, you should see:</p>
+<ul>
+<li>Your wallet address (formatted as &quot;1234...5678&quot;)</li>
+<li>A dropdown menu when clicking the address</li>
+<li>Your test SOL balance</li>
+<li>Wallet info card on the homepage</li>
+</ul>
+<h4 id="5-test-features">5. Test Features</h4>
+<p>Try these actions:</p>
+<ul>
+<li><strong>Copy Address</strong>: Click dropdown → &quot;Copy Address&quot;</li>
+<li><strong>View on Explorer</strong>: Click the external link icon</li>
+<li><strong>Switch Wallet</strong>: Disconnect and connect a different wallet</li>
+<li><strong>Disconnect</strong>: Click dropdown → &quot;Disconnect&quot;</li>
+<li><strong>Refresh Page</strong>: Connection should persist</li>
+</ul>
+<h3 id="what-success-looks-like">What Success Looks Like</h3>
+<p>✅ <strong>Successful connection shows:</strong></p>
+<ul>
+<li>Wallet button changes to show your address</li>
+<li>No error messages</li>
+<li>Wallet info card displays with balance</li>
+<li>All dropdown menu items work</li>
+</ul>
+<p>❌ <strong>If you see errors:</strong></p>
+<ul>
+<li>&quot;Unable to add filesystem&quot; - Clear browser cache and restart</li>
+<li>&quot;Wallet not found&quot; - Make sure Phantom is installed</li>
+<li>&quot;Network error&quot; - Check you're on Devnet</li>
+<li>Connection rejected - You clicked &quot;Cancel&quot; in Phantom</li>
+</ul>
+<hr>
+<h2 id="running-tests">Running Tests</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> frontend
+
+<span class="hljs-comment"># Run all tests</span>
+pnpm <span class="hljs-built_in">test</span>
+
+<span class="hljs-comment"># Run tests in watch mode</span>
+pnpm <span class="hljs-built_in">test</span>:watch
+
+<span class="hljs-comment"># Run with coverage</span>
+pnpm <span class="hljs-built_in">test</span>:coverage
+</code></pre>
+<h3 id="e2e-tests">E2E Tests</h3>
+<pre><code class="language-bash"><span class="hljs-built_in">cd</span> frontend
+
+<span class="hljs-comment"># Install Playwright browsers (first time only)</span>
+npx playwright install
+
+<span class="hljs-comment"># Run E2E tests</span>
+npx playwright <span class="hljs-built_in">test</span>
+
+<span class="hljs-comment"># Run in UI mode (recommended for debugging)</span>
+npx playwright <span class="hljs-built_in">test</span> --ui
+
+<span class="hljs-comment"># Run specific test file</span>
+npx playwright <span class="hljs-built_in">test</span> e2e/wallet-connection.spec.ts
+
+<span class="hljs-comment"># Run with specific browser</span>
+npx playwright <span class="hljs-built_in">test</span> --project=chromium
+</code></pre>
+<h3 id="testing-in-docker">Testing in Docker</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Run tests in Docker container</span>
+docker-compose -f docker-compose.dev.yml <span class="hljs-built_in">exec</span> frontend pnpm <span class="hljs-built_in">test</span>
+docker-compose -f docker-compose.dev.yml <span class="hljs-built_in">exec</span> frontend npx playwright <span class="hljs-built_in">test</span>
+</code></pre>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues-and-solutions">Common Issues and Solutions</h3>
+<h4 id="1-unable-to-add-filesystem-">1. &quot;Unable to add filesystem: <illegal path>&quot;</h4>
+<p><strong>Cause</strong>: Docker/browser security conflict
+<strong>Solution</strong>:</p>
+<ul>
+<li>Clear browser cache and cookies for localhost:3000</li>
+<li>Restart Docker containers: <code>make restart</code></li>
+<li>Try incognito/private browsing mode</li>
+</ul>
+<h4 id="2-wallet-not-found-or-phantom-is-not-installed">2. &quot;Wallet not found&quot; or &quot;Phantom is not installed&quot;</h4>
+<p><strong>Cause</strong>: Extension not detected
+<strong>Solution</strong>:</p>
+<ul>
+<li>Refresh the page</li>
+<li>Check Phantom is enabled for localhost</li>
+<li>Try a different browser</li>
+<li>Disable other wallet extensions temporarily</li>
+</ul>
+<h4 id="3-transaction-failed-or-insufficient-funds">3. &quot;Transaction failed&quot; or &quot;Insufficient funds&quot;</h4>
+<p><strong>Cause</strong>: No test SOL in wallet
+<strong>Solution</strong>:</p>
+<ul>
+<li>Check you're on Devnet (not Mainnet)</li>
+<li>Request airdrop from faucet</li>
+<li>Wait a few seconds for transaction to confirm</li>
+</ul>
+<h4 id="4-rpc-error-or-network-request-failed">4. &quot;RPC Error&quot; or &quot;Network request failed&quot;</h4>
+<p><strong>Cause</strong>: RPC endpoint issues
+<strong>Solution</strong>:</p>
+<ul>
+<li>Check your Helius API key is valid</li>
+<li>Try switching to public RPC</li>
+<li>Check network connectivity</li>
+<li>Verify you're using devnet URLs</li>
+</ul>
+<h4 id="5-connection-doesnt-persist-after-refresh">5. Connection doesn't persist after refresh</h4>
+<p><strong>Cause</strong>: LocalStorage blocked or cleared
+<strong>Solution</strong>:</p>
+<ul>
+<li>Check browser doesn't block third-party storage</li>
+<li>Don't use incognito mode for persistence testing</li>
+<li>Check browser console for localStorage errors</li>
+</ul>
+<h3 id="debug-mode">Debug Mode</h3>
+<p>To see detailed logs:</p>
+<pre><code class="language-javascript"><span class="hljs-comment">// In browser console</span>
+<span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">setItem</span>(<span class="hljs-string">&#x27;debug&#x27;</span>, <span class="hljs-string">&#x27;solana:*&#x27;</span>)
+
+<span class="hljs-comment">// Then refresh the page</span>
+</code></pre>
+<h3 id="getting-help">Getting Help</h3>
+<p>If you encounter issues:</p>
+<ol>
+<li><strong>Check browser console</strong> (F12 → Console tab)</li>
+<li><strong>Check Docker logs</strong>: <code>docker-compose logs frontend</code></li>
+<li><strong>Review this guide</strong> for missed steps</li>
+<li><strong>Search error messages</strong> - most Solana errors are well-documented</li>
+<li><strong>Ask in Solana Discord</strong> (#developers channel)</li>
+</ol>
+<hr>
+<h2 id="security-best-practices">Security Best Practices</h2>
+<h3 id="dos-">DO's ✅</h3>
+<ul>
+<li>Always use test wallets for development</li>
+<li>Keep test and production wallets separate</li>
+<li>Use Devnet for all testing</li>
+<li>Store recovery phrases securely (even for test wallets)</li>
+<li>Clear browser data after testing sessions</li>
+</ul>
+<h3 id="donts-">DON'Ts ❌</h3>
+<ul>
+<li>Never share recovery phrases</li>
+<li>Never use production wallet for testing</li>
+<li>Never send real SOL to test wallets</li>
+<li>Never commit API keys to git</li>
+<li>Never test on Mainnet unless absolutely necessary</li>
+</ul>
+<hr>
+<h2 id="next-steps">Next Steps</h2>
+<p>After successful setup:</p>
+<ol>
+<li><strong>Test all wallet features</strong> manually first</li>
+<li><strong>Run the E2E test suite</strong> to verify everything works</li>
+<li><strong>Implement new features</strong> using test-driven development</li>
+<li><strong>Keep test wallet funded</strong> with test SOL</li>
+<li><strong>Document any new testing procedures</strong> you discover</li>
+</ol>
+<p>Remember: Testing in Web3 is about safety first. Always use test networks and test wallets!</p>
+<hr>
+<h2 id="quick-reference">Quick Reference</h2>
+<h3 id="commands">Commands</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Start development</span>
+make dev
+
+<span class="hljs-comment"># Run tests</span>
+pnpm <span class="hljs-built_in">test</span>
+npx playwright <span class="hljs-built_in">test</span>
+
+<span class="hljs-comment"># Get test SOL</span>
+<span class="hljs-comment"># Visit: https://faucet.solana.com/</span>
+</code></pre>
+<h3 id="important-urls">Important URLs</h3>
+<ul>
+<li><strong>Local App</strong>: <a href="http://localhost:3000">http://localhost:3000</a></li>
+<li><strong>Solana Faucet</strong>: <a href="https://faucet.solana.com/">https://faucet.solana.com/</a></li>
+<li><strong>Helius Dashboard</strong>: <a href="https://dev.helius.xyz/">https://dev.helius.xyz/</a></li>
+<li><strong>Solana Explorer (Devnet)</strong>: <a href="https://explorer.solana.com/?cluster=devnet">https://explorer.solana.com/?cluster=devnet</a></li>
+<li><strong>Phantom Wallet</strong>: <a href="https://phantom.app/">https://phantom.app/</a></li>
+</ul>
+<h3 id="network-settings">Network Settings</h3>
+<ul>
+<li><strong>Network</strong>: Devnet (for testing)</li>
+<li><strong>RPC</strong>: Helius or public Solana Devnet</li>
+<li><strong>Tokens</strong>: Test SOL (no real value)</li>
+<li><strong>Transactions</strong>: Free on Devnet</li>
+</ul>
+
+            
+            
+        </body>
+        </html>

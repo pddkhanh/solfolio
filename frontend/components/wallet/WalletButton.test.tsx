@@ -156,10 +156,9 @@ describe('WalletButton', () => {
       
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockPublicKey.toBase58())
       
-      // Check for confirmation
-      await waitFor(() => {
-        expect(screen.getByText('Copied!')).toBeInTheDocument()
-      })
+      // The button text should change to "Copied!" immediately
+      // Note: In our implementation, this happens synchronously
+      expect(screen.getByText('Copied!')).toBeInTheDocument()
     })
 
     it('disconnects wallet when disconnect is clicked', async () => {

@@ -122,7 +122,7 @@ test:
 	@echo "Note: Backend and websocket tests will run when those services are implemented"
 
 test-unit:
-	@echo "Running unit tests..."
+	@echo "Running unit tests (5s timeout per test)..."
 	cd frontend && pnpm test
 
 test-unit-watch:

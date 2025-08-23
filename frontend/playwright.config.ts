@@ -21,6 +21,14 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  /* Test timeout - E2E tests can be slower but not too slow */
+  timeout: 30 * 1000, // 30 seconds per test
+  /* Global timeout for the whole test run */
+  globalTimeout: 10 * 60 * 1000, // 10 minutes total
+  /* Timeout for each assertion */
+  expect: {
+    timeout: 5 * 1000, // 5 seconds for assertions
+  },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -29,6 +37,10 @@ export default defineConfig({
     trace: 'on-first-retry',
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
+    /* Action timeout - clicking, typing, etc */
+    actionTimeout: 10 * 1000, // 10 seconds
+    /* Navigation timeout */
+    navigationTimeout: 30 * 1000, // 30 seconds
   },
 
   /* Configure projects for major browsers */

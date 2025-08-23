@@ -201,7 +201,7 @@ describe('WalletInfo', () => {
       
       await waitFor(() => {
         expect(screen.getByText('2.5000 SOL')).toBeInTheDocument()
-      })
+      }, { timeout: 1000 })
     })
 
     it('cleans up subscription on unmount', () => {

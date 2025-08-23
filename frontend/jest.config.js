@@ -9,6 +9,15 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
+  // Timeouts - Unit tests should be FAST!
+  testTimeout: 5000, // 5 seconds per test (default is 5000 anyway, but being explicit)
+  slowTestThreshold: 1000, // Warn if a test takes more than 1 second
+  // Force exit after test run completes to prevent hanging
+  forceExit: true,
+  // Detect open handles that prevent Jest from exiting
+  detectOpenHandles: true,
+  // Maximum number of workers (can speed up or slow down tests)
+  maxWorkers: '50%',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '@solana/wallet-adapter-react': '<rootDir>/__mocks__/@solana/wallet-adapter-react.js',

@@ -127,6 +127,10 @@ solfolio/
 3. **Caching Strategy**: Implement aggressive caching with 5-minute TTL for price data, 1-minute for positions
 4. **Error Handling**: Use circuit breakers for RPC calls, implement retry logic with exponential backoff
 5. **Testing**: Aim for 80% code coverage, focus on protocol adapter integration tests
+   - Unit tests timeout: 5 seconds per test (fail fast)
+   - Tests showing as slow: > 1 second (will show warning)
+   - E2E tests timeout: 30 seconds per test
+   - Always use `--forceExit` flag to prevent hanging tests
 6. **Performance**: Target <2s page load time, <100ms for cached data retrieval
 
 ## Implementation Phases

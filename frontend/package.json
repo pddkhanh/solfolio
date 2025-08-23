@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "jest --watchAll=false --forceExit --detectOpenHandles --maxWorkers=50%",
+    "test:watch": "jest --watch --maxWorkers=50%",
+    "test:coverage": "jest --coverage --watchAll=false --forceExit --maxWorkers=50%",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug"
