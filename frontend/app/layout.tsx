@@ -4,12 +4,7 @@ import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { WalletContextProvider } from '@/contexts/WalletContextProvider'
-import dynamic from 'next/dynamic'
-
-const WalletPersistenceProvider = dynamic(
-  () => import('@/components/providers/WalletPersistenceProvider'),
-  { ssr: false }
-)
+import WalletPersistenceProvider from '@/components/providers/WalletPersistenceProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
