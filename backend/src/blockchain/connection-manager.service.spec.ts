@@ -13,9 +13,11 @@ jest.mock('@solana/web3.js', () => ({
 
 describe('ConnectionManager', () => {
   let service: ConnectionManager;
-  let rateLimiter: RateLimiterService;
+  const mockWaitForSlot = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(async () => {
+    mockWaitForSlot.mockClear();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConnectionManager,
@@ -28,14 +30,13 @@ describe('ConnectionManager', () => {
         {
           provide: RateLimiterService,
           useValue: {
-            waitForSlot: jest.fn().mockResolvedValue(undefined),
+            waitForSlot: mockWaitForSlot,
           },
         },
       ],
     }).compile();
 
     service = module.get<ConnectionManager>(ConnectionManager);
-    rateLimiter = module.get<RateLimiterService>(RateLimiterService);
   });
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe('ConnectionManager', () => {
   });
 
   describe('createConnection', () => {
-    it('should create a new connection', async () => {
+    it('should create a new connection', () => {
       const rpcUrl = 'https://test-rpc.example.com';
       const connection = service.createConnection(rpcUrl);
 
@@ -60,7 +61,7 @@ describe('ConnectionManager', () => {
       );
     });
 
-    it('should reuse existing connection for same URL', async () => {
+    it('should reuse existing connection for same URL', () => {
       const rpcUrl = 'https://test-rpc.example.com';
 
       const conn1 = service.createConnection(rpcUrl);
@@ -79,7 +80,7 @@ describe('ConnectionManager', () => {
 
       expect(result).toBe('success');
       expect(mockOperation).toHaveBeenCalledTimes(1);
-      expect(rateLimiter.waitForSlot).toHaveBeenCalledTimes(1);
+      expect(mockWaitForSlot).toHaveBeenCalledTimes(1);
     });
 
     it('should retry on retryable error', async () => {
@@ -144,7 +145,7 @@ describe('ConnectionManager', () => {
   });
 
   describe('getActiveConnections', () => {
-    it('should return list of active connections', async () => {
+    it('should return list of active connections', () => {
       service.createConnection('https://rpc1.example.com');
       service.createConnection('https://rpc2.example.com');
 
@@ -156,7 +157,7 @@ describe('ConnectionManager', () => {
   });
 
   describe('closeConnection', () => {
-    it('should close specific connection', async () => {
+    it('should close specific connection', () => {
       const rpcUrl = 'https://test-rpc.example.com';
       service.createConnection(rpcUrl);
 
@@ -168,11 +169,11 @@ describe('ConnectionManager', () => {
   });
 
   describe('closeAllConnections', () => {
-    it('should close all connections', async () => {
+    it('should close all connections', () => {
       service.createConnection('https://rpc1.example.com');
       service.createConnection('https://rpc2.example.com');
 
-      await service.closeAllConnections();
+      service.closeAllConnections();
 
       const connections = service.getActiveConnections();
       expect(connections).toHaveLength(0);

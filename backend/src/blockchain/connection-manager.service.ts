@@ -69,7 +69,7 @@ export class ConnectionManager {
 
         if (attempt === opts.maxRetries!) {
           this.logger.error(
-            `Operation failed after ${opts.maxRetries! + 1} attempts`,
+            `Operation failed after ${opts.maxRetries + 1} attempts`,
             error,
           );
           break;

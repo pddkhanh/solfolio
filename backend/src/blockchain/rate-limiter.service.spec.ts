@@ -4,28 +4,29 @@ import { RateLimiterService } from './rate-limiter.service';
 
 describe('RateLimiterService', () => {
   let service: RateLimiterService;
-  let configService: ConfigService;
+  const mockConfigGet = jest.fn().mockImplementation((key: string) => {
+    if (key === 'RATE_LIMIT_RPC_PER_SECOND') {
+      return 10; // Low limit for testing
+    }
+    return null;
+  });
 
   beforeEach(async () => {
+    mockConfigGet.mockClear();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RateLimiterService,
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockImplementation((key: string) => {
-              if (key === 'RATE_LIMIT_RPC_PER_SECOND') {
-                return 10; // Low limit for testing
-              }
-              return null;
-            }),
+            get: mockConfigGet,
           },
         },
       ],
     }).compile();
 
     service = module.get<RateLimiterService>(RateLimiterService);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {
@@ -37,7 +38,7 @@ describe('RateLimiterService', () => {
   });
 
   it('should initialize with correct rate limit', () => {
-    expect(configService.get).toHaveBeenCalledWith(
+    expect(mockConfigGet).toHaveBeenCalledWith(
       'RATE_LIMIT_RPC_PER_SECOND',
       100,
     );
