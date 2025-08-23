@@ -41,17 +41,34 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 
 ## Development Commands
 
-### Quick Start
+### Quick Start with Make
 ```bash
-# Start development environment
-make dev
+# Essential commands
+make dev        # Start all services
+make down       # Stop all services
+make test       # Run all tests (frontend + backend)
+make health     # Check service health
 
-# Run all tests
-make test
+# Testing
+make test-fe    # Frontend tests only
+make test-be    # Backend tests only
+make test-e2e   # E2E tests
+make test-watch # Watch mode (interactive)
 
-# Run specific test types
-make test-unit    # Unit tests only
-make test-e2e     # E2E tests only
+# Utilities
+make lint       # Run linters
+make format     # Format code
+make logs       # View all logs
+make logs-backend # View specific service logs
+make shell-be   # Backend container shell
+make shell-fe   # Frontend container shell
+make clean      # Clean Docker volumes
+
+# Shortcuts
+make d          # dev
+make s          # down
+make t          # test
+make l          # logs
 ```
 
 ### Frontend Commands
@@ -76,25 +93,6 @@ pnpm run test:e2e:debug # E2E tests in debug mode
 npx playwright install  # Install Playwright browsers
 ```
 
-### Docker Commands
-```bash
-# Core commands
-make dev          # Start all services in development mode
-make down         # Stop all services
-make restart      # Restart all services
-make build        # Rebuild Docker images
-make logs         # View logs for all services
-make logs-frontend # View frontend logs only
-
-# Testing in Docker
-make test         # Run all tests (unit + E2E)
-make test-unit    # Run unit tests in Docker
-make test-e2e     # Run E2E tests in Docker
-
-# Utility commands
-make clean        # Clean Docker volumes and cache
-make shell-frontend # Open shell in frontend container
-```
 
 ### Backend Commands
 ```bash
