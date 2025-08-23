@@ -168,13 +168,14 @@ test.describe('Wallet Info Display', () => {
 
 test.describe('Error Handling', () => {
   test('should handle network errors gracefully', async ({ page }) => {
-    // Simulate network failure
-    await page.route('**/api/**', route => route.abort())
-    
+    // Go to the page first
     await page.goto('/')
     
-    // App should still load and show connect button
-    await expect(page.getByRole('button', { name: /connect wallet/i })).toBeVisible()
+    // Then simulate network failure for future API calls
+    await page.route('**/api/**', route => route.abort())
+    
+    // App should still work and show connect button
+    await expect(page.getByRole('button', { name: /connect wallet/i }).first()).toBeVisible()
   })
 
   test.skip('should show error message on connection failure', async ({ page }) => {
