@@ -15,6 +15,11 @@ const TokenList = dynamic(
   { ssr: false }
 );
 
+const PositionsList = dynamic(
+  () => import('@/components/positions/PositionsList').then(mod => ({ default: mod.PositionsList })),
+  { ssr: false }
+);
+
 export default function PortfolioPage() {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -49,12 +54,10 @@ export default function PortfolioPage() {
         {/* Token List */}
         <TokenList />
 
-        {/* Placeholder for future protocol positions */}
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Protocol Positions</h2>
-          <p className="text-muted-foreground text-center py-8">
-            Protocol position tracking coming soon...
-          </p>
+        {/* Protocol Positions */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">DeFi Positions</h2>
+          <PositionsList />
         </div>
       </div>
     </div>
