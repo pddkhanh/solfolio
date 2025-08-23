@@ -129,21 +129,24 @@ describe('WalletInfo', () => {
     })
 
     it('shows loading state while fetching balance', () => {
-      // Make getBalance return a never-resolving promise
-      mockGetBalance.mockReturnValue(new Promise(() => {}))
+      // Override the default mock to return a never-resolving promise
+      mockGetBalance.mockImplementation(() => new Promise(() => {}))
       
-      render(<WalletInfo />)
+      const { container } = render(<WalletInfo />)
       
       // Should show skeleton loader
       expect(screen.getByText('SOL Balance')).toBeInTheDocument()
-      const skeletons = document.querySelectorAll('[class*="skeleton"]')
-      expect(skeletons.length).toBeGreaterThan(0)
+      
+      // Check for skeleton component using data-testid or checking the container
+      // The Skeleton component from shadcn-ui renders with animate-pulse class
+      const skeleton = container.querySelector('.h-8.w-32')
+      expect(skeleton).toBeInTheDocument()
     })
 
     it('copies address to clipboard when copy button is clicked', async () => {
       render(<WalletInfo />)
       
-      const copyButton = screen.getByRole('button', { name: /copy/i })
+      const copyButton = screen.getByRole('button', { name: /copy address/i })
       await userEvent.click(copyButton)
       
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockPublicKey.toBase58())
@@ -152,7 +155,7 @@ describe('WalletInfo', () => {
     it('shows confirmation when address is copied', async () => {
       render(<WalletInfo />)
       
-      const copyButton = screen.getByRole('button', { name: /copy/i })
+      const copyButton = screen.getByRole('button', { name: /copy address/i })
       await userEvent.click(copyButton)
       
       // Should show check icon (confirmation)
@@ -189,6 +192,11 @@ describe('WalletInfo', () => {
     it('updates balance when account changes', async () => {
       render(<WalletInfo />)
       
+      // Wait for initial balance to be displayed first
+      await waitFor(() => {
+        expect(screen.getByText('1.5000 SOL')).toBeInTheDocument()
+      })
+      
       // Get the callback that was passed to onAccountChange
       const callback = mockOnAccountChange.mock.calls[0][1]
       
@@ -199,9 +207,8 @@ describe('WalletInfo', () => {
         callback({ lamports: newBalance })
       })
       
-      await waitFor(() => {
-        expect(screen.getByText('2.5000 SOL')).toBeInTheDocument()
-      }, { timeout: 1000 })
+      // Check for new balance immediately after act
+      expect(screen.getByText('2.5000 SOL')).toBeInTheDocument()
     })
 
     it('cleans up subscription on unmount', () => {
@@ -236,8 +243,8 @@ describe('WalletInfo', () => {
 
   describe('wallet switching', () => {
     it('refetches balance when wallet changes', async () => {
-      const publicKey1 = new PublicKey('11111111111111111111111111111112')
-      const publicKey2 = new PublicKey('11111111111111111111111111111113')
+      const publicKey1 = new PublicKey('11111111111111111111111111111111')
+      const publicKey2 = new PublicKey('So11111111111111111111111111111111111111112')
       
       const { rerender } = render(<WalletInfo />)
       

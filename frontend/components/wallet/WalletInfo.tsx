@@ -90,6 +90,7 @@ export default function WalletInfo() {
               variant="ghost"
               onClick={copyAddress}
               className="h-8 w-8"
+              aria-label="Copy address"
             >
               {copied ? (
                 <Check className="h-4 w-4" />
@@ -102,6 +103,7 @@ export default function WalletInfo() {
               variant="ghost"
               onClick={openExplorer}
               className="h-8 w-8"
+              aria-label="View in explorer"
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
