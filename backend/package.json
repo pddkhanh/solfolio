@@ -19,9 +19,13 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
+    "@marinade.finance/marinade-ts-sdk": "^5.0.15",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "^1.2.0",
     "@metaplex-foundation/umi-bundle-defaults": "^1.2.0",
@@ -33,10 +37,13 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/terminus": "^11.0.0",
+    "@prisma/client": "^6.14.0",
+    "@solana/spl-stake-pool": "^1.1.8",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.4",
     "axios": "^1.11.0",
     "lucide-react": "^0.541.0",
+    "prisma": "^6.14.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -48,7 +55,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.17.2",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",

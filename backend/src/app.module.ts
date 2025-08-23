@@ -6,6 +6,8 @@ import { HealthModule } from './health/health.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PriceModule } from './price/price.module';
+import { MarinadeModule } from './marinade/marinade.module';
+import { PositionsModule } from './positions/positions.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { PriceModule } from './price/price.module';
     BlockchainModule,
     WalletModule,
     PriceModule,
+    MarinadeModule,
+    PositionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
