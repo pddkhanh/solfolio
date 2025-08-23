@@ -144,9 +144,9 @@ prometheus-data/
 *.bak
 *.old
 
-# Lock files (keep package-lock.json)
+# Lock files (keep pnpm-lock.yaml)
 yarn.lock
-pnpm-lock.yaml
+package-lock.json
 
 # Solana/Anchor specific
 target/

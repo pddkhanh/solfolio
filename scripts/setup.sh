@@ -42,11 +42,11 @@ check_requirements() {
         print_info "Node.js $(node --version) found"
     fi
     
-    # Check for npm
-    if ! command -v npm &> /dev/null; then
-        missing_tools+=("npm")
+    # Check for pnpm
+    if ! command -v pnpm &> /dev/null; then
+        missing_tools+=("pnpm")
     else
-        print_info "npm $(npm --version) found"
+        print_info "pnpm $(pnpm --version) found"
     fi
     
     # Check for Docker
@@ -401,14 +401,20 @@ EOF
     fi
 }
 
-# Install npm dependencies
+# Install pnpm dependencies
 install_dependencies() {
     print_header "Installing Dependencies"
+    
+    # Install pnpm globally if not present
+    if ! command -v pnpm &> /dev/null; then
+        print_info "Installing pnpm globally..."
+        npm install -g pnpm@9.14.2
+    fi
     
     # Install root dependencies
     if [ -f package.json ]; then
         print_info "Installing root dependencies..."
-        npm install
+        pnpm install
     fi
     
     print_info "Dependencies installation complete"

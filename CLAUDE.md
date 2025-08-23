@@ -39,29 +39,32 @@ Since the project hasn't been initialized yet, when setting up:
 
 ### Initial Setup (Phase 0)
 ```bash
+# Install pnpm globally
+npm install -g pnpm@9.14.2
+
 # Create monorepo structure
 mkdir -p apps/web apps/backend services packages/proto
-cd apps/web && npx create-next-app@latest . --typescript --tailwind --app
-cd ../backend && npm init -y
+cd apps/web && pnpm create next-app@latest . --typescript --tailwind --app
+cd ../backend && pnpm init
 ```
 
 ### Future Development Commands (once initialized)
 ```bash
 # Frontend
 cd apps/web
-npm run dev      # Development server
-npm run build    # Production build
-npm run lint     # Linting
+pnpm run dev      # Development server
+pnpm run build    # Production build
+pnpm run lint     # Linting
 
 # Backend services
 cd services/[service-name]
-npm run dev      # Development with nodemon
-npm run build    # TypeScript compilation
-npm test         # Run tests
+pnpm run dev      # Development with nodemon
+pnpm run build    # TypeScript compilation
+pnpm test         # Run tests
 
 # Protocol Buffers
 cd packages/proto
-npm run generate # Generate TypeScript/JS from .proto files
+pnpm run generate # Generate TypeScript/JS from .proto files
 
 # Docker
 docker-compose up -d     # Start all services

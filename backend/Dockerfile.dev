@@ -5,11 +5,14 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.14.2 --activate
+
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copy application files
 COPY . .
@@ -18,4 +21,4 @@ COPY . .
 EXPOSE 50051
 
 # Start development server
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]

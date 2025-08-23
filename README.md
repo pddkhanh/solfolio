@@ -33,9 +33,9 @@ A comprehensive portfolio tracker for Solana DeFi protocols, providing unified d
 ## 📦 Prerequisites
 
 - Node.js 22+ 
+- pnpm 9+ (will be installed automatically if not present)
 - Docker & Docker Compose
 - Git
-- npm or yarn
 
 ## 🚀 Quick Start
 
@@ -138,8 +138,8 @@ make test-unit      # Unit tests
 make test-e2e       # End-to-end tests
 
 # Run tests with coverage
-cd backend && npm run test:coverage
-cd frontend && npm run test:coverage
+cd backend && pnpm run test:coverage
+cd frontend && pnpm run test:coverage
 ```
 
 ## 📊 Monitoring

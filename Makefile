@@ -50,10 +50,10 @@ setup:
 
 install:
 	@echo "Installing dependencies..."
-	npm install
-	cd frontend && npm install
-	cd backend && npm install
-	cd websocket && npm install
+	pnpm install
+	cd frontend && pnpm install
+	cd backend && pnpm install
+	cd websocket && pnpm install
 
 # Development commands
 dev: up
@@ -99,15 +99,15 @@ logs-envoy:
 # Database commands
 db-migrate:
 	@echo "Running database migrations..."
-	cd backend && npm run db:migrate
+	cd backend && pnpm run db:migrate
 
 db-seed:
 	@echo "Seeding database..."
-	cd backend && npm run db:seed
+	cd backend && pnpm run db:seed
 
 db-reset:
 	@echo "Resetting database..."
-	cd backend && npm run db:reset
+	cd backend && pnpm run db:reset
 
 db-console:
 	docker exec -it solfolio-postgres psql -U solfolio -d solfolio_dev
@@ -115,35 +115,35 @@ db-console:
 # Testing commands
 test:
 	@echo "Running all tests..."
-	cd frontend && npm test
-	cd backend && npm test
-	cd websocket && npm test
+	cd frontend && pnpm test
+	cd backend && pnpm test
+	cd websocket && pnpm test
 
 test-unit:
 	@echo "Running unit tests..."
-	cd frontend && npm run test:unit
-	cd backend && npm run test:unit
-	cd websocket && npm run test:unit
+	cd frontend && pnpm run test:unit
+	cd backend && pnpm run test:unit
+	cd websocket && pnpm run test:unit
 
 test-e2e:
 	@echo "Running end-to-end tests..."
-	npm run test:e2e
+	pnpm run test:e2e
 
 test-watch:
-	cd backend && npm run test:watch
+	cd backend && pnpm run test:watch
 
 # Code quality
 lint:
 	@echo "Running linters..."
-	cd frontend && npm run lint
-	cd backend && npm run lint
-	cd websocket && npm run lint
+	cd frontend && pnpm run lint
+	cd backend && pnpm run lint
+	cd websocket && pnpm run lint
 
 format:
 	@echo "Formatting code..."
-	cd frontend && npm run format
-	cd backend && npm run format
-	cd websocket && npm run format
+	cd frontend && pnpm run format
+	cd backend && pnpm run format
+	cd websocket && pnpm run format
 
 # Building
 build:
@@ -155,10 +155,10 @@ build-prod:
 	docker-compose -f docker-compose.prod.yml build
 
 build-frontend:
-	cd frontend && npm run build
+	cd frontend && pnpm run build
 
 build-backend:
-	cd backend && npm run build
+	cd backend && pnpm run build
 
 proto:
 	@echo "Generating code from proto files..."

@@ -76,7 +76,7 @@ services:
         condition: service_healthy
     networks:
       - solfolio-network
-    command: npm run dev
+    command: pnpm run dev
 
   websocket:
     build:
@@ -98,7 +98,7 @@ services:
       - backend
     networks:
       - solfolio-network
-    command: npm run dev
+    command: pnpm run dev
 
   frontend:
     build:
@@ -120,7 +120,7 @@ services:
       - websocket
     networks:
       - solfolio-network
-    command: npm run dev
+    command: pnpm run dev
 
   # Development tools
   adminer:
