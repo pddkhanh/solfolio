@@ -51,9 +51,13 @@ export default function WalletButton() {
 
   const copyAddress = async () => {
     if (publicKey) {
-      await navigator.clipboard.writeText(publicKey.toBase58())
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      try {
+        await navigator.clipboard.writeText(publicKey.toBase58())
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch (error) {
+        console.error('Failed to copy address:', error)
+      }
     }
   }
 
