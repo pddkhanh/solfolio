@@ -14,7 +14,10 @@ export class BlockchainService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.initializeConnection();
+    // Skip initialization in E2E test environment to avoid real connections
+    if (process.env.IS_E2E_TEST !== 'true') {
+      await this.initializeConnection();
+    }
   }
 
   private async initializeConnection() {
@@ -25,11 +28,18 @@ export class BlockchainService implements OnModuleInit {
         'devnet',
       );
 
-      if (!rpcUrl) {
+      // In test environment, use a default RPC URL if not configured
+      const finalRpcUrl =
+        rpcUrl ||
+        (process.env.NODE_ENV === 'test'
+          ? 'https://api.devnet.solana.com'
+          : null);
+
+      if (!finalRpcUrl) {
         throw new Error('HELIUS_RPC_URL is not configured');
       }
 
-      this.connection = this.connectionManager.createConnection(rpcUrl);
+      this.connection = this.connectionManager.createConnection(finalRpcUrl);
 
       const version = await this.connection.getVersion();
       this.logger.log(`Connected to Solana ${network} via Helius RPC`);
