@@ -129,12 +129,14 @@ export class MarinadeService {
       const msolMint = new PublicKey(this.MSOL_MINT);
 
       // Get associated token account
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const ata = getAssociatedTokenAddressSync(
         msolMint,
         walletPubkey,
       ) as PublicKey;
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         const account = (await getAccount(connection, ata)) as {
           amount: bigint;
         };

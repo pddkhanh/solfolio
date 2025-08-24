@@ -84,11 +84,18 @@ export class TokenMetadataService {
   ): Promise<TokenMetadata | null> {
     try {
       const mintPubkey = publicKey(mintAddress);
-      const metadataPda = findMetadataPda(this.umi, {
-        mint: mintPubkey,
-      });
 
-      const metadata = await fetchMetadata(this.umi, metadataPda as any);
+      const metadataPda = findMetadataPda(
+        this.umi as Parameters<typeof findMetadataPda>[0],
+        {
+          mint: mintPubkey,
+        },
+      );
+
+      const metadata = await fetchMetadata(
+        this.umi as Parameters<typeof fetchMetadata>[0],
+        metadataPda as Parameters<typeof fetchMetadata>[1],
+      );
 
       if (metadata) {
         const tokenMetadata: TokenMetadata = {
