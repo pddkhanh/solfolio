@@ -61,6 +61,8 @@ describe('WebsocketService', () => {
 
       expect(subscribeSpy).toHaveBeenCalled();
       expect(priceUpdateSpy).toHaveBeenCalled();
+      
+      service.disconnect(); // Clean up the interval
     });
   });
 
@@ -77,6 +79,8 @@ describe('WebsocketService', () => {
       service.broadcastPriceUpdate(priceUpdate);
 
       expect(mockServer.to).toHaveBeenCalledWith('prices');
+      
+      service.disconnect(); // Clean up the interval
     });
 
     it('should handle array of price updates', () => {
@@ -90,6 +94,8 @@ describe('WebsocketService', () => {
       service.broadcastPriceUpdate(priceUpdates);
 
       expect(mockServer.to).toHaveBeenCalledWith('prices');
+      
+      service.disconnect(); // Clean up the interval
     });
 
     it('should not broadcast if server not initialized', () => {
@@ -121,6 +127,8 @@ describe('WebsocketService', () => {
       service.broadcastWalletUpdate(walletUpdate);
 
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
+      
+      service.disconnect(); // Clean up the interval
     });
   });
 
@@ -136,6 +144,8 @@ describe('WebsocketService', () => {
       service.broadcastPositionUpdate(positionData);
 
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
+      
+      service.disconnect(); // Clean up the interval
     });
   });
 
@@ -197,6 +207,7 @@ describe('WebsocketService', () => {
       service.setServer(mockServer as Server);
       const count = service.getConnectedClientsCount();
       expect(count).toBe(2);
+      service.disconnect(); // Clean up the interval
     });
 
     it('should return 0 if server not initialized', () => {
@@ -210,6 +221,7 @@ describe('WebsocketService', () => {
       service.setServer(mockServer as Server);
       const clients = await service.getRoomClients('test-room');
       expect(clients).toEqual(['socket1', 'socket2']);
+      service.disconnect(); // Clean up the interval
     });
 
     it('should return empty array if server not initialized', async () => {

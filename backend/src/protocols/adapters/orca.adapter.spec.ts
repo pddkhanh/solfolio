@@ -39,6 +39,11 @@ describe('OrcaAdapter', () => {
     }).compile();
 
     adapter = module.get<OrcaAdapter>(OrcaAdapter);
+
+    // Mock the logger to prevent console output during tests
+    jest.spyOn(adapter['logger'], 'log').mockImplementation();
+    jest.spyOn(adapter['logger'], 'warn').mockImplementation();
+    jest.spyOn(adapter['logger'], 'error').mockImplementation();
   });
 
   afterEach(() => {

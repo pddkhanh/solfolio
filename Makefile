@@ -69,7 +69,7 @@ test-fe:
 
 test-be:
 	@echo "Backend tests..."
-	@cd backend && pnpm test -- --forceExit
+	@cd backend && pnpm test
 
 test-e2e:
 	@echo "E2E tests..."

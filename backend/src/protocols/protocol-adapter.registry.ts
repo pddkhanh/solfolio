@@ -151,16 +151,24 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
     timeoutMs: number,
     description: string,
   ): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(new Error(`${description} timed out after ${timeoutMs}ms`)),
-          timeoutMs,
-        ),
-      ),
-    ]);
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    const timeoutPromise = new Promise<T>((_, reject) => {
+      timeoutId = setTimeout(
+        () =>
+          reject(new Error(`${description} timed out after ${timeoutMs}ms`)),
+        timeoutMs,
+      );
+    });
+
+    try {
+      const result = await Promise.race([promise, timeoutPromise]);
+      if (timeoutId) clearTimeout(timeoutId);
+      return result;
+    } catch (error) {
+      if (timeoutId) clearTimeout(timeoutId);
+      throw error;
+    }
   }
 
   getRegisteredProtocols(): ProtocolType[] {
