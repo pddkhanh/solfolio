@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from '../src/app.module';
 
 describe('WalletController (e2e)', () => {
@@ -24,9 +24,7 @@ describe('WalletController (e2e)', () => {
       // Using a known Solana address (SOL token mint)
       const validAddress = 'So11111111111111111111111111111111111111112';
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(`/api/wallet/${validAddress}/balances`)
         .expect(HttpStatus.OK);
 
@@ -55,9 +53,7 @@ describe('WalletController (e2e)', () => {
     it('should return 400 for an invalid Solana address', async () => {
       const invalidAddress = 'invalid-address-123';
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(`/api/wallet/${invalidAddress}/balances`)
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -67,7 +63,7 @@ describe('WalletController (e2e)', () => {
     });
 
     it('should return 400 for an empty address', async () => {
-      await request(app.getHttpServer() as Parameters<typeof request>[0])
+      await request(app.getHttpServer())
         .get('/api/wallet//balances')
         .expect(HttpStatus.NOT_FOUND);
     });
@@ -75,9 +71,7 @@ describe('WalletController (e2e)', () => {
     it('should handle addresses with special characters', async () => {
       const addressWithSpecialChars = '!@#$%^&*()_+{}[]|:;<>,.?/~`';
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(
           `/api/wallet/${encodeURIComponent(addressWithSpecialChars)}/balances`,
         )
@@ -90,9 +84,7 @@ describe('WalletController (e2e)', () => {
     it('should handle very long addresses', async () => {
       const longAddress = 'A'.repeat(1000);
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(`/api/wallet/${longAddress}/balances`)
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -103,9 +95,7 @@ describe('WalletController (e2e)', () => {
     it('should handle URL injection attempts', async () => {
       const injectionAttempt = '../../../etc/passwd';
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(`/api/wallet/${injectionAttempt}/balances`)
         .expect(HttpStatus.BAD_REQUEST);
 
@@ -162,9 +152,7 @@ describe('WalletController (e2e)', () => {
       // Using a known wallet address with tokens (Solana Foundation wallet)
       const realWalletAddress = 'GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi';
 
-      const response = await request(
-        app.getHttpServer() as Parameters<typeof request>[0],
-      )
+      const response = await request(app.getHttpServer())
         .get(`/api/wallet/${realWalletAddress}/balances`)
         .expect(HttpStatus.OK);
 
@@ -215,7 +203,7 @@ describe('WalletController (e2e)', () => {
 
       // Send multiple concurrent requests
       const promises = Array.from({ length: 5 }, () =>
-        request(app.getHttpServer() as Parameters<typeof request>[0])
+        request(app.getHttpServer())
           .get(`/api/wallet/${validAddress}/balances`)
           .expect(HttpStatus.OK),
       );

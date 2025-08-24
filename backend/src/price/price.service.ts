@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JupiterPriceService } from './jupiter-price.service';
+import { RedisService } from '../redis/redis.service';
 
 export interface TokenPriceInfo {
   mint: string;
@@ -8,18 +9,15 @@ export interface TokenPriceInfo {
   updatedAt: Date;
 }
 
-interface CachedPrice {
-  price: number;
-  timestamp: number;
-}
-
 @Injectable()
 export class PriceService {
   private readonly logger = new Logger(PriceService.name);
-  private readonly priceCache = new Map<string, CachedPrice>();
-  private readonly CACHE_TTL_MS = 60 * 1000; // 1 minute cache TTL
+  private readonly CACHE_TTL = 60; // 1 minute cache TTL in seconds
 
-  constructor(private readonly jupiterPriceService: JupiterPriceService) {}
+  constructor(
+    private readonly jupiterPriceService: JupiterPriceService,
+    private readonly redisService: RedisService,
+  ) {}
 
   /**
    * Get prices for multiple tokens with caching
@@ -31,21 +29,26 @@ export class PriceService {
     tokenMints: string[],
     forceRefresh = false,
   ): Promise<Map<string, number>> {
-    const now = Date.now();
     const result = new Map<string, number>();
     const mintsToFetch: string[] = [];
 
     // Check cache first
     if (!forceRefresh) {
-      for (const mint of tokenMints) {
-        const cached = this.priceCache.get(mint);
-        if (cached && now - cached.timestamp < this.CACHE_TTL_MS) {
-          result.set(mint, cached.price);
-          this.logger.debug(`Using cached price for ${mint}: $${cached.price}`);
+      // Use batch get for efficiency
+      const cacheKeys = tokenMints.map((mint) =>
+        this.redisService.generateKey('price', mint),
+      );
+      const cachedPrices = await this.redisService.mget<number>(cacheKeys);
+
+      tokenMints.forEach((mint, index) => {
+        const cachedPrice = cachedPrices[index];
+        if (cachedPrice !== null) {
+          result.set(mint, cachedPrice);
+          this.logger.debug(`Using cached price for ${mint}: $${cachedPrice}`);
         } else {
           mintsToFetch.push(mint);
         }
-      }
+      });
     } else {
       mintsToFetch.push(...tokenMints);
     }
@@ -56,23 +59,37 @@ export class PriceService {
         const freshPrices =
           await this.jupiterPriceService.getTokenPrices(mintsToFetch);
 
-        // Update cache and result
+        // Update cache and result using batch set
+        const cacheItems: Array<{
+          key: string;
+          value: number;
+          options?: { ttl: number };
+        }> = [];
+
         for (const [mint, price] of freshPrices) {
-          this.priceCache.set(mint, {
-            price,
-            timestamp: now,
+          const cacheKey = this.redisService.generateKey('price', mint);
+          cacheItems.push({
+            key: cacheKey,
+            value: price,
+            options: { ttl: this.CACHE_TTL },
           });
           result.set(mint, price);
         }
+
+        // Batch set all prices at once
+        if (cacheItems.length > 0) {
+          await this.redisService.mset(cacheItems);
+        }
       } catch (error) {
         this.logger.error('Failed to fetch fresh prices', error);
-        // Return cached prices even if expired on error
+        // Try to get from cache even if expired on error
         for (const mint of mintsToFetch) {
-          const cached = this.priceCache.get(mint);
-          if (cached) {
-            result.set(mint, cached.price);
+          const cacheKey = this.redisService.generateKey('price', mint);
+          const cached = await this.redisService.get<number>(cacheKey);
+          if (cached !== null) {
+            result.set(mint, cached);
             this.logger.warn(
-              `Using expired cache for ${mint} due to fetch error`,
+              `Using potentially expired cache for ${mint} due to fetch error`,
             );
           }
         }
@@ -151,7 +168,9 @@ export class PriceService {
    * Clear price cache
    */
   clearCache(): void {
-    this.priceCache.clear();
+    // Clear all price entries from Redis
+    // In production, you might want to use pattern-based deletion
+    this.redisService.delByPattern('price:*');
     this.logger.log('Price cache cleared');
   }
 
@@ -159,20 +178,12 @@ export class PriceService {
    * Get cache statistics
    */
   getCacheStats(): {
-    size: number;
-    entries: Array<{ mint: string; age: number }>;
+    isHealthy: boolean;
+    connectionStatus: { connected: boolean; retries: number };
   } {
-    const now = Date.now();
-    const entries = Array.from(this.priceCache.entries()).map(
-      ([mint, cached]) => ({
-        mint,
-        age: Math.round((now - cached.timestamp) / 1000), // age in seconds
-      }),
-    );
-
     return {
-      size: this.priceCache.size,
-      entries,
+      isHealthy: this.redisService.isHealthy(),
+      connectionStatus: this.redisService.getConnectionStatus(),
     };
   }
 }

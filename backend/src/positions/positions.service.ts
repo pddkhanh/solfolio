@@ -6,6 +6,7 @@ import {
 } from '../marinade/marinade.service';
 import { WalletService } from '../wallet/wallet.service';
 import { PriceService } from '../price/price.service';
+import { RedisService } from '../redis/redis.service';
 
 export interface PortfolioPosition extends MarinadePosition {
   protocolName: string;
@@ -51,6 +52,7 @@ export class PositionsService {
     private readonly marinadeService: MarinadeService,
     private readonly walletService: WalletService,
     private readonly priceService: PriceService,
+    private readonly redisService: RedisService,
   ) {
     this.prisma = new PrismaClient();
   }
@@ -60,28 +62,41 @@ export class PositionsService {
    */
   async getPositions(walletAddress: string): Promise<PortfolioPosition[]> {
     try {
-      const positions: PortfolioPosition[] = [];
-
-      // Get Marinade positions
-      const marinadePositions =
-        await this.marinadeService.getPositions(walletAddress);
-      positions.push(
-        ...marinadePositions.map((pos) => ({
-          ...pos,
-          protocolName: 'Marinade Finance',
-          tokenSymbol: 'mSOL',
-          tokenName: 'Marinade staked SOL',
-          logoUri:
-            'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
-        })),
+      // Generate cache key
+      const cacheKey = this.redisService.generateKey(
+        'positions',
+        walletAddress,
       );
 
-      // In the future, add other protocol adapters here
-      // const kaminoPositions = await this.kaminoService.getPositions(walletAddress);
-      // const jitoPositions = await this.jitoService.getPositions(walletAddress);
-      // etc.
+      // Use Redis wrap to handle caching automatically
+      return await this.redisService.wrap(
+        cacheKey,
+        async () => {
+          const positions: PortfolioPosition[] = [];
 
-      return positions;
+          // Get Marinade positions
+          const marinadePositions =
+            await this.marinadeService.getPositions(walletAddress);
+          positions.push(
+            ...marinadePositions.map((pos) => ({
+              ...pos,
+              protocolName: 'Marinade Finance',
+              tokenSymbol: 'mSOL',
+              tokenName: 'Marinade staked SOL',
+              logoUri:
+                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
+            })),
+          );
+
+          // In the future, add other protocol adapters here
+          // const kaminoPositions = await this.kaminoService.getPositions(walletAddress);
+          // const jitoPositions = await this.jitoService.getPositions(walletAddress);
+          // etc.
+
+          return positions;
+        },
+        { ttl: 300 }, // Cache for 5 minutes
+      );
     } catch (error) {
       this.logger.error(
         `Error fetching positions for ${walletAddress}:`,
@@ -96,80 +111,98 @@ export class PositionsService {
    */
   async getPortfolioSummary(walletAddress: string): Promise<PortfolioSummary> {
     try {
-      // Get positions
-      const positions = await this.getPositions(walletAddress);
-
-      // Get token balances
-      const walletBalances =
-        await this.walletService.getWalletBalances(walletAddress);
-      const balances = walletBalances.tokens as Array<{
-        mint: string;
-        amount: string;
-        decimals: number;
-        valueUSD: number;
-        symbol?: string;
-        name?: string;
-        logoUri?: string;
-      }>;
-
-      // Calculate total values
-      const totalPositionValue = positions.reduce(
-        (sum, pos) => sum + pos.usdValue,
-        0,
-      );
-      const totalBalanceValue = balances.reduce(
-        (sum, bal) => sum + (bal.valueUSD || 0),
-        0,
-      );
-      const totalValue = totalPositionValue + totalBalanceValue;
-
-      // Calculate breakdown by type
-      const breakdown = {
-        tokens: totalBalanceValue,
-        staking: positions
-          .filter((p) => p.positionType === 'STAKING')
-          .reduce((sum, p) => sum + p.usdValue, 0),
-        lending: positions
-          .filter((p) => p.positionType === 'LENDING')
-          .reduce((sum, p) => sum + p.usdValue, 0),
-        liquidity: positions
-          .filter((p) => p.positionType === 'LP_POSITION')
-          .reduce((sum, p) => sum + p.usdValue, 0),
-        other: positions
-          .filter(
-            (p) =>
-              !['STAKING', 'LENDING', 'LP_POSITION'].includes(p.positionType),
-          )
-          .reduce((sum, p) => sum + p.usdValue, 0),
-      };
-
-      // Calculate performance metrics
-      const weightedApy = positions.reduce((sum, pos) => {
-        const weight = pos.usdValue / totalPositionValue;
-        return sum + pos.apy * weight;
-      }, 0);
-
-      const dailyRewards = positions.reduce((sum, pos) => sum + pos.rewards, 0);
-      const monthlyRewards = dailyRewards * 30;
-
-      const summary: PortfolioSummary = {
+      // Generate cache key for portfolio summary
+      const cacheKey = this.redisService.generateKey(
+        'portfolio',
         walletAddress,
-        totalValue,
-        totalPositions: positions.length,
-        positions,
-        balances,
-        breakdown,
-        performance: {
-          totalApy: weightedApy,
-          dailyRewards,
-          monthlyRewards,
+      );
+
+      // Use Redis wrap to handle caching automatically
+      return await this.redisService.wrap(
+        cacheKey,
+        async () => {
+          // Get positions
+          const positions = await this.getPositions(walletAddress);
+
+          // Get token balances
+          const walletBalances =
+            await this.walletService.getWalletBalances(walletAddress);
+          const balances = walletBalances.tokens as Array<{
+            mint: string;
+            amount: string;
+            decimals: number;
+            valueUSD: number;
+            symbol?: string;
+            name?: string;
+            logoUri?: string;
+          }>;
+
+          // Calculate total values
+          const totalPositionValue = positions.reduce(
+            (sum, pos) => sum + pos.usdValue,
+            0,
+          );
+          const totalBalanceValue = balances.reduce(
+            (sum, bal) => sum + (bal.valueUSD || 0),
+            0,
+          );
+          const totalValue = totalPositionValue + totalBalanceValue;
+
+          // Calculate breakdown by type
+          const breakdown = {
+            tokens: totalBalanceValue,
+            staking: positions
+              .filter((p) => p.positionType === 'STAKING')
+              .reduce((sum, p) => sum + p.usdValue, 0),
+            lending: positions
+              .filter((p) => p.positionType === 'LENDING')
+              .reduce((sum, p) => sum + p.usdValue, 0),
+            liquidity: positions
+              .filter((p) => p.positionType === 'LP_POSITION')
+              .reduce((sum, p) => sum + p.usdValue, 0),
+            other: positions
+              .filter(
+                (p) =>
+                  !['STAKING', 'LENDING', 'LP_POSITION'].includes(
+                    p.positionType,
+                  ),
+              )
+              .reduce((sum, p) => sum + p.usdValue, 0),
+          };
+
+          // Calculate performance metrics
+          const weightedApy = positions.reduce((sum, pos) => {
+            const weight = pos.usdValue / totalPositionValue;
+            return sum + pos.apy * weight;
+          }, 0);
+
+          const dailyRewards = positions.reduce(
+            (sum, pos) => sum + pos.rewards,
+            0,
+          );
+          const monthlyRewards = dailyRewards * 30;
+
+          const summary: PortfolioSummary = {
+            walletAddress,
+            totalValue,
+            totalPositions: positions.length,
+            positions,
+            balances,
+            breakdown,
+            performance: {
+              totalApy: weightedApy,
+              dailyRewards,
+              monthlyRewards,
+            },
+          };
+
+          // Store in database
+          await this.storePortfolioData(walletAddress, summary);
+
+          return summary;
         },
-      };
-
-      // Store in database
-      await this.storePortfolioData(walletAddress, summary);
-
-      return summary;
+        { ttl: 60 }, // Cache for 1 minute
+      );
     } catch (error) {
       this.logger.error(
         `Error generating portfolio summary for ${walletAddress}:`,
@@ -230,14 +263,14 @@ export class PositionsService {
       await this.prisma.cache.upsert({
         where: { key: cacheKey },
         update: {
-          value: JSON.parse(JSON.stringify(summary)),
+          value: summary as any, // Prisma JsonValue type requires any
           expiresAt: new Date(Date.now() + 60 * 1000), // 1 minute cache
           lastUpdated: new Date(),
         },
         create: {
           key: cacheKey,
           type: 'POSITION',
-          value: JSON.parse(JSON.stringify(summary)),
+          value: summary as any, // Prisma JsonValue type requires any
           walletId: wallet.id,
           expiresAt: new Date(Date.now() + 60 * 1000),
         },
@@ -255,19 +288,11 @@ export class PositionsService {
     walletAddress: string,
   ): Promise<PortfolioSummary | null> {
     try {
-      const cache = await this.prisma.cache.findFirst({
-        where: {
-          key: `portfolio:${walletAddress}`,
-          expiresAt: { gte: new Date() },
-        },
-      });
-
-      if (cache) {
-        // Cast through unknown for proper type conversion from Prisma JsonValue
-        return cache.value as unknown as PortfolioSummary;
-      }
-
-      return null;
+      const cacheKey = this.redisService.generateKey(
+        'portfolio',
+        walletAddress,
+      );
+      return await this.redisService.get<PortfolioSummary>(cacheKey);
     } catch (error) {
       this.logger.error('Error fetching cached portfolio:', error);
       return null;
