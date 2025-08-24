@@ -37,9 +37,12 @@ export class WalletMonitorService implements OnModuleInit {
 
   private setupEventListeners() {
     // Listen for account changes
-    this.accountSubscription.on('accountChange', (event: AccountChangeEvent) => {
-      this.handleAccountChange(event);
-    });
+    this.accountSubscription.on(
+      'accountChange',
+      (event: AccountChangeEvent) => {
+        this.handleAccountChange(event);
+      },
+    );
 
     // Listen for transactions
     this.accountSubscription.on('transaction', (event: any) => {
@@ -66,13 +69,12 @@ export class WalletMonitorService implements OnModuleInit {
       this.logger.log(`Starting monitoring for wallet: ${walletAddress}`);
 
       // Subscribe to account changes
-      const subscriptionId = await this.accountSubscription.subscribeToWallet(
-        walletAddress,
-      );
+      const subscriptionId =
+        await this.accountSubscription.subscribeToWallet(walletAddress);
 
       if (subscriptionId) {
         this.activeWallets.add(walletAddress);
-        
+
         // Notify clients that monitoring has started
         this.websocketService.broadcastToWallet(walletAddress, {
           type: 'monitoring_started',
@@ -243,7 +245,8 @@ export class WalletMonitorService implements OnModuleInit {
   }> {
     return {
       isMonitored: this.activeWallets.has(walletAddress),
-      hasActiveSubscription: this.accountSubscription.isSubscribed(walletAddress),
+      hasActiveSubscription:
+        this.accountSubscription.isSubscribed(walletAddress),
       hasPendingRefresh: this.positionRefreshQueue.has(walletAddress),
     };
   }

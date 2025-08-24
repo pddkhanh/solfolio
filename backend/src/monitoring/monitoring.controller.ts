@@ -55,10 +55,8 @@ export class MonitoringController {
         address,
         5,
       );
-      const recentTransactions = await this.transactionMonitoring.getRecentTransactions(
-        address,
-        5,
-      );
+      const recentTransactions =
+        await this.transactionMonitoring.getRecentTransactions(address, 5);
 
       return {
         success: true,
@@ -145,7 +143,10 @@ export class MonitoringController {
       this.validateSolanaAddress(address);
 
       // Trigger manual position refresh
-      const changes = await this.changeDetector.detectChanges(address, 'manual');
+      const changes = await this.changeDetector.detectChanges(
+        address,
+        'manual',
+      );
 
       return {
         success: true,

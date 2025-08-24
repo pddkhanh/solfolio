@@ -49,9 +49,8 @@ export class PositionChangeDetectorService {
       const previousSnapshot = await this.getPreviousSnapshot(walletAddress);
 
       // Get current positions
-      const currentPositions = await this.positionsService.getPositions(
-        walletAddress,
-      );
+      const currentPositions =
+        await this.positionsService.getPositions(walletAddress);
 
       // Create current snapshot
       const currentSnapshot = this.createSnapshot(
@@ -125,7 +124,10 @@ export class PositionChangeDetectorService {
         timestamp: pos.updatedAt,
       }));
     } catch (error) {
-      this.logger.error('Failed to fetch previous snapshot from database:', error);
+      this.logger.error(
+        'Failed to fetch previous snapshot from database:',
+        error,
+      );
       return [];
     }
   }
@@ -180,9 +182,8 @@ export class PositionChangeDetectorService {
       } else {
         // Check if position changed
         const valueDiff = currentSnap.value - previousSnap.value;
-        const percentChange = previousSnap.value > 0
-          ? (valueDiff / previousSnap.value) * 100
-          : 0;
+        const percentChange =
+          previousSnap.value > 0 ? (valueDiff / previousSnap.value) * 100 : 0;
 
         // Consider it changed if value difference is more than 0.1%
         if (Math.abs(percentChange) > 0.1) {
@@ -236,7 +237,7 @@ export class PositionChangeDetectorService {
       }
 
       let changeType: 'deposit' | 'withdraw' | 'claim' | 'update';
-      
+
       if (comp.changeType === 'added') {
         changeType = 'deposit';
       } else if (comp.changeType === 'removed') {
@@ -345,7 +346,7 @@ export class PositionChangeDetectorService {
       return transactions.map((tx) => ({
         walletAddress: tx.walletAddress,
         protocol: tx.protocol!,
-        changeType: tx.type as any,
+        changeType: tx.type,
         currentValue: tx.amount ? parseFloat(tx.amount) : undefined,
         transactionSignature: tx.signature,
         timestamp: tx.blockTime,

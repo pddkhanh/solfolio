@@ -32,7 +32,9 @@ export class TransactionMonitoringService {
     walletAddress: string,
   ): Promise<PositionChange | null> {
     try {
-      this.logger.log(`Processing transaction ${signature} for wallet ${walletAddress}`);
+      this.logger.log(
+        `Processing transaction ${signature} for wallet ${walletAddress}`,
+      );
 
       // Check if we've already processed this transaction
       const cached = await this.cacheService.get(`tx:${signature}`);
@@ -64,10 +66,7 @@ export class TransactionMonitoringService {
 
       return positionChange;
     } catch (error) {
-      this.logger.error(
-        `Failed to process transaction ${signature}:`,
-        error,
-      );
+      this.logger.error(`Failed to process transaction ${signature}:`, error);
       return null;
     }
   }
@@ -129,7 +128,7 @@ export class TransactionMonitoringService {
 
       // Analyze the specific protocol interaction
       const changeType = this.determineChangeType(transaction, programId);
-      
+
       // Extract value changes if possible
       const { previousValue, currentValue } = await this.extractValueChanges(
         transaction,
@@ -211,7 +210,10 @@ export class TransactionMonitoringService {
 
     if (logString.includes('deposit') || logString.includes('stake')) {
       return 'deposit';
-    } else if (logString.includes('withdraw') || logString.includes('unstake')) {
+    } else if (
+      logString.includes('withdraw') ||
+      logString.includes('unstake')
+    ) {
       return 'withdraw';
     } else if (logString.includes('claim') || logString.includes('harvest')) {
       return 'claim';
@@ -265,7 +267,9 @@ export class TransactionMonitoringService {
           type: positionChange.changeType,
           amount: positionChange.currentValue?.toString(),
           slot: transaction.slot,
-          blockTime: transaction.blockTime ? new Date(transaction.blockTime * 1000) : new Date(),
+          blockTime: transaction.blockTime
+            ? new Date(transaction.blockTime * 1000)
+            : new Date(),
           status: 'success',
           fee: transaction.meta?.fee || 0,
         },

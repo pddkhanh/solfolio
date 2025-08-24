@@ -129,7 +129,9 @@ export class WebsocketGateway
     });
 
     // Check if any other clients are still subscribed to this wallet
-    const room = this.server.sockets.adapter.rooms.get(`wallet:${walletAddress}`);
+    const room = this.server.sockets.adapter.rooms.get(
+      `wallet:${walletAddress}`,
+    );
     if (!room || room.size === 0) {
       // No more clients for this wallet, notify monitoring service
       this.websocketService.notifyWalletUnsubscribed(walletAddress);

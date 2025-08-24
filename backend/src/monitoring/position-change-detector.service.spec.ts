@@ -46,7 +46,9 @@ describe('PositionChangeDetectorService', () => {
       ],
     }).compile();
 
-    service = module.get<PositionChangeDetectorService>(PositionChangeDetectorService);
+    service = module.get<PositionChangeDetectorService>(
+      PositionChangeDetectorService,
+    );
     positionsService = module.get(PositionsService);
     cacheService = module.get(CacheService);
     prismaService = module.get(PrismaService);
@@ -71,15 +73,18 @@ describe('PositionChangeDetectorService', () => {
       // No previous snapshot
       cacheService.get.mockResolvedValue(null);
       prismaService.position.findMany.mockResolvedValue([]);
-      
+
       // Current positions
       positionsService.getPositions.mockResolvedValue(currentPositions);
-      
+
       // Mock database operations
       prismaService.position.upsert.mockResolvedValue({} as any);
       prismaService.transaction.create.mockResolvedValue({} as any);
 
-      const changes = await service.detectChanges(mockWalletAddress, 'transaction');
+      const changes = await service.detectChanges(
+        mockWalletAddress,
+        'transaction',
+      );
 
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
@@ -104,11 +109,14 @@ describe('PositionChangeDetectorService', () => {
 
       // Previous snapshot exists
       cacheService.get.mockResolvedValue(previousSnapshot);
-      
+
       // No current positions
       positionsService.getPositions.mockResolvedValue([]);
-      
-      const changes = await service.detectChanges(mockWalletAddress, 'transaction');
+
+      const changes = await service.detectChanges(
+        mockWalletAddress,
+        'transaction',
+      );
 
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
@@ -143,8 +151,11 @@ describe('PositionChangeDetectorService', () => {
 
       cacheService.get.mockResolvedValue(previousSnapshot);
       positionsService.getPositions.mockResolvedValue(currentPositions);
-      
-      const changes = await service.detectChanges(mockWalletAddress, 'transaction');
+
+      const changes = await service.detectChanges(
+        mockWalletAddress,
+        'transaction',
+      );
 
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
@@ -180,16 +191,22 @@ describe('PositionChangeDetectorService', () => {
 
       cacheService.get.mockResolvedValue(previousSnapshot);
       positionsService.getPositions.mockResolvedValue(currentPositions);
-      
-      const changes = await service.detectChanges(mockWalletAddress, 'transaction');
+
+      const changes = await service.detectChanges(
+        mockWalletAddress,
+        'transaction',
+      );
 
       expect(changes).toHaveLength(0);
     });
 
     it('should handle errors gracefully', async () => {
       positionsService.getPositions.mockRejectedValue(new Error('RPC error'));
-      
-      const changes = await service.detectChanges(mockWalletAddress, 'transaction');
+
+      const changes = await service.detectChanges(
+        mockWalletAddress,
+        'transaction',
+      );
 
       expect(changes).toEqual([]);
     });
@@ -226,7 +243,9 @@ describe('PositionChangeDetectorService', () => {
     });
 
     it('should handle database errors', async () => {
-      prismaService.transaction.findMany.mockRejectedValue(new Error('Database error'));
+      prismaService.transaction.findMany.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       const changes = await service.getRecentChanges(mockWalletAddress, 5);
 

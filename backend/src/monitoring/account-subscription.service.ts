@@ -99,14 +99,19 @@ export class AccountSubscriptionService
       // Store with a different key for logs
       this.subscriptions.set(`${walletAddress}_logs`, logsSubscriptionId);
     } catch (error) {
-      this.logger.error(`Failed to subscribe to logs for ${walletAddress}:`, error);
+      this.logger.error(
+        `Failed to subscribe to logs for ${walletAddress}:`,
+        error,
+      );
     }
   }
 
   async unsubscribeFromWallet(walletAddress: string): Promise<void> {
     try {
       const subscriptionId = this.subscriptions.get(walletAddress);
-      const logsSubscriptionId = this.subscriptions.get(`${walletAddress}_logs`);
+      const logsSubscriptionId = this.subscriptions.get(
+        `${walletAddress}_logs`,
+      );
 
       if (subscriptionId) {
         await this.connection.removeAccountChangeListener(subscriptionId);
@@ -156,7 +161,7 @@ export class AccountSubscriptionService
   ) {
     // Check if this is a DeFi protocol interaction
     const isDeFiTransaction = this.checkForDeFiProtocol(logs);
-    
+
     if (isDeFiTransaction) {
       this.logger.log(
         `DeFi transaction detected for wallet ${walletAddress}: ${logs.signature}`,
@@ -194,11 +199,11 @@ export class AccountSubscriptionService
 
   async getActiveSubscriptions(): Promise<MonitoredWallet[]> {
     const wallets: MonitoredWallet[] = [];
-    
+
     for (const [address, subscriptionId] of this.subscriptions.entries()) {
       // Skip log subscriptions
       if (address.endsWith('_logs')) continue;
-      
+
       wallets.push({
         address,
         subscriptionId,

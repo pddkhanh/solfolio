@@ -105,7 +105,9 @@ describe('WalletMonitorService', () => {
 
       await service.startMonitoring(mockWalletAddress);
 
-      expect(accountSubscription.subscribeToWallet).toHaveBeenCalledWith(mockWalletAddress);
+      expect(accountSubscription.subscribeToWallet).toHaveBeenCalledWith(
+        mockWalletAddress,
+      );
       expect(websocketService.broadcastToWallet).toHaveBeenCalledWith(
         mockWalletAddress,
         expect.objectContaining({
@@ -143,7 +145,9 @@ describe('WalletMonitorService', () => {
       // Then stop
       await service.stopMonitoring(mockWalletAddress);
 
-      expect(accountSubscription.unsubscribeFromWallet).toHaveBeenCalledWith(mockWalletAddress);
+      expect(accountSubscription.unsubscribeFromWallet).toHaveBeenCalledWith(
+        mockWalletAddress,
+      );
       expect(websocketService.broadcastToWallet).toHaveBeenCalledWith(
         mockWalletAddress,
         expect.objectContaining({
@@ -161,9 +165,7 @@ describe('WalletMonitorService', () => {
 
   describe('account change handling', () => {
     it('should handle account changes', async () => {
-      const mockPositions = [
-        { protocol: 'marinade', value: 1000 },
-      ];
+      const mockPositions = [{ protocol: 'marinade', value: 1000 }];
       const mockChanges = [
         {
           walletAddress: mockWalletAddress,
@@ -196,7 +198,7 @@ describe('WalletMonitorService', () => {
       accountSubscription.emit('accountChange', event);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       expect(websocketService.broadcastToWallet).toHaveBeenCalledWith(
         mockWalletAddress,
@@ -219,7 +221,9 @@ describe('WalletMonitorService', () => {
         timestamp: new Date(),
       };
 
-      transactionMonitoring.processTransaction.mockResolvedValue(mockPositionChange);
+      transactionMonitoring.processTransaction.mockResolvedValue(
+        mockPositionChange,
+      );
 
       // Simulate transaction event
       const event = {
@@ -231,9 +235,12 @@ describe('WalletMonitorService', () => {
       accountSubscription.emit('transaction', event);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(transactionMonitoring.processTransaction).toHaveBeenCalledWith('sig1', mockWalletAddress);
+      expect(transactionMonitoring.processTransaction).toHaveBeenCalledWith(
+        'sig1',
+        mockWalletAddress,
+      );
       expect(websocketService.broadcastToWallet).toHaveBeenCalledWith(
         mockWalletAddress,
         expect.objectContaining({
@@ -285,9 +292,11 @@ describe('WalletMonitorService', () => {
       websocketService.emit('walletSubscribed', mockWalletAddress);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(accountSubscription.subscribeToWallet).toHaveBeenCalledWith(mockWalletAddress);
+      expect(accountSubscription.subscribeToWallet).toHaveBeenCalledWith(
+        mockWalletAddress,
+      );
     });
 
     it('should stop monitoring when wallet is unsubscribed via WebSocket', async () => {
@@ -299,9 +308,11 @@ describe('WalletMonitorService', () => {
       websocketService.emit('walletUnsubscribed', mockWalletAddress);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      expect(accountSubscription.unsubscribeFromWallet).toHaveBeenCalledWith(mockWalletAddress);
+      expect(accountSubscription.unsubscribeFromWallet).toHaveBeenCalledWith(
+        mockWalletAddress,
+      );
     });
   });
 });

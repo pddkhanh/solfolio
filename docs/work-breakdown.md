@@ -188,10 +188,10 @@
 - [x] **TASK-103** Handle reconnection logic (1h) ✅
 
 ### 5.4 Position Change Detection
-- [ ] **TASK-104** Monitor wallet for transaction changes (2h)
-- [ ] **TASK-105** Detect position changes (2h)
-- [ ] **TASK-106** Auto-refresh affected positions (1.5h)
-- [ ] **TASK-107** Notify frontend of changes (1h)
+- [x] **TASK-104** Monitor wallet for transaction changes (2h) ✅
+- [x] **TASK-105** Detect position changes (2h) ✅
+- [x] **TASK-106** Auto-refresh affected positions (1.5h) ✅
+- [x] **TASK-107** Notify frontend of changes (1h) ✅
 
 **Deliverable**: Portfolio updates in real-time without refresh
 
