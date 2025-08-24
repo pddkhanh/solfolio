@@ -149,7 +149,7 @@ describe('ProtocolsService', () => {
           walletAddress: 'test-wallet',
           positions: expect.any(Array),
         }),
-        600,
+        { ttl: 600 },
       );
     });
 
