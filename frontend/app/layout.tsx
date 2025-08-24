@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import { WalletContextProvider } from '@/contexts/WalletContextProvider'
 import WalletPersistenceProvider from '@/components/providers/WalletPersistenceProvider'
+import WebSocketProvider from '@/contexts/WebSocketProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,13 +24,15 @@ export default function RootLayout({
       <body className={inter.className}>
         <WalletContextProvider>
           <WalletPersistenceProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <WebSocketProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </WebSocketProvider>
           </WalletPersistenceProvider>
         </WalletContextProvider>
       </body>

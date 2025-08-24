@@ -8,12 +8,16 @@ import {
   Body,
 } from '@nestjs/common';
 import { PriceService } from './price.service';
+import { PriceStreamService } from './price-stream.service';
 import { ApiTags, ApiOperation, ApiQuery, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Price')
 @Controller('price')
 export class PriceController {
-  constructor(private readonly priceService: PriceService) {}
+  constructor(
+    private readonly priceService: PriceService,
+    private readonly priceStreamService: PriceStreamService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get token prices' })
@@ -121,5 +125,97 @@ export class PriceController {
   clearCache() {
     this.priceService.clearCache();
     return { message: 'Cache cleared successfully' };
+  }
+
+  // Price Streaming Endpoints
+
+  @Get('stream/status')
+  @ApiOperation({ summary: 'Get price streaming status' })
+  getStreamingStatus() {
+    return this.priceStreamService.getStreamingStatus();
+  }
+
+  @Get('stream/tokens')
+  @ApiOperation({ summary: 'Get tokens being streamed' })
+  getStreamingTokens() {
+    return {
+      tokens: this.priceStreamService.getStreamingTokens(),
+      count: this.priceStreamService.getStreamingTokens().length,
+    };
+  }
+
+  @Post('stream/tokens/add')
+  @ApiOperation({ summary: 'Add tokens to price stream' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        mints: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Array of token mint addresses to add to stream',
+          example: ['So11111111111111111111111111111111111112'],
+        },
+      },
+      required: ['mints'],
+    },
+  })
+  async addTokensToStream(@Body() body: { mints: string[] }) {
+    if (!body.mints || !Array.isArray(body.mints)) {
+      throw new HttpException(
+        'mints array is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (body.mints.length === 0) {
+      throw new HttpException(
+        'At least one mint address is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.priceStreamService.addTokensToStream(body.mints);
+    return {
+      message: `Added ${body.mints.length} tokens to stream`,
+      tokens: body.mints,
+    };
+  }
+
+  @Post('stream/tokens/remove')
+  @ApiOperation({ summary: 'Remove tokens from price stream' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        mints: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Array of token mint addresses to remove from stream',
+        },
+      },
+      required: ['mints'],
+    },
+  })
+  async removeTokensFromStream(@Body() body: { mints: string[] }) {
+    if (!body.mints || !Array.isArray(body.mints)) {
+      throw new HttpException(
+        'mints array is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.priceStreamService.removeTokensFromStream(body.mints);
+    return {
+      message: `Removed ${body.mints.length} tokens from stream`,
+      tokens: body.mints,
+    };
+  }
+
+  @Post('stream/force-update')
+  @ApiOperation({ summary: 'Force immediate price update' })
+  async forceUpdate() {
+    await this.priceStreamService.forceUpdate();
+    return { message: 'Price update triggered successfully' };
   }
 }
