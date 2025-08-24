@@ -222,13 +222,12 @@ describe('ProtocolAdapterRegistry', () => {
         100,
       );
       let timeoutId: NodeJS.Timeout;
-      slowAdapter.getPositions = jest
-        .fn()
-        .mockImplementation(
-          () => new Promise((resolve) => {
+      slowAdapter.getPositions = jest.fn().mockImplementation(
+        () =>
+          new Promise((resolve) => {
             timeoutId = setTimeout(resolve, 5000);
           }),
-        );
+      );
 
       registry.register(slowAdapter);
 
@@ -237,7 +236,7 @@ describe('ProtocolAdapterRegistry', () => {
       });
 
       expect(positions.size).toBe(0);
-      
+
       // Clean up the timeout
       if (timeoutId) {
         clearTimeout(timeoutId);

@@ -61,7 +61,7 @@ describe('WebsocketService', () => {
 
       expect(subscribeSpy).toHaveBeenCalled();
       expect(priceUpdateSpy).toHaveBeenCalled();
-      
+
       service.disconnect(); // Clean up the interval
     });
   });
@@ -79,7 +79,7 @@ describe('WebsocketService', () => {
       service.broadcastPriceUpdate(priceUpdate);
 
       expect(mockServer.to).toHaveBeenCalledWith('prices');
-      
+
       service.disconnect(); // Clean up the interval
     });
 
@@ -94,7 +94,7 @@ describe('WebsocketService', () => {
       service.broadcastPriceUpdate(priceUpdates);
 
       expect(mockServer.to).toHaveBeenCalledWith('prices');
-      
+
       service.disconnect(); // Clean up the interval
     });
 
@@ -127,7 +127,7 @@ describe('WebsocketService', () => {
       service.broadcastWalletUpdate(walletUpdate);
 
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
-      
+
       service.disconnect(); // Clean up the interval
     });
   });
@@ -144,7 +144,7 @@ describe('WebsocketService', () => {
       service.broadcastPositionUpdate(positionData);
 
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
-      
+
       service.disconnect(); // Clean up the interval
     });
   });
