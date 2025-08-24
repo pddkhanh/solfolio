@@ -129,18 +129,18 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    container:
+      # Use Microsoft's official Playwright Docker image with pre-installed browsers
+      # This saves ~45 seconds by not having to download and install Playwright
+      image: mcr.microsoft.com/playwright:v1.49.0-noble
+      options: --user 1001
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Install pnpm
+        run: npm install -g pnpm@latest
           
       - name: Get pnpm store directory
         shell: bash
@@ -167,14 +167,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-e2e-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-
             
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-            
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: |
@@ -183,9 +175,7 @@ jobs:
           pnpm config set fetch-retry-maxtimeout 120000
           pnpm install --frozen-lockfile --prefer-offline
         
-      - name: Install Playwright browsers
-        working-directory: ./frontend
-        run: npx playwright install --with-deps chromium
+      # No need to install Playwright - it's pre-installed in the Docker image!
         
       - name: Build frontend for E2E
         working-directory: ./frontend
