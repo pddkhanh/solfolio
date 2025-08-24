@@ -313,7 +313,7 @@ export class TransactionMonitoringService {
       solend: ProtocolType.SOLEND,
       drift: ProtocolType.DRIFT,
     };
-    
+
     const normalized = protocol.toLowerCase();
     return protocolMap[normalized] || null;
   }

@@ -4,7 +4,7 @@ import { CacheService } from '../cache/cache.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PositionChange } from './monitoring.interfaces';
 import { forwardRef, Inject } from '@nestjs/common';
-import { ProtocolType, PositionType } from '@prisma/client';
+import { ProtocolType } from '@prisma/client';
 
 export interface PositionSnapshot {
   walletAddress: string;
@@ -323,7 +323,10 @@ export class PositionChangeDetectorService {
     const lowerType = type.toLowerCase();
     if (lowerType.includes('deposit') || lowerType.includes('stake')) {
       return 'deposit';
-    } else if (lowerType.includes('withdraw') || lowerType.includes('unstake')) {
+    } else if (
+      lowerType.includes('withdraw') ||
+      lowerType.includes('unstake')
+    ) {
       return 'withdraw';
     } else if (lowerType.includes('claim') || lowerType.includes('harvest')) {
       return 'claim';
@@ -342,7 +345,7 @@ export class PositionChangeDetectorService {
       solend: ProtocolType.SOLEND,
       drift: ProtocolType.DRIFT,
     };
-    
+
     const normalized = protocol.toLowerCase();
     return protocolMap[normalized] || null;
   }
