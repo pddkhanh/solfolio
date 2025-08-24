@@ -129,7 +129,7 @@ describe('RpcBatchService', () => {
         Promise.allSettled([promise1, promise2]).then((results) => {
           expect(results[0].status).toBe('rejected');
           expect(results[1].status).toBe('rejected');
-          
+
           if (results[0].status === 'rejected') {
             expect(results[0].reason.message).toBe('RPC error');
           }
