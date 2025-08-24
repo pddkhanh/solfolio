@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { useWebSocketContext } from '@/contexts/WebSocketProvider'
+import ConnectionStatus from '@/components/websocket/ConnectionStatus'
 
 // Dynamically import WalletButton to prevent SSR issues
 const WalletButton = dynamic(
@@ -20,6 +22,7 @@ const WalletButton = dynamic(
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { connectionStatus, error, reconnect } = useWebSocketContext()
 
   const navItems = [
     { href: '/', label: 'Dashboard' },
@@ -55,6 +58,26 @@ export default function Header() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
+            {/* Connection Status - Desktop */}
+            <div className="hidden lg:block">
+              <ConnectionStatus
+                status={connectionStatus}
+                error={error}
+                onReconnect={reconnect}
+                showText={true}
+              />
+            </div>
+            
+            {/* Connection Status - Mobile (icon only) */}
+            <div className="lg:hidden">
+              <ConnectionStatus
+                status={connectionStatus}
+                error={error}
+                onReconnect={reconnect}
+                showText={false}
+              />
+            </div>
+
             {/* Wallet button */}
             <div className="hidden md:block">
               <WalletButton />
