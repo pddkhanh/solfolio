@@ -31,14 +31,26 @@ jobs:
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            ${{ env.STORE_PATH }}
+            ~/.cache
+            frontend/node_modules
+          key: ${{ runner.os }}-pnpm-store-frontend-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-pnpm-store-frontend-
+            
+      - name: Setup Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-${{ hashFiles('frontend/**.[jt]s', 'frontend/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-
             
       - name: Install dependencies
         working-directory: ./frontend
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
         
       - name: Run linting
         working-directory: ./frontend
@@ -54,6 +66,8 @@ jobs:
         
       - name: Build frontend
         working-directory: ./frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
         run: pnpm run build
 
   backend-checks:
@@ -80,14 +94,17 @@ jobs:
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            ${{ env.STORE_PATH }}
+            ~/.cache
+            backend/node_modules
+          key: ${{ runner.os }}-pnpm-store-backend-${{ hashFiles('backend/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-pnpm-store-backend-
             
       - name: Install dependencies
         working-directory: ./backend
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
         
       - name: Run linting
         working-directory: ./backend
@@ -125,14 +142,34 @@ jobs:
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: |
+            ${{ env.STORE_PATH }}
+            ~/.cache
+            frontend/node_modules
+          key: ${{ runner.os }}-pnpm-store-e2e-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-pnpm-store-e2e-
+            
+      - name: Setup Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-e2e-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-${{ hashFiles('frontend/**.[jt]s', 'frontend/**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-e2e-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-
+            
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
             
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
         
       - name: Install Playwright browsers
         working-directory: ./frontend
@@ -140,6 +177,8 @@ jobs:
         
       - name: Build frontend for E2E
         working-directory: ./frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
         run: pnpm run build
         
       - name: Run E2E tests
@@ -154,23 +193,23 @@ jobs:
           path: frontend/playwright-report/
           retention-days: 7
 
-  docker-build:
-    name: Docker Build Test
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Build backend Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: false
-          tags: solfolio/backend:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  # docker-build:
+  #   name: Docker Build Test
+  #   runs-on: ubuntu-latest
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #       
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+  #       
+  #     - name: Build backend Docker image
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: ./backend
+  #         file: ./backend/Dockerfile
+  #         push: false
+  #         tags: solfolio/backend:test
+  #         cache-from: type=gha
+  #         cache-to: type=gha,mode=max

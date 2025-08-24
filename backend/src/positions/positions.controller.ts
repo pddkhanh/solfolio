@@ -183,7 +183,7 @@ export class PositionsController {
 
       return {
         success: true,
-        data: stats as any,
+        data: stats,
       };
     } catch (error) {
       this.logger.error('Error fetching Marinade stats:', error);

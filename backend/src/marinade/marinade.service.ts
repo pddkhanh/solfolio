@@ -41,7 +41,8 @@ export class MarinadeService {
     private readonly priceService: PriceService,
   ) {
     this.prisma = new PrismaClient();
-    void this.initializeMarinade();
+    // Initialize Marinade SDK without async operation in constructor
+    this.initializeMarinade();
   }
 
   private initializeMarinade(): void {
@@ -85,8 +86,8 @@ export class MarinadeService {
         const estimatedDailyRewards = (msolBalance * (stats.apy / 100)) / 365;
 
         positions.push({
-          protocol: ProtocolType.MARINADE,
-          positionType: PositionType.STAKING,
+          protocol: 'MARINADE' as ProtocolType,
+          positionType: 'STAKING' as PositionType,
           tokenMint: this.MSOL_MINT,
           amount: msolBalance,
           underlyingMint: this.SOL_MINT,
@@ -128,10 +129,15 @@ export class MarinadeService {
       const msolMint = new PublicKey(this.MSOL_MINT);
 
       // Get associated token account
-      const ata = getAssociatedTokenAddressSync(msolMint, walletPubkey);
+      const ata = getAssociatedTokenAddressSync(
+        msolMint,
+        walletPubkey,
+      ) as PublicKey;
 
       try {
-        const account = await getAccount(connection, ata);
+        const account = (await getAccount(connection, ata)) as {
+          amount: bigint;
+        };
         // mSOL has 9 decimals
         return Number(account.amount) / 1e9;
       } catch {
@@ -180,7 +186,7 @@ export class MarinadeService {
         totalStaked,
         apy,
         validatorCount,
-        epochInfo: epochInfo as any,
+        epochInfo: epochInfo,
       };
 
       // Cache the stats
@@ -290,20 +296,20 @@ export class MarinadeService {
       await this.prisma.marinadeData.upsert({
         where: { msolMint: this.MSOL_MINT },
         update: {
-          exchangeRate: position.metadata.exchangeRate as number,
-          totalStaked: position.metadata.totalStaked as number,
+          exchangeRate: position.metadata['exchangeRate'] as number,
+          totalStaked: position.metadata['totalStaked'] as number,
           apy: position.apy,
-          validatorCount: position.metadata.validatorCount as number,
-          epochInfo: position.metadata.epochInfo,
+          validatorCount: position.metadata['validatorCount'] as number,
+          epochInfo: position.metadata['epochInfo'] as Record<string, any>,
           lastUpdated: new Date(),
         },
         create: {
           msolMint: this.MSOL_MINT,
-          exchangeRate: position.metadata.exchangeRate as number,
-          totalStaked: position.metadata.totalStaked as number,
+          exchangeRate: position.metadata['exchangeRate'] as number,
+          totalStaked: position.metadata['totalStaked'] as number,
           apy: position.apy,
-          validatorCount: position.metadata.validatorCount as number,
-          epochInfo: position.metadata.epochInfo,
+          validatorCount: position.metadata['validatorCount'] as number,
+          epochInfo: position.metadata['epochInfo'] as Record<string, any>,
         },
       });
     } catch (error) {
