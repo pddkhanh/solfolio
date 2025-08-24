@@ -70,10 +70,14 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 // Custom label for the pie slices
-const renderCustomLabel = (entry: ChartData) => {
+const renderCustomLabel = (props: any) => {
+  const { percent } = props;
+  if (!percent) return '';
+  
   // Only show label if the slice is more than 5% of the total
-  if (entry.percentage > 5) {
-    return `${formatNumber(entry.percentage)}%`;
+  const percentage = percent * 100;
+  if (percentage > 5) {
+    return `${formatNumber(percentage)}%`;
   }
   return '';
 };

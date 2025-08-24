@@ -58,8 +58,9 @@ describe('PortfolioPieChart', () => {
     await waitFor(() => {
       expect(screen.getByText('Portfolio Distribution')).toBeInTheDocument();
       expect(screen.getByText('Token allocation by value')).toBeInTheDocument();
-      // Check for skeleton loader
-      expect(document.querySelector('.h-\\[400px\\]')).toBeInTheDocument();
+      // Check for skeleton loader with responsive classes
+      const skeleton = document.querySelector('.animate-pulse');
+      expect(skeleton).toBeInTheDocument();
     });
   });
 
