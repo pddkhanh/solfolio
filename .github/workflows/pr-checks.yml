@@ -50,7 +50,11 @@ jobs:
             
       - name: Install dependencies
         working-directory: ./frontend
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: |
+          pnpm config set fetch-retries 5
+          pnpm config set fetch-retry-mintimeout 20000
+          pnpm config set fetch-retry-maxtimeout 120000
+          pnpm install --frozen-lockfile --prefer-offline
         
       - name: Run linting
         working-directory: ./frontend
@@ -104,7 +108,11 @@ jobs:
             
       - name: Install dependencies
         working-directory: ./backend
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: |
+          pnpm config set fetch-retries 5
+          pnpm config set fetch-retry-mintimeout 20000
+          pnpm config set fetch-retry-maxtimeout 120000
+          pnpm install --frozen-lockfile --prefer-offline
         
       - name: Run linting
         working-directory: ./backend
@@ -169,7 +177,11 @@ jobs:
             
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: |
+          pnpm config set fetch-retries 5
+          pnpm config set fetch-retry-mintimeout 20000
+          pnpm config set fetch-retry-maxtimeout 120000
+          pnpm install --frozen-lockfile --prefer-offline
         
       - name: Install Playwright browsers
         working-directory: ./frontend

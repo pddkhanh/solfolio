@@ -263,7 +263,8 @@ export class PositionsService {
       });
 
       if (cache) {
-        return cache.value as any as PortfolioSummary;
+        // Cast through unknown for proper type conversion from Prisma JsonValue
+        return cache.value as unknown as PortfolioSummary;
       }
 
       return null;
