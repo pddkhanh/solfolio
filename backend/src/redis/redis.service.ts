@@ -17,12 +17,14 @@ export class RedisService implements OnModuleDestroy {
   private readonly retryDelay = 1000; // 1 second
   private publisher: RedisClientType;
   private subscriber: RedisClientType;
+  private fallbackCache = new Map<string, { value: any; expiry: number }>();
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     // Only initialize connections in non-test environments
     if (process.env.NODE_ENV !== 'test') {
       void this.checkConnection();
       void this.initializePubSub();
+      this.startFallbackCacheCleanup();
     }
   }
 
@@ -98,13 +100,15 @@ export class RedisService implements OnModuleDestroy {
         return value;
       } else {
         this.logger.debug(`Cache miss for key: ${key}`);
-        return null;
+        // Try fallback cache
+        return this.getFallback<T>(key);
       }
     } catch (error) {
       this.logger.error(
         `Error getting cache key ${key}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      return null;
+      // Try fallback cache
+      return this.getFallback<T>(key);
     }
   }
 
@@ -113,10 +117,16 @@ export class RedisService implements OnModuleDestroy {
       const ttl = options?.ttl || 300; // Default 5 minutes
       await this.cacheManager.set(key, value, ttl * 1000); // Convert to milliseconds
       this.logger.debug(`Cache set for key: ${key} with TTL: ${ttl}s`);
+
+      // Also set in fallback cache
+      this.setFallback(key, value, ttl);
     } catch (error) {
       this.logger.error(
         `Error setting cache key ${key}: ${error instanceof Error ? error.message : String(error)}`,
       );
+      // Set in fallback cache only
+      const ttl = options?.ttl || 300;
+      this.setFallback(key, value, ttl);
     }
   }
 
@@ -160,22 +170,44 @@ export class RedisService implements OnModuleDestroy {
       const cached = await this.get<T>(key);
       if (cached !== null && cached !== undefined) {
         if (options?.refreshOnGet) {
-          // Refresh TTL
-          await this.set(key, cached, options);
+          // Refresh TTL - don't fail if this fails
+          try {
+            await this.set(key, cached, options);
+          } catch (refreshError) {
+            this.logger.warn(
+              `Failed to refresh TTL for key ${key}: ${refreshError instanceof Error ? refreshError.message : String(refreshError)}`,
+            );
+          }
         }
         return cached;
       }
 
       // If not in cache, execute function and cache result
       const result = await fn();
-      await this.set(key, result, options);
+
+      // Try to cache the result, but don't fail if caching fails
+      try {
+        await this.set(key, result, options);
+      } catch (cacheError) {
+        this.logger.warn(
+          `Failed to cache result for key ${key}: ${cacheError instanceof Error ? cacheError.message : String(cacheError)}`,
+        );
+      }
+
       return result;
     } catch (error) {
       this.logger.error(
         `Error in cache wrap for key ${key}: ${error instanceof Error ? error.message : String(error)}`,
       );
       // Fallback to executing the function without caching
-      return fn();
+      try {
+        return await fn();
+      } catch (fnError) {
+        this.logger.error(
+          `Both cache and function failed for key ${key}: ${fnError instanceof Error ? fnError.message : String(fnError)}`,
+        );
+        throw fnError;
+      }
     }
   }
 
@@ -246,5 +278,50 @@ export class RedisService implements OnModuleDestroy {
       throw new Error('Redis subscriber not initialized');
     }
     return this.subscriber;
+  }
+
+  // Fallback cache methods for when Redis is unavailable
+  private getFallback<T>(key: string): T | null {
+    const item = this.fallbackCache.get(key);
+    if (!item) return null;
+
+    if (Date.now() > item.expiry) {
+      this.fallbackCache.delete(key);
+      return null;
+    }
+
+    this.logger.debug(`Fallback cache hit for key: ${key}`);
+    return item.value as T;
+  }
+
+  private setFallback<T>(key: string, value: T, ttlSeconds: number): void {
+    const expiry = Date.now() + ttlSeconds * 1000;
+    this.fallbackCache.set(key, { value, expiry });
+    this.logger.debug(
+      `Fallback cache set for key: ${key} with TTL: ${ttlSeconds}s`,
+    );
+  }
+
+  private cleanupFallbackCache(): void {
+    const now = Date.now();
+    let removed = 0;
+
+    for (const [key, item] of this.fallbackCache.entries()) {
+      if (now > item.expiry) {
+        this.fallbackCache.delete(key);
+        removed++;
+      }
+    }
+
+    if (removed > 0) {
+      this.logger.debug(`Cleaned up ${removed} expired fallback cache entries`);
+    }
+  }
+
+  // Periodic cleanup of fallback cache
+  private startFallbackCacheCleanup(): void {
+    setInterval(() => {
+      this.cleanupFallbackCache();
+    }, 60000); // Clean up every minute
   }
 }

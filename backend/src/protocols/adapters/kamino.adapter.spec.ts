@@ -115,11 +115,9 @@ describe('KaminoAdapter', () => {
 
     it('should handle errors gracefully and return empty array', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'initializeKamino')
-        .mockImplementation(() => {
-          throw new Error('SDK Error');
-        });
+      jest.spyOn(adapter as any, 'initializeKamino').mockImplementation(() => {
+        throw new Error('SDK Error');
+      });
 
       const positions = await adapter.getPositions(testWallet);
 
@@ -184,11 +182,9 @@ describe('KaminoAdapter', () => {
       const testWallet = 'DemoWallet1111111111111111111111111111111111';
 
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'initializeKamino')
-        .mockImplementation(() => {
-          throw new Error('Failed to initialize SDK');
-        });
+      jest.spyOn(adapter as any, 'initializeKamino').mockImplementation(() => {
+        throw new Error('Failed to initialize SDK');
+      });
 
       const positions = await adapter.getPositions(testWallet);
       expect(positions).toEqual([]);

@@ -4,6 +4,7 @@ import { BlockchainService } from './blockchain.service';
 import { ConnectionManager } from './connection-manager.service';
 import { RateLimiterService } from './rate-limiter.service';
 import { BlockchainHealthIndicator } from './blockchain.health';
+import { CircuitBreakerService } from '../common/circuit-breaker/circuit-breaker.service';
 
 @Module({
   imports: [ConfigModule],
@@ -12,6 +13,7 @@ import { BlockchainHealthIndicator } from './blockchain.health';
     ConnectionManager,
     RateLimiterService,
     BlockchainHealthIndicator,
+    CircuitBreakerService,
   ],
   exports: [
     BlockchainService,

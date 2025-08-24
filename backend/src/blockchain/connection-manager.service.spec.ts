@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { ConnectionManager } from './connection-manager.service';
 import { RateLimiterService } from './rate-limiter.service';
+import { CircuitBreakerService } from '../common/circuit-breaker/circuit-breaker.service';
 import { Connection } from '@solana/web3.js';
 
 jest.mock('@solana/web3.js', () => ({
@@ -31,6 +32,14 @@ describe('ConnectionManager', () => {
           provide: RateLimiterService,
           useValue: {
             waitForSlot: mockWaitForSlot,
+          },
+        },
+        {
+          provide: CircuitBreakerService,
+          useValue: {
+            execute: jest
+              .fn()
+              .mockImplementation((_, operation) => operation()),
           },
         },
       ],
