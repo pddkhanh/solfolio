@@ -138,7 +138,7 @@ export class AccountSubscriptionService
       slot: context.slot,
       executable: accountInfo.executable,
       owner: accountInfo.owner.toBase58(),
-      rentEpoch: accountInfo.rentEpoch,
+      rentEpoch: accountInfo.rentEpoch || 0,
       data: accountInfo.data,
     };
 

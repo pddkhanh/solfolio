@@ -4,6 +4,7 @@ import { HeliusService } from '../helius/helius.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CacheService } from '../cache/cache.service';
 import { PositionChange } from './monitoring.interfaces';
+import { ProtocolType } from '@prisma/client';
 
 @Injectable()
 export class TransactionMonitoringService {
@@ -259,15 +260,12 @@ export class TransactionMonitoringService {
         data: {
           signature: transaction.transaction.signatures[0],
           walletAddress,
-          protocol: positionChange.protocol,
+          protocol: this.mapToProtocolType(positionChange.protocol),
           type: positionChange.changeType,
           amount: positionChange.currentValue?.toString(),
-          slot: transaction.slot,
           blockTime: transaction.blockTime
             ? new Date(transaction.blockTime * 1000)
             : new Date(),
-          status: 'success',
-          fee: transaction.meta?.fee || 0,
         },
       });
 
@@ -302,5 +300,21 @@ export class TransactionMonitoringService {
       this.logger.error('Failed to get recent transactions:', error);
       return [];
     }
+  }
+
+  private mapToProtocolType(protocol: string): ProtocolType | null {
+    const protocolMap: Record<string, ProtocolType> = {
+      marinade: ProtocolType.MARINADE,
+      kamino: ProtocolType.KAMINO,
+      jito: ProtocolType.JITO,
+      orca: ProtocolType.ORCA,
+      raydium: ProtocolType.RAYDIUM,
+      marginfi: ProtocolType.MARGINFI,
+      solend: ProtocolType.SOLEND,
+      drift: ProtocolType.DRIFT,
+    };
+    
+    const normalized = protocol.toLowerCase();
+    return protocolMap[normalized] || null;
   }
 }

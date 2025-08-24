@@ -26,6 +26,7 @@ export class CacheService {
   }
 
   async has(key: string): Promise<boolean> {
-    return await this.redisService.exists(key);
+    const value = await this.redisService.get(key);
+    return value !== null;
   }
 }
