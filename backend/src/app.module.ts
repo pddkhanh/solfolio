@@ -8,6 +8,7 @@ import { BlockchainModule } from './blockchain/blockchain.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PriceModule } from './price/price.module';
 import { MarinadeModule } from './marinade/marinade.module';
+import { KaminoModule } from './kamino/kamino.module';
 import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { WebsocketModule } from './websocket/websocket.module';
@@ -25,6 +26,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     WalletModule,
     PriceModule,
     MarinadeModule,
+    KaminoModule,
     PositionsModule,
     WebsocketModule,
   ],

@@ -26,6 +26,9 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
+    "@kamino-finance/farms-sdk": "^3.2.12",
+    "@kamino-finance/klend-sdk": "^7.0.10",
+    "@kamino-finance/kliquidity-sdk": "^8.4.7",
     "@marinade.finance/marinade-ts-sdk": "^5.0.15",
     "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
     "@metaplex-foundation/umi": "^1.2.0",
