@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Connection, ConnectionConfig } from '@solana/web3.js';
 import { RateLimiterService } from './rate-limiter.service';
+import { CircuitBreakerService } from '../common/circuit-breaker/circuit-breaker.service';
 
 interface RetryOptions {
   maxRetries?: number;
@@ -24,6 +25,7 @@ export class ConnectionManager {
   constructor(
     private readonly configService: ConfigService,
     private readonly rateLimiter: RateLimiterService,
+    private readonly circuitBreaker: CircuitBreakerService,
   ) {}
 
   createConnection(rpcUrl: string, config?: ConnectionConfig): Connection {
@@ -50,48 +52,61 @@ export class ConnectionManager {
     operation: () => Promise<T>,
     options?: RetryOptions,
   ): Promise<T> {
-    const opts = { ...this.defaultRetryOptions, ...options };
-    let lastError: Error = new Error('Operation failed');
-    let delay = opts.initialDelay!;
+    const serviceId = 'solana-rpc';
+    
+    return this.circuitBreaker.execute(
+      serviceId,
+      async () => {
+        const opts = { ...this.defaultRetryOptions, ...options };
+        let lastError: Error = new Error('Operation failed');
+        let delay = opts.initialDelay!;
 
-    for (let attempt = 0; attempt <= opts.maxRetries!; attempt++) {
-      try {
-        await this.rateLimiter.waitForSlot();
-        const result = await operation();
+        for (let attempt = 0; attempt <= opts.maxRetries!; attempt++) {
+          try {
+            await this.rateLimiter.waitForSlot();
+            const result = await operation();
 
-        if (attempt > 0) {
-          this.logger.debug(`Operation succeeded after ${attempt} retries`);
+            if (attempt > 0) {
+              this.logger.debug(`Operation succeeded after ${attempt} retries`);
+            }
+
+            return result;
+          } catch (error) {
+            lastError = error as Error;
+
+            if (attempt === opts.maxRetries!) {
+              this.logger.error(
+                `Operation failed after ${opts.maxRetries + 1} attempts`,
+                error,
+              );
+              break;
+            }
+
+            const isRetryable = this.isRetryableError(error);
+            if (!isRetryable) {
+              this.logger.error('Non-retryable error encountered', error);
+              throw error;
+            }
+
+            this.logger.warn(
+              `Attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
+              (error as Error).message,
+            );
+
+            await this.sleep(delay);
+            delay = Math.min(delay * opts.factor!, opts.maxDelay!);
+          }
         }
 
-        return result;
-      } catch (error) {
-        lastError = error as Error;
-
-        if (attempt === opts.maxRetries!) {
-          this.logger.error(
-            `Operation failed after ${opts.maxRetries + 1} attempts`,
-            error,
-          );
-          break;
-        }
-
-        const isRetryable = this.isRetryableError(error);
-        if (!isRetryable) {
-          this.logger.error('Non-retryable error encountered', error);
-          throw error;
-        }
-
-        this.logger.warn(
-          `Attempt ${attempt + 1} failed, retrying in ${delay}ms...`,
-          (error as Error).message,
-        );
-
-        await this.sleep(delay);
-        delay = Math.min(delay * opts.factor!, opts.maxDelay!);
-      }
-    }
-
-    throw lastError;
+        throw lastError;
+      },
+      {
+        failureThreshold: 10,
+        successThreshold: 5,
+        timeout: 120000, // 2 minutes
+        monitoringPeriod: 300000, // 5 minutes
+      },
+    );
   }
 
   private isRetryableError(error: unknown): boolean {
