@@ -131,10 +131,8 @@ export class MarinadeService {
       const ata = getAssociatedTokenAddressSync(msolMint, walletPubkey);
 
       try {
-        // @ts-expect-error - getAccount returns Account but types are incomplete
         const account = await getAccount(connection, ata);
         // mSOL has 9 decimals
-        // @ts-expect-error - amount exists on account
         return Number(account.amount) / 1e9;
       } catch {
         // Account doesn't exist, return 0

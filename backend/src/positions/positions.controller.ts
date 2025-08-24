@@ -178,9 +178,7 @@ export class PositionsController {
   @Get('marinade/stats')
   async getMarinadeStats() {
     try {
-      // @ts-expect-error - marinadeService is injected but not in type definition
-      const { marinadeService } = this.positionsService;
-      // @ts-expect-error - getMarinadeStats exists on marinadeService
+      const { marinadeService } = this.positionsService as any;
       const stats = await marinadeService.getMarinadeStats();
 
       return {
