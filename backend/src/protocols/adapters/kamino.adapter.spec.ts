@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PublicKey } from '@solana/web3.js';
 import { KaminoAdapter } from './kamino.adapter';
 import { BlockchainService } from '../../blockchain/blockchain.service';
 import { PriceService } from '../../price/price.service';
@@ -8,9 +7,6 @@ import { ProtocolType, PositionType } from '@prisma/client';
 
 describe('KaminoAdapter', () => {
   let adapter: KaminoAdapter;
-  let blockchainService: jest.Mocked<BlockchainService>;
-  let priceService: jest.Mocked<PriceService>;
-  let redisService: jest.Mocked<RedisService>;
 
   beforeEach(async () => {
     const mockBlockchainService = {
@@ -40,9 +36,6 @@ describe('KaminoAdapter', () => {
     }).compile();
 
     adapter = module.get<KaminoAdapter>(KaminoAdapter);
-    blockchainService = module.get(BlockchainService);
-    priceService = module.get(PriceService);
-    redisService = module.get(RedisService);
   });
 
   afterEach(() => {
@@ -112,9 +105,7 @@ describe('KaminoAdapter', () => {
 
     it('should return empty array if no positions found', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'initializeKamino')
-        .mockResolvedValue(undefined);
+      jest.spyOn(adapter as any, 'initializeKamino').mockReturnValue(undefined);
       jest.spyOn(adapter as any, 'cachePositions').mockResolvedValue(undefined);
 
       const positions = await adapter.getPositions(testWallet);
@@ -126,7 +117,9 @@ describe('KaminoAdapter', () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest
         .spyOn(adapter as any, 'initializeKamino')
-        .mockRejectedValue(new Error('SDK Error'));
+        .mockImplementation(() => {
+          throw new Error('SDK Error');
+        });
 
       const positions = await adapter.getPositions(testWallet);
 
@@ -193,7 +186,9 @@ describe('KaminoAdapter', () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest
         .spyOn(adapter as any, 'initializeKamino')
-        .mockRejectedValue(new Error('Failed to initialize SDK'));
+        .mockImplementation(() => {
+          throw new Error('Failed to initialize SDK');
+        });
 
       const positions = await adapter.getPositions(testWallet);
       expect(positions).toEqual([]);

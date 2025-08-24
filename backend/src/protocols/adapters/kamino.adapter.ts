@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PublicKey, Connection } from '@solana/web3.js';
-import { ProtocolType, PositionType } from '@prisma/client';
+import { ProtocolType } from '@prisma/client';
 import { BaseProtocolAdapter } from '../base-protocol-adapter';
 import { Position, ProtocolStats } from '../protocol-adapter.interface';
 import { BlockchainService } from '../../blockchain/blockchain.service';
@@ -33,7 +32,7 @@ export class KaminoAdapter extends BaseProtocolAdapter {
     super(ProtocolType.KAMINO, 'Kamino Finance', 90, redisService);
   }
 
-  private async initializeKamino(): Promise<void> {
+  private initializeKamino(): void {
     // TODO: Initialize Kamino SDK when version compatibility is resolved
     // For now, we provide a basic implementation structure
     this.logger.log('Kamino adapter initialized (SDK integration pending)');
@@ -47,13 +46,15 @@ export class KaminoAdapter extends BaseProtocolAdapter {
         return cached;
       }
 
-      await this.initializeKamino();
+      this.initializeKamino();
       const positions: Position[] = [];
 
       // TODO: Implement actual position detection when SDK integration is complete
       // For now, return empty array as placeholder
-      
-      this.logger.debug(`Kamino positions check completed for ${walletAddress}`);
+
+      this.logger.debug(
+        `Kamino positions check completed for ${walletAddress}`,
+      );
 
       await this.cachePositions(walletAddress, positions);
       return positions;
