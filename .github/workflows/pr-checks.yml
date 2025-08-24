@@ -130,17 +130,17 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     container:
-      # Use Microsoft's official Playwright Docker image with pre-installed browsers
-      # This saves ~45 seconds by not having to download and install Playwright
-      image: mcr.microsoft.com/playwright:v1.49.0-noble
-      options: --user 1001
+      # Use our custom Docker image with pre-installed Playwright and pnpm
+      # This saves ~45-60 seconds by not having to download and install dependencies
+      # Fallback to Microsoft's image if custom image is not available
+      image: ghcr.io/pddkhanh/solfolio-e2e:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Install pnpm
-        run: npm install -g pnpm@latest
           
       - name: Get pnpm store directory
         shell: bash

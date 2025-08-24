@@ -1,27 +1,29 @@
 # E2E Docker Image Documentation
 
 ## Overview
-We use Microsoft's official Playwright Docker image for E2E tests to speed up CI/CD pipelines by using pre-installed Playwright and its dependencies.
+We use a custom Docker image based on Microsoft's Playwright image for E2E tests. This custom image includes pnpm and other tools pre-installed, speeding up CI/CD pipelines significantly.
 
 ## Current Setup
 
-### Image Used
-- **Registry**: Microsoft Container Registry
-- **Image**: `mcr.microsoft.com/playwright:v1.49.0-noble`
-- **Documentation**: https://playwright.dev/docs/docker
+### Custom Image
+- **Registry**: GitHub Container Registry (ghcr.io)
+- **Image**: `ghcr.io/pddkhanh/solfolio-e2e:latest`
+- **Base Image**: `mcr.microsoft.com/playwright:v1.49.0-noble`
+- **Dockerfile**: `.github/docker/playwright-e2e.Dockerfile`
 
 ### Pre-installed Components
 - Node.js 22
-- pnpm (latest)
+- pnpm (latest) - **Pre-installed globally**
 - Playwright 1.49.0
 - Chromium browser
 - All system dependencies for browser automation
-- Git, curl, and other utilities
+- Git, curl, jq utilities
 
 ## Benefits
 - **Speed**: Saves ~45-60 seconds per E2E test run
+- **No Permission Issues**: pnpm is pre-installed globally
 - **Consistency**: Same environment across all CI runs
-- **Reliability**: No network failures during Playwright installation
+- **Reliability**: No network failures during installation
 - **Efficiency**: Smaller overall CI time and resource usage
 
 ## Usage
@@ -30,17 +32,23 @@ We use Microsoft's official Playwright Docker image for E2E tests to speed up CI
 The PR checks workflow automatically uses this image:
 ```yaml
 container:
-  image: mcr.microsoft.com/playwright:v1.49.0-noble
-  options: --user 1001
+  image: ghcr.io/pddkhanh/solfolio-e2e:latest
+  credentials:
+    username: ${{ github.actor }}
+    password: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Local Testing
 To test E2E locally using the same environment:
 ```bash
+# First, pull the image
+docker pull ghcr.io/pddkhanh/solfolio-e2e:latest
+
+# Run E2E tests
 docker run -it --rm \
   -v $(pwd):/app \
   -w /app/frontend \
-  mcr.microsoft.com/playwright:v1.49.0-noble \
+  ghcr.io/pddkhanh/solfolio-e2e:latest \
   pnpm run test:e2e
 ```
 
@@ -56,13 +64,15 @@ Update the Docker image when:
 ### How to Update
 
 1. **Update Dockerfile**:
-   Edit `.github/docker/e2e.Dockerfile`:
+   Edit `.github/docker/playwright-e2e.Dockerfile`:
    ```dockerfile
    FROM mcr.microsoft.com/playwright:vX.XX.X-noble
    ```
 
 2. **Trigger Image Build**:
-   - Push changes to main branch, OR
+   The image will be automatically built when:
+   - Dockerfile changes are pushed to main branch
+   - PR is created with Dockerfile changes
    - Manually trigger the "Build E2E Docker Image" workflow
 
 3. **Verify New Image**:
@@ -71,16 +81,17 @@ Update the Docker image when:
    docker pull ghcr.io/pddkhanh/solfolio-e2e:latest
    ```
 
-### Custom Image Build (Future)
-Once we set up the custom image workflow:
-1. The image will be automatically built when Dockerfile changes
-2. It will be pushed to GitHub Container Registry
-3. Update the PR checks workflow to use the custom image
+### Image Build Process
+The custom image workflow:
+1. Automatically builds when Dockerfile changes
+2. Pushes to GitHub Container Registry (ghcr.io)
+3. Tags with latest, branch name, and commit SHA
+4. Available immediately for CI/CD pipelines
 
 ## Fallback Strategy
-If the custom image is unavailable, the workflow falls back to:
-1. Using Microsoft's official Playwright image
-2. Installing pnpm manually in the container
+If the custom image is unavailable, you can:
+1. Trigger the "Build E2E Docker Image" workflow manually
+2. Use Microsoft's official image with manual pnpm installation (not recommended due to permission issues)
 
 ## Performance Metrics
 - **Without Docker image**: ~90-120 seconds (download + install Playwright)
@@ -91,10 +102,7 @@ If the custom image is unavailable, the workflow falls back to:
 ## Troubleshooting
 
 ### Permission Issues
-If you see permission errors, ensure the container runs with the correct user:
-```yaml
-options: --user 1001
-```
+Our custom image handles permissions correctly. The pnpm installation is done as root before switching to the pwuser, avoiding EACCES errors.
 
 ### Cache Issues
 Clear Docker cache if the image seems corrupted:
