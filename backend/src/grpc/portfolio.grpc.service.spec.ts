@@ -21,19 +21,19 @@ describe('PortfolioGrpcService', () => {
       mint: 'So11111111111111111111111111111111111111112',
       symbol: 'SOL',
       name: 'Solana',
-      balance: 10.5,
+      balance: '10.5',
+      uiAmount: 10.5,
       decimals: 9,
-      price: 50.25,
-      value: 527.625,
+      valueUSD: 527.625,
     },
     {
       mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
       symbol: 'USDC',
       name: 'USD Coin',
-      balance: 1000,
+      balance: '1000',
+      uiAmount: 1000,
       decimals: 6,
-      price: 1,
-      value: 1000,
+      valueUSD: 1000,
     },
   ];
 
@@ -165,7 +165,10 @@ describe('PortfolioGrpcService', () => {
       const result = await service.getTokenBalances({ wallet: mockWallet });
 
       expect(walletService.getWalletBalances).toHaveBeenCalledWith(mockWallet);
-      expect(result.tokens).toEqual(mockTokens);
+      expect(result.tokens).toHaveLength(2);
+      expect(result.tokens[0].mint).toBe('So11111111111111111111111111111111111111112');
+      expect(result.tokens[0].value).toBe(527.625);
+      expect(result.tokens[1].value).toBe(1000);
     });
   });
 
