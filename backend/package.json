@@ -38,6 +38,7 @@
     "@nestjs/microservices": "^11.1.6",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.1.6",
+    "@nestjs/schedule": "^6.0.0",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/websockets": "^11.1.6",
@@ -96,6 +97,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["<rootDir>/../test/jest-setup.ts"]
+    "setupFilesAfterEnv": [
+      "<rootDir>/../test/jest-setup.ts"
+    ]
   }
 }
