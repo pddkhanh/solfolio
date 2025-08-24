@@ -92,8 +92,9 @@ export class PositionsService {
       const positions = await this.getPositions(walletAddress);
 
       // Get token balances
-      const balances =
+      const walletBalances =
         await this.walletService.getWalletBalances(walletAddress);
+      const balances = walletBalances.tokens;
 
       // Calculate total values
       const totalPositionValue = positions.reduce(
@@ -101,7 +102,7 @@ export class PositionsService {
         0,
       );
       const totalBalanceValue = balances.reduce(
-        (sum, bal) => sum + (bal.usdValue || 0),
+        (sum, bal) => sum + (bal.valueUSD || 0),
         0,
       );
       const totalValue = totalPositionValue + totalBalanceValue;
@@ -189,7 +190,7 @@ export class PositionsService {
           update: {
             amount: balance.amount,
             decimals: balance.decimals,
-            usdValue: balance.usdValue,
+            usdValue: balance.valueUSD,
             symbol: balance.symbol,
             name: balance.name,
             logoUri: balance.logoUri,
@@ -200,7 +201,7 @@ export class PositionsService {
             tokenMint: balance.mint,
             amount: balance.amount,
             decimals: balance.decimals,
-            usdValue: balance.usdValue,
+            usdValue: balance.valueUSD,
             symbol: balance.symbol,
             name: balance.name,
             logoUri: balance.logoUri,

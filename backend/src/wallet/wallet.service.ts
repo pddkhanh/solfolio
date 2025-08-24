@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PublicKey, Connection } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
@@ -137,7 +137,7 @@ export class WalletService {
     const token2022Accounts = await this.connectionManager.executeWithRetry(
       () =>
         connection.getParsedTokenAccountsByOwner(publicKey, {
-          programId: TOKEN_2022_PROGRAM_ID,
+          programId: new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'), // TOKEN_2022_PROGRAM_ID
         }),
     );
 

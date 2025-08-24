@@ -4,12 +4,12 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(
   request: Request,
-  { params }: { params: { walletAddress: string } }
+  { params }: { params: Promise<{ walletAddress: string }> }
 ) {
   try {
     const { searchParams } = new URL(request.url);
     const refresh = searchParams.get('refresh');
-    const walletAddress = params.walletAddress;
+    const { walletAddress } = await params;
     
     const url = `${BACKEND_URL}/positions/${walletAddress}/summary${refresh ? '?refresh=true' : ''}`;
     
