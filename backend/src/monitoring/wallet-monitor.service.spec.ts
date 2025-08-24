@@ -87,7 +87,7 @@ describe('WalletMonitorService', () => {
     websocketService = module.get(WebsocketService);
     positionsService = module.get(PositionsService);
     cacheService = module.get(CacheService);
-    
+
     // Mock the logger to prevent console output during tests
     jest.spyOn(service['logger'], 'log').mockImplementation();
     jest.spyOn(service['logger'], 'warn').mockImplementation();

@@ -58,7 +58,7 @@ describe('ProtocolAdapterRegistry', () => {
     }).compile();
 
     registry = module.get<ProtocolAdapterRegistry>(ProtocolAdapterRegistry);
-    
+
     // Mock the logger to prevent console output during tests
     jest.spyOn(registry['logger'], 'log').mockImplementation();
     jest.spyOn(registry['logger'], 'warn').mockImplementation();

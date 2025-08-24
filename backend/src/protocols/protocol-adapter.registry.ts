@@ -152,7 +152,7 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
     description: string,
   ): Promise<T> {
     let timeoutId: NodeJS.Timeout;
-    
+
     const timeoutPromise = new Promise<T>((_, reject) => {
       timeoutId = setTimeout(
         () =>

@@ -84,7 +84,7 @@ describe('WalletService', () => {
     blockchainService = module.get(BlockchainService);
     connectionManager = module.get(ConnectionManager);
     rateLimiter = module.get(RateLimiterService);
-    
+
     // Mock the logger to prevent console output during tests
     jest.spyOn(service['logger'], 'log').mockImplementation();
     jest.spyOn(service['logger'], 'warn').mockImplementation();
