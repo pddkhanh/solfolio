@@ -4,6 +4,7 @@ import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
+import { RpcBatchService } from '../blockchain/rpc-batch.service';
 import { TokenMetadataService } from './token-metadata.service';
 import { PriceService } from '../price/price.service';
 
@@ -51,6 +52,7 @@ export class WalletService {
     private readonly blockchainService: BlockchainService,
     private readonly connectionManager: ConnectionManager,
     private readonly rateLimiter: RateLimiterService,
+    private readonly rpcBatchService: RpcBatchService,
     private readonly tokenMetadataService: TokenMetadataService,
     private readonly priceService: PriceService,
   ) {}
@@ -229,5 +231,183 @@ export class WalletService {
         uiAmount: 0,
       },
     };
+  }
+
+  /**
+   * Optimized method to fetch balances for multiple wallets using batching
+   * This reduces the number of RPC calls significantly
+   */
+  async getMultipleWalletBalances(
+    walletAddresses: string[],
+  ): Promise<Map<string, WalletBalances>> {
+    const results = new Map<string, WalletBalances>();
+
+    if (walletAddresses.length === 0) {
+      return results;
+    }
+
+    try {
+      // In E2E test environment, return mock data
+      if (process.env.IS_E2E_TEST === 'true') {
+        walletAddresses.forEach((address) => {
+          results.set(address, this.getMockWalletBalances(address));
+        });
+        return results;
+      }
+
+      const connection = this.blockchainService.getConnection();
+      const publicKeys = walletAddresses.map((addr) => new PublicKey(addr));
+
+      // Batch fetch native SOL balances
+      const balancePromises = publicKeys.map((pk) =>
+        this.rpcBatchService.getBalance(connection, pk),
+      );
+
+      // Batch fetch token accounts for all wallets
+      const tokenAccountsMap =
+        await this.rpcBatchService.batchGetParsedTokenAccountsByOwner(
+          connection,
+          publicKeys,
+          TOKEN_PROGRAM_ID,
+        );
+
+      const token2022AccountsMap =
+        await this.rpcBatchService.batchGetParsedTokenAccountsByOwner(
+          connection,
+          publicKeys,
+          new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'),
+        );
+
+      // Wait for all balance fetches to complete
+      const balances = await Promise.all(balancePromises);
+
+      // Collect all unique token mints for batch price fetching
+      const allTokenMints = new Set<string>();
+      allTokenMints.add('So11111111111111111111111111111111111112'); // SOL
+
+      for (const [, accounts] of tokenAccountsMap) {
+        accounts.forEach((account: any) => {
+          if (account.account.data.parsed.info.tokenAmount.uiAmount > 0) {
+            allTokenMints.add(account.account.data.parsed.info.mint);
+          }
+        });
+      }
+
+      for (const [, accounts] of token2022AccountsMap) {
+        accounts.forEach((account: any) => {
+          if (account.account.data.parsed.info.tokenAmount.uiAmount > 0) {
+            allTokenMints.add(account.account.data.parsed.info.mint);
+          }
+        });
+      }
+
+      // Batch fetch all prices at once
+      const prices = await this.priceService.getTokenPrices(
+        Array.from(allTokenMints),
+      );
+      const solPrice =
+        prices.get('So11111111111111111111111111111111111112') || 0;
+
+      // Process results for each wallet
+      for (let i = 0; i < walletAddresses.length; i++) {
+        const walletAddress = walletAddresses[i];
+        const balance = balances[i];
+
+        // Parse native SOL balance
+        const nativeSol = {
+          amount: balance.toString(),
+          decimals: 9,
+          uiAmount: balance / Math.pow(10, 9),
+        };
+
+        // Combine token accounts
+        const tokenAccounts = [
+          ...(tokenAccountsMap.get(walletAddress) || []),
+          ...(token2022AccountsMap.get(walletAddress) || []),
+        ];
+
+        // Parse token balances with batch-fetched prices
+        const tokenBalances = await this.parseTokenAccountsWithPrices(
+          tokenAccounts,
+          prices,
+        );
+
+        // Calculate total value
+        const totalValueUSD = tokenBalances.reduce(
+          (sum, token) => sum + (token.valueUSD || 0),
+          nativeSol.uiAmount * solPrice,
+        );
+
+        results.set(walletAddress, {
+          wallet: walletAddress,
+          nativeSol,
+          tokens: tokenBalances,
+          nfts: [],
+          totalAccounts: tokenBalances.length,
+          totalValueUSD,
+          lastUpdated: new Date().toISOString(),
+          fetchedAt: new Date(),
+        });
+      }
+
+      return results;
+    } catch (error) {
+      this.logger.error(`Failed to get multiple wallet balances`, error);
+      throw error;
+    }
+  }
+
+  private async parseTokenAccountsWithPrices(
+    accounts: any[],
+    prices: Map<string, number>,
+  ): Promise<TokenBalance[]> {
+    const tokenBalances: TokenBalance[] = [];
+
+    for (const account of accounts) {
+      try {
+        const parsedData = account.account.data.parsed;
+        const tokenInfo = parsedData.info;
+
+        if (tokenInfo.tokenAmount.uiAmount > 0) {
+          const metadata = await this.tokenMetadataService.getTokenMetadata(
+            tokenInfo.mint,
+          );
+
+          const price = prices.get(tokenInfo.mint) || 0;
+          const valueUSD = tokenInfo.tokenAmount.uiAmount * price;
+
+          const tokenBalance: TokenBalance = {
+            mint: tokenInfo.mint,
+            owner: tokenInfo.owner,
+            balance: tokenInfo.tokenAmount.amount,
+            amount: tokenInfo.tokenAmount.amount,
+            decimals: tokenInfo.tokenAmount.decimals,
+            uiAmount: tokenInfo.tokenAmount.uiAmount,
+            valueUSD,
+            tokenAccount: account.pubkey.toString(),
+          };
+
+          if (metadata) {
+            tokenBalance.metadata = {
+              symbol: metadata.symbol,
+              name: metadata.name,
+              logoUri: metadata.logoUri,
+            };
+            tokenBalance.symbol = metadata.symbol;
+            tokenBalance.name = metadata.name;
+            tokenBalance.logoUri = metadata.logoUri;
+          }
+
+          tokenBalances.push(tokenBalance);
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Failed to parse token account ${account.pubkey.toString()}`,
+          error,
+        );
+      }
+    }
+
+    return tokenBalances;
   }
 }

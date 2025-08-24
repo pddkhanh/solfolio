@@ -73,6 +73,9 @@ model Position {
 
   @@index([walletId, protocol])
   @@index([tokenMint])
+  @@index([walletId, lastUpdated(sort: Desc)])
+  @@index([protocol, lastUpdated(sort: Desc)])
+  @@index([usdValue(sort: Desc)])
   @@unique([walletId, protocol, tokenMint])
 }
 
@@ -92,6 +95,8 @@ model Balance {
 
   @@index([walletId])
   @@index([tokenMint])
+  @@index([walletId, lastUpdated(sort: Desc)])
+  @@index([usdValue(sort: Desc)])
   @@unique([walletId, tokenMint])
 }
 
@@ -108,6 +113,8 @@ model TokenPrice {
 
   @@index([tokenMint])
   @@index([symbol])
+  @@index([lastUpdated(sort: Desc)])
+  @@index([symbol, lastUpdated(sort: Desc)])
 }
 
 model ProtocolApy {
@@ -137,6 +144,8 @@ model Cache {
   @@index([key, type])
   @@index([walletId])
   @@index([expiresAt])
+  @@index([walletId, type])
+  @@index([expiresAt, type])
 }
 
 model MarinadeData {
@@ -169,4 +178,6 @@ model Transaction {
   @@index([walletAddress])
   @@index([signature])
   @@index([blockTime])
+  @@index([walletAddress, blockTime(sort: Desc)])
+  @@index([protocol, blockTime(sort: Desc)])
 }
