@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { RedisService } from '../redis/redis.service';
+import { EventEmitter } from 'events';
 
 export interface PriceUpdate {
   tokenMint: string;
@@ -17,13 +18,15 @@ export interface WalletUpdate {
 }
 
 @Injectable()
-export class WebsocketService {
+export class WebsocketService extends EventEmitter {
   private server: Server;
   private readonly logger = new Logger(WebsocketService.name);
   private priceUpdateInterval: NodeJS.Timeout | undefined;
   private readonly PRICE_UPDATE_INTERVAL = 30000; // 30 seconds
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly redisService: RedisService) {
+    super();
+  }
 
   setServer(server: Server) {
     this.server = server;
@@ -195,6 +198,26 @@ export class WebsocketService {
     }
     const sockets = await this.server.in(room).fetchSockets();
     return sockets.map((socket) => socket.id);
+  }
+
+  broadcastToWallet(walletAddress: string, data: any) {
+    if (!this.server) {
+      this.logger.warn('Server not initialized, cannot broadcast to wallet');
+      return;
+    }
+
+    const room = `wallet:${walletAddress}`;
+    this.server.to(room).emit('wallet:notification', data);
+
+    this.logger.debug(`Broadcasted notification to wallet room ${room}`);
+  }
+
+  notifyWalletSubscribed(walletAddress: string) {
+    this.emit('walletSubscribed', walletAddress);
+  }
+
+  notifyWalletUnsubscribed(walletAddress: string) {
+    this.emit('walletUnsubscribed', walletAddress);
   }
 
   disconnect() {

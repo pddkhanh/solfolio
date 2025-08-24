@@ -20,6 +20,9 @@ describe('WebsocketGateway', () => {
       })),
       sockets: {
         sockets: new Map(),
+        adapter: {
+          rooms: new Map(),
+        },
       },
     } as any;
 
@@ -45,6 +48,8 @@ describe('WebsocketGateway', () => {
             broadcastPriceUpdate: jest.fn(),
             broadcastWalletUpdate: jest.fn(),
             broadcastPositionUpdate: jest.fn(),
+            notifyWalletSubscribed: jest.fn(),
+            notifyWalletUnsubscribed: jest.fn(),
           },
         },
       ],

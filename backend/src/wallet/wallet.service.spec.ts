@@ -50,7 +50,9 @@ describe('WalletService', () => {
           useValue: {
             getBalance: jest.fn(),
             getAccountInfo: jest.fn(),
-            batchGetParsedTokenAccountsByOwner: jest.fn().mockResolvedValue(new Map()),
+            batchGetParsedTokenAccountsByOwner: jest
+              .fn()
+              .mockResolvedValue(new Map()),
             getMultipleTokenAccounts: jest.fn().mockResolvedValue([]),
           },
         },

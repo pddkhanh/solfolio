@@ -98,6 +98,9 @@ export class WebsocketGateway
       room: `wallet:${walletAddress}`,
     });
 
+    // Notify monitoring service
+    this.websocketService.notifyWalletSubscribed(walletAddress);
+
     this.logger.log(`Client ${client.id} joined room: wallet:${walletAddress}`);
   }
 
@@ -124,6 +127,15 @@ export class WebsocketGateway
       type: 'wallet',
       address: walletAddress,
     });
+
+    // Check if any other clients are still subscribed to this wallet
+    const room = this.server.sockets.adapter.rooms.get(
+      `wallet:${walletAddress}`,
+    );
+    if (!room || room.size === 0) {
+      // No more clients for this wallet, notify monitoring service
+      this.websocketService.notifyWalletUnsubscribed(walletAddress);
+    }
 
     this.logger.log(`Client ${client.id} left room: wallet:${walletAddress}`);
   }
