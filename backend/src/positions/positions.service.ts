@@ -263,14 +263,14 @@ export class PositionsService {
       await this.prisma.cache.upsert({
         where: { key: cacheKey },
         update: {
-          value: JSON.parse(JSON.stringify(summary)),
+          value: summary as any, // Prisma JsonValue type requires any
           expiresAt: new Date(Date.now() + 60 * 1000), // 1 minute cache
           lastUpdated: new Date(),
         },
         create: {
           key: cacheKey,
           type: 'POSITION',
-          value: JSON.parse(JSON.stringify(summary)),
+          value: summary as any, // Prisma JsonValue type requires any
           walletId: wallet.id,
           expiresAt: new Date(Date.now() + 60 * 1000),
         },

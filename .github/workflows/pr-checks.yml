@@ -201,7 +201,7 @@ jobs:
     container:
       # Use our custom Docker image with pre-installed Playwright and pnpm
       # This saves ~45-60 seconds by not having to download and install dependencies
-      image: ghcr.io/${{ github.repository_owner }}/solfolio-e2e:${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
+      image: ghcr.io/${{ github.repository_owner }}/solfolio-e2e:${{ needs.changes.outputs.dockerfile == 'true' && github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}

@@ -99,7 +99,12 @@ export class RedisService implements OnModuleDestroy {
       // Reset is not available in the Cache interface
       // We could iterate and delete keys if needed
       // For now, just log the intent
-      (this.cacheManager as any).reset?.();
+      const cacheWithReset = this.cacheManager as Cache & {
+        reset?: () => void;
+      };
+      if (typeof cacheWithReset.reset === 'function') {
+        cacheWithReset.reset();
+      }
       this.logger.log('Cache reset successfully');
     } catch (error) {
       this.logger.error(
