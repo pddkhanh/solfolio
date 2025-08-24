@@ -20,7 +20,7 @@ export function useGrpcClient(options: UseGrpcClientOptions = {}) {
   const [tokens, setTokens] = useState<Token[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   
-  const clientRef = useRef<PortfolioGrpcClient>();
+  const clientRef = useRef<PortfolioGrpcClient | undefined>(undefined);
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -123,13 +123,16 @@ export function useGrpcClient(options: UseGrpcClientOptions = {}) {
           case 'token':
             if (event.data?.tokenUpdate) {
               setTokens((prev) => {
-                const index = prev.findIndex(t => t.mint === event.data?.tokenUpdate?.mint);
+                const tokenUpdate = event.data?.tokenUpdate;
+                if (!tokenUpdate) return prev;
+                
+                const index = prev.findIndex(t => t.mint === tokenUpdate.mint);
                 if (index >= 0) {
                   const updated = [...prev];
-                  updated[index] = event.data.tokenUpdate;
+                  updated[index] = tokenUpdate;
                   return updated;
                 }
-                return [...prev, event.data.tokenUpdate];
+                return [...prev, tokenUpdate];
               });
             }
             break;
@@ -137,16 +140,19 @@ export function useGrpcClient(options: UseGrpcClientOptions = {}) {
           case 'position':
             if (event.data?.positionUpdate) {
               setPositions((prev) => {
+                const positionUpdate = event.data?.positionUpdate;
+                if (!positionUpdate) return prev;
+                
                 const index = prev.findIndex(p => 
-                  p.protocol === event.data?.positionUpdate?.protocol &&
-                  p.address === event.data?.positionUpdate?.address
+                  p.protocol === positionUpdate.protocol &&
+                  p.address === positionUpdate.address
                 );
                 if (index >= 0) {
                   const updated = [...prev];
-                  updated[index] = event.data.positionUpdate;
+                  updated[index] = positionUpdate;
                   return updated;
                 }
-                return [...prev, event.data.positionUpdate];
+                return [...prev, positionUpdate];
               });
             }
             break;

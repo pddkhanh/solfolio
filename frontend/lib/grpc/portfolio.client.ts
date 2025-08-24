@@ -1,5 +1,3 @@
-import { grpc } from '@grpc/grpc-js';
-
 export interface Token {
   mint: string;
   symbol: string;
