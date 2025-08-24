@@ -5,11 +5,7 @@ import { PositionChangeDetectorService } from './position-change-detector.servic
 import { WebsocketService } from '../websocket/websocket.service';
 import { PositionsService } from '../positions/positions.service';
 import { CacheService } from '../cache/cache.service';
-import {
-  AccountChangeEvent,
-  MonitoredWallet,
-  PositionChange,
-} from './monitoring.interfaces';
+import { AccountChangeEvent, MonitoredWallet } from './monitoring.interfaces';
 import { forwardRef, Inject } from '@nestjs/common';
 
 @Injectable()
@@ -30,7 +26,7 @@ export class WalletMonitorService implements OnModuleInit {
     private readonly cacheService: CacheService,
   ) {}
 
-  async onModuleInit() {
+  onModuleInit() {
     this.setupEventListeners();
     this.logger.log('Wallet monitor service initialized');
   }
@@ -59,7 +55,7 @@ export class WalletMonitorService implements OnModuleInit {
     });
   }
 
-  async startMonitoring(walletAddress: string): Promise<void> {
+  startMonitoring(walletAddress: string): void {
     try {
       if (this.activeWallets.has(walletAddress)) {
         this.logger.debug(`Already monitoring wallet: ${walletAddress}`);

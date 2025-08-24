@@ -88,7 +88,7 @@ describe('WalletMonitorService', () => {
     positionsService = module.get(PositionsService);
     cacheService = module.get(CacheService);
 
-    await service.onModuleInit();
+    service.onModuleInit();
   });
 
   afterEach(() => {
@@ -100,10 +100,10 @@ describe('WalletMonitorService', () => {
   });
 
   describe('startMonitoring', () => {
-    it('should start monitoring for a wallet', async () => {
+    it('should start monitoring for a wallet', () => {
       accountSubscription.subscribeToWallet.mockReturnValue(1);
 
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       expect(accountSubscription.subscribeToWallet).toHaveBeenCalledWith(
         mockWalletAddress,
@@ -116,21 +116,21 @@ describe('WalletMonitorService', () => {
       );
     });
 
-    it('should not start monitoring if already active', async () => {
+    it('should not start monitoring if already active', () => {
       accountSubscription.subscribeToWallet.mockReturnValue(1);
 
       // Start monitoring twice
-      await service.startMonitoring(mockWalletAddress);
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       // Should only be called once
       expect(accountSubscription.subscribeToWallet).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle subscription failures', async () => {
+    it('should handle subscription failures', () => {
       accountSubscription.subscribeToWallet.mockReturnValue(null);
 
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       expect(websocketService.broadcastToWallet).not.toHaveBeenCalled();
     });
@@ -140,7 +140,7 @@ describe('WalletMonitorService', () => {
     it('should stop monitoring for a wallet', async () => {
       // First start monitoring
       accountSubscription.subscribeToWallet.mockReturnValue(1);
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       // Then stop
       await service.stopMonitoring(mockWalletAddress);
@@ -182,7 +182,7 @@ describe('WalletMonitorService', () => {
 
       // Start monitoring
       accountSubscription.subscribeToWallet.mockReturnValue(1);
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       // Simulate account change event
       const event = {
@@ -252,10 +252,10 @@ describe('WalletMonitorService', () => {
   });
 
   describe('getMonitoringStatus', () => {
-    it('should return monitoring status for a wallet', async () => {
+    it('should return monitoring status for a wallet', () => {
       accountSubscription.isSubscribed.mockReturnValue(true);
 
-      const status = await service.getMonitoringStatus(mockWalletAddress);
+      const status = service.getMonitoringStatus(mockWalletAddress);
 
       expect(status).toMatchObject({
         isMonitored: expect.any(Boolean),
@@ -266,7 +266,7 @@ describe('WalletMonitorService', () => {
   });
 
   describe('getActiveWallets', () => {
-    it('should return list of active wallets', async () => {
+    it('should return list of active wallets', () => {
       const mockWallets = [
         {
           address: mockWalletAddress,
@@ -276,9 +276,9 @@ describe('WalletMonitorService', () => {
         },
       ];
 
-      accountSubscription.getActiveSubscriptions.mockResolvedValue(mockWallets);
+      accountSubscription.getActiveSubscriptions.mockReturnValue(mockWallets);
 
-      const wallets = await service.getActiveWallets();
+      const wallets = service.getActiveWallets();
 
       expect(wallets).toEqual(mockWallets);
     });
@@ -302,7 +302,7 @@ describe('WalletMonitorService', () => {
     it('should stop monitoring when wallet is unsubscribed via WebSocket', async () => {
       // First start monitoring
       accountSubscription.subscribeToWallet.mockReturnValue(1);
-      await service.startMonitoring(mockWalletAddress);
+      service.startMonitoring(mockWalletAddress);
 
       // Emit wallet unsubscribed event
       websocketService.emit('walletUnsubscribed', mockWalletAddress);

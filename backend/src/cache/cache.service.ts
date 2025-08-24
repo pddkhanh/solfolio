@@ -16,7 +16,8 @@ export class CacheService {
   }
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
-    const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+    const stringValue =
+      typeof value === 'string' ? value : JSON.stringify(value);
     await this.redisService.set(key, stringValue, ttl ? { ttl } : undefined);
   }
 
@@ -25,6 +26,6 @@ export class CacheService {
   }
 
   async has(key: string): Promise<boolean> {
-    return this.redisService.exists(key);
+    return await this.redisService.exists(key);
   }
 }

@@ -81,12 +81,12 @@ export class MonitoringController {
   }
 
   @Post('wallet/:address/start')
-  async startMonitoring(@Param('address') address: string) {
+  startMonitoring(@Param('address') address: string) {
     try {
       // Validate address
       this.validateSolanaAddress(address);
 
-      await this.walletMonitor.startMonitoring(address);
+      this.walletMonitor.startMonitoring(address);
 
       return {
         success: true,

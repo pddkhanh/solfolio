@@ -51,7 +51,7 @@ export class TransactionMonitoringService {
       }
 
       // Analyze transaction for DeFi interactions
-      const positionChange = await this.analyzeTransaction(
+      const positionChange = this.analyzeTransaction(
         transaction,
         walletAddress,
       );
@@ -103,14 +103,16 @@ export class TransactionMonitoringService {
     return null;
   }
 
-  private async analyzeTransaction(
+  private analyzeTransaction(
     transaction: ParsedTransactionWithMeta,
     walletAddress: string,
-  ): Promise<PositionChange | null> {
+  ): PositionChange | null {
     try {
       // Check if transaction was successful
       if (transaction.meta?.err) {
-        this.logger.debug(`Transaction failed: ${transaction.meta.err}`);
+        this.logger.debug(
+          `Transaction failed: ${JSON.stringify(transaction.meta.err)}`,
+        );
         return null;
       }
 
@@ -127,14 +129,10 @@ export class TransactionMonitoringService {
       }
 
       // Analyze the specific protocol interaction
-      const changeType = this.determineChangeType(transaction, programId);
+      const changeType = this.determineChangeType(transaction);
 
       // Extract value changes if possible
-      const { previousValue, currentValue } = await this.extractValueChanges(
-        transaction,
-        walletAddress,
-        protocol,
-      );
+      const { previousValue, currentValue } = this.extractValueChanges();
 
       const positionChange: PositionChange = {
         walletAddress,
@@ -200,7 +198,6 @@ export class TransactionMonitoringService {
 
   private determineChangeType(
     transaction: ParsedTransactionWithMeta,
-    programId: string,
   ): 'deposit' | 'withdraw' | 'claim' | 'update' {
     // Analyze transaction logs to determine the type
     const logs = transaction.meta?.logMessages || [];
@@ -232,11 +229,10 @@ export class TransactionMonitoringService {
     return 'update';
   }
 
-  private async extractValueChanges(
-    transaction: ParsedTransactionWithMeta,
-    walletAddress: string,
-    protocol: string,
-  ): Promise<{ previousValue?: number; currentValue?: number }> {
+  private extractValueChanges(): {
+    previousValue?: number;
+    currentValue?: number;
+  } {
     try {
       // This would need to be implemented based on specific protocol logic
       // For now, return empty values

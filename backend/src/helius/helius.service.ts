@@ -6,7 +6,8 @@ export class HeliusService {
   private connection: Connection;
 
   constructor() {
-    const rpcUrl = process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const rpcUrl =
+      process.env.HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
     this.connection = new Connection(rpcUrl, 'confirmed');
   }
 
