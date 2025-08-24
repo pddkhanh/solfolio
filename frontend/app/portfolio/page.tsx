@@ -20,6 +20,11 @@ const PositionsList = dynamic(
   { ssr: false }
 );
 
+const PortfolioPieChart = dynamic(
+  () => import('@/components/portfolio/PortfolioPieChart').then(mod => ({ default: mod.PortfolioPieChart })),
+  { ssr: false }
+);
+
 export default function PortfolioPage() {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -50,6 +55,15 @@ export default function PortfolioPage() {
       <div className="space-y-8">
         {/* Portfolio Overview */}
         <PortfolioOverview />
+
+        {/* Portfolio Distribution Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <PortfolioPieChart />
+          <div className="space-y-4">
+            {/* This space is reserved for additional analytics components */}
+            {/* Future: Protocol breakdown chart, historical value chart, etc. */}
+          </div>
+        </div>
 
         {/* Token List */}
         <TokenList />
