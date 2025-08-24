@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProtocolAdapterRegistry } from './protocol-adapter.registry';
-import { IProtocolAdapter, Position, ProtocolStats } from './protocol-adapter.interface';
+import {
+  IProtocolAdapter,
+  Position,
+  ProtocolStats,
+} from './protocol-adapter.interface';
 import { ProtocolType, PositionType } from '@prisma/client';
 
 class MockProtocolAdapter implements IProtocolAdapter {
@@ -10,8 +14,8 @@ class MockProtocolAdapter implements IProtocolAdapter {
     public readonly priority: number,
   ) {}
 
-  async getPositions(walletAddress: string): Promise<Position[]> {
-    return [
+  getPositions(): Promise<Position[]> {
+    return Promise.resolve([
       {
         protocol: this.protocolType,
         positionType: PositionType.STAKING,
@@ -24,24 +28,24 @@ class MockProtocolAdapter implements IProtocolAdapter {
         rewards: 0.15,
         metadata: {},
       },
-    ];
+    ]);
   }
 
-  async getProtocolStats(): Promise<ProtocolStats> {
-    return {
+  getProtocolStats(): Promise<ProtocolStats> {
+    return Promise.resolve({
       protocolName: this.protocolName,
       tvl: 1000000,
       apy: 5.5,
       metadata: {},
-    };
+    });
   }
 
   isSupported(tokenMint: string): boolean {
     return tokenMint === 'mock-token-mint';
   }
 
-  async invalidateCache(walletAddress: string): Promise<void> {
-    return;
+  invalidateCache(): Promise<void> {
+    return Promise.resolve();
   }
 }
 
@@ -104,11 +108,7 @@ describe('ProtocolAdapterRegistry', () => {
         'Kamino',
         100,
       );
-      const adapter3 = new MockProtocolAdapter(
-        ProtocolType.JITO,
-        'Jito',
-        75,
-      );
+      const adapter3 = new MockProtocolAdapter(ProtocolType.JITO, 'Jito', 75);
 
       registry.register(adapter1);
       registry.register(adapter2);
@@ -191,7 +191,9 @@ describe('ProtocolAdapterRegistry', () => {
         'Error Adapter',
         100,
       );
-      errorAdapter.getPositions = jest.fn().mockRejectedValue(new Error('Test error'));
+      errorAdapter.getPositions = jest
+        .fn()
+        .mockRejectedValue(new Error('Test error'));
 
       const workingAdapter = new MockProtocolAdapter(
         ProtocolType.KAMINO,
@@ -214,9 +216,11 @@ describe('ProtocolAdapterRegistry', () => {
         'Slow Adapter',
         100,
       );
-      slowAdapter.getPositions = jest.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 5000)),
-      );
+      slowAdapter.getPositions = jest
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 5000)),
+        );
 
       registry.register(slowAdapter);
 

@@ -31,10 +31,14 @@ export class ProtocolsService {
     options?: ProtocolAdapterOptions,
   ): Promise<AggregatedPositions> {
     try {
-      const cacheKey = this.redisService.generateKey('all-positions', walletAddress);
-      
+      const cacheKey = this.redisService.generateKey(
+        'all-positions',
+        walletAddress,
+      );
+
       if (options?.useCache !== false) {
-        const cached = await this.redisService.get<AggregatedPositions>(cacheKey);
+        const cached =
+          await this.redisService.get<AggregatedPositions>(cacheKey);
         if (cached) {
           this.logger.debug(`Returning cached positions for ${walletAddress}`);
           return cached;
@@ -42,7 +46,7 @@ export class ProtocolsService {
       }
 
       const startTime = Date.now();
-      
+
       const positionsMap = await this.registry.getAllPositions(walletAddress, {
         ...options,
         parallel: options?.parallel !== false,
@@ -64,11 +68,17 @@ export class ProtocolsService {
         byProtocol.set(protocolType, enrichedPositions);
       }
 
-      const totalValue = allPositions.reduce((sum, pos) => sum + pos.usdValue, 0);
-      
+      const totalValue = allPositions.reduce(
+        (sum, pos) => sum + pos.usdValue,
+        0,
+      );
+
       const totalApy = this.calculateWeightedApy(allPositions, totalValue);
-      
-      const totalRewards = allPositions.reduce((sum, pos) => sum + pos.rewards, 0);
+
+      const totalRewards = allPositions.reduce(
+        (sum, pos) => sum + pos.rewards,
+        0,
+      );
 
       const result: AggregatedPositions = {
         walletAddress,
@@ -80,7 +90,7 @@ export class ProtocolsService {
       };
 
       const ttl = options?.cacheTtl || 300;
-      await this.redisService.set(cacheKey, result, ttl);
+      await this.redisService.set(cacheKey, result, { ttl });
 
       const elapsed = Date.now() - startTime;
       this.logger.log(
@@ -89,7 +99,10 @@ export class ProtocolsService {
 
       return result;
     } catch (error) {
-      this.logger.error(`Error fetching all positions for ${walletAddress}:`, error);
+      this.logger.error(
+        `Error fetching all positions for ${walletAddress}:`,
+        error,
+      );
       throw error;
     }
   }
@@ -121,18 +134,27 @@ export class ProtocolsService {
   async invalidatePositionCache(walletAddress: string): Promise<void> {
     try {
       await this.registry.invalidateAllCaches(walletAddress);
-      
-      const cacheKey = this.redisService.generateKey('all-positions', walletAddress);
+
+      const cacheKey = this.redisService.generateKey(
+        'all-positions',
+        walletAddress,
+      );
       await this.redisService.del(cacheKey);
-      
+
       this.logger.debug(`Invalidated all position caches for ${walletAddress}`);
     } catch (error) {
-      this.logger.error(`Error invalidating position cache for ${walletAddress}:`, error);
+      this.logger.error(
+        `Error invalidating position cache for ${walletAddress}:`,
+        error,
+      );
       throw error;
     }
   }
 
-  private calculateWeightedApy(positions: Position[], totalValue: number): number {
+  private calculateWeightedApy(
+    positions: Position[],
+    totalValue: number,
+  ): number {
     if (totalValue === 0) return 0;
 
     return positions.reduce((sum, pos) => {

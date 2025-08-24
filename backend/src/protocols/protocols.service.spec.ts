@@ -3,7 +3,11 @@ import { ProtocolsService } from './protocols.service';
 import { ProtocolAdapterRegistry } from './protocol-adapter.registry';
 import { RedisService } from '../redis/redis.service';
 import { ProtocolType, PositionType } from '@prisma/client';
-import { IProtocolAdapter, Position, ProtocolStats } from './protocol-adapter.interface';
+import {
+  IProtocolAdapter,
+  Position,
+  ProtocolStats,
+} from './protocol-adapter.interface';
 
 class MockProtocolAdapter implements IProtocolAdapter {
   constructor(
@@ -12,8 +16,8 @@ class MockProtocolAdapter implements IProtocolAdapter {
     public readonly priority: number,
   ) {}
 
-  async getPositions(walletAddress: string): Promise<Position[]> {
-    return [
+  getPositions(): Promise<Position[]> {
+    return Promise.resolve([
       {
         protocol: this.protocolType,
         positionType: PositionType.STAKING,
@@ -26,16 +30,16 @@ class MockProtocolAdapter implements IProtocolAdapter {
         rewards: 0.15,
         metadata: { protocol: this.protocolName },
       },
-    ];
+    ]);
   }
 
-  async getProtocolStats(): Promise<ProtocolStats> {
-    return {
+  getProtocolStats(): Promise<ProtocolStats> {
+    return Promise.resolve({
       protocolName: this.protocolName,
       tvl: 1000000,
       apy: 5.5,
       metadata: {},
-    };
+    });
   }
 
   isSupported(tokenMint: string): boolean {
@@ -46,9 +50,9 @@ class MockProtocolAdapter implements IProtocolAdapter {
 describe('ProtocolsService', () => {
   let service: ProtocolsService;
   let registry: ProtocolAdapterRegistry;
-  let redisService: RedisService;
+  // let redisService: RedisService;
 
-  const mockRedisService = {
+  const mockRedisService: any = {
     generateKey: jest.fn((prefix: string, key: string) => `${prefix}:${key}`),
     get: jest.fn(),
     set: jest.fn(),
@@ -126,7 +130,9 @@ describe('ProtocolsService', () => {
       const result = await service.fetchAllPositions('test-wallet');
 
       expect(result).toEqual(cachedData);
-      expect(mockRedisService.get).toHaveBeenCalledWith('all-positions:test-wallet');
+      expect(mockRedisService.get).toHaveBeenCalledWith(
+        'all-positions:test-wallet',
+      );
     });
 
     it('should cache fetched positions', async () => {
@@ -161,7 +167,7 @@ describe('ProtocolsService', () => {
 
     it('should handle parallel fetching option', async () => {
       mockRedisService.get.mockResolvedValue(null);
-      
+
       const getAllPositionsSpy = jest.spyOn(registry, 'getAllPositions');
 
       await service.fetchAllPositions('test-wallet', {
@@ -225,7 +231,9 @@ describe('ProtocolsService', () => {
 
       expect(adapter1.invalidateCache).toHaveBeenCalledWith('test-wallet');
       expect(adapter2.invalidateCache).toHaveBeenCalledWith('test-wallet');
-      expect(mockRedisService.del).toHaveBeenCalledWith('all-positions:test-wallet');
+      expect(mockRedisService.del).toHaveBeenCalledWith(
+        'all-positions:test-wallet',
+      );
     });
   });
 

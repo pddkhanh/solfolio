@@ -1,5 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { IProtocolAdapter, Position, ProtocolAdapterOptions } from './protocol-adapter.interface';
+import {
+  IProtocolAdapter,
+  Position,
+  ProtocolAdapterOptions,
+} from './protocol-adapter.interface';
 import { ProtocolType } from '@prisma/client';
 
 @Injectable()
@@ -9,20 +13,26 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
   private readonly adaptersByPriority: IProtocolAdapter[] = [];
 
   onModuleInit() {
-    this.logger.log(`Protocol Adapter Registry initialized with ${this.adapters.size} adapters`);
+    this.logger.log(
+      `Protocol Adapter Registry initialized with ${this.adapters.size} adapters`,
+    );
   }
 
   register(adapter: IProtocolAdapter): void {
     if (this.adapters.has(adapter.protocolType)) {
-      this.logger.warn(`Adapter for protocol ${adapter.protocolType} already registered, replacing...`);
+      this.logger.warn(
+        `Adapter for protocol ${adapter.protocolType} already registered, replacing...`,
+      );
     }
 
     this.adapters.set(adapter.protocolType, adapter);
-    
+
     this.adaptersByPriority.push(adapter);
     this.adaptersByPriority.sort((a, b) => b.priority - a.priority);
 
-    this.logger.log(`Registered adapter for ${adapter.protocolName} (${adapter.protocolType}) with priority ${adapter.priority}`);
+    this.logger.log(
+      `Registered adapter for ${adapter.protocolName} (${adapter.protocolType}) with priority ${adapter.priority}`,
+    );
   }
 
   unregister(protocolType: ProtocolType): void {
@@ -54,7 +64,7 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
     options?: ProtocolAdapterOptions,
   ): Promise<Map<ProtocolType, Position[]>> {
     const results = new Map<ProtocolType, Position[]>();
-    
+
     if (options?.parallel !== false) {
       const promises = this.adaptersByPriority.map(async (adapter) => {
         try {
@@ -64,7 +74,7 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
             timeoutMs,
             `${adapter.protocolName} position fetch`,
           );
-          
+
           if (positions && positions.length > 0) {
             results.set(adapter.protocolType, positions);
           }
@@ -102,11 +112,11 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
   ): Promise<Position[]> {
     const positionsMap = await this.getAllPositions(walletAddress, options);
     const allPositions: Position[] = [];
-    
+
     for (const positions of positionsMap.values()) {
       allPositions.push(...positions);
     }
-    
+
     return allPositions;
   }
 
@@ -121,7 +131,7 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
 
   async invalidateAllCaches(walletAddress: string): Promise<void> {
     const promises = this.adaptersByPriority
-      .filter((adapter) => adapter.invalidateCache)
+      .filter((adapter) => typeof adapter.invalidateCache === 'function')
       .map(async (adapter) => {
         try {
           await adapter.invalidateCache!(walletAddress);
@@ -145,7 +155,8 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
       promise,
       new Promise<T>((_, reject) =>
         setTimeout(
-          () => reject(new Error(`${description} timed out after ${timeoutMs}ms`)),
+          () =>
+            reject(new Error(`${description} timed out after ${timeoutMs}ms`)),
           timeoutMs,
         ),
       ),

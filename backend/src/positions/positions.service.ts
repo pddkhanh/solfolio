@@ -77,39 +77,41 @@ export class PositionsService {
         cacheKey,
         async () => {
           // Use the new protocol adapter system with parallel fetching
-          const aggregatedPositions = await this.protocolsService.fetchAllPositions(
-            walletAddress,
-            {
-              parallel: true,  // Enable parallel fetching
+          const aggregatedPositions =
+            await this.protocolsService.fetchAllPositions(walletAddress, {
+              parallel: true, // Enable parallel fetching
               useCache: true,
               cacheTtl: 300,
-              timeout: 10000,  // 10 second timeout per protocol
-            },
-          );
+              timeout: 10000, // 10 second timeout per protocol
+            });
 
           // Transform to PortfolioPosition format
-          const positions: PortfolioPosition[] = aggregatedPositions.positions.map((pos) => {
-            // Add token metadata based on protocol
-            let tokenSymbol = '';
-            let tokenName = '';
-            let logoUri = '';
+          const positions: PortfolioPosition[] =
+            aggregatedPositions.positions.map((pos) => {
+              // Add token metadata based on protocol
+              let tokenSymbol = '';
+              let tokenName = '';
+              let logoUri = '';
 
-            // Map known tokens (can be extended)
-            if (pos.tokenMint === 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So') {
-              tokenSymbol = 'mSOL';
-              tokenName = 'Marinade staked SOL';
-              logoUri = 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png';
-            }
-            // Add more token mappings as needed
+              // Map known tokens (can be extended)
+              if (
+                pos.tokenMint === 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'
+              ) {
+                tokenSymbol = 'mSOL';
+                tokenName = 'Marinade staked SOL';
+                logoUri =
+                  'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png';
+              }
+              // Add more token mappings as needed
 
-            return {
-              ...pos,
-              protocolName: pos.protocolName,
-              tokenSymbol,
-              tokenName,
-              logoUri,
-            };
-          });
+              return {
+                ...pos,
+                protocolName: pos.protocolName,
+                tokenSymbol,
+                tokenName,
+                logoUri,
+              };
+            });
 
           this.logger.log(
             `Fetched ${positions.length} positions from ${aggregatedPositions.byProtocol.size} protocols for ${walletAddress}`,

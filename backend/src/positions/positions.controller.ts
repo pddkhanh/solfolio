@@ -14,7 +14,9 @@ import { PublicKey } from '@solana/web3.js';
 export class PositionsController {
   private readonly logger = new Logger(PositionsController.name);
 
-  constructor(private readonly positionsService: PositionsService) {}
+  constructor(private readonly positionsService: PositionsService) {
+    this.getTotalValue = this.getTotalValue.bind(this);
+  }
 
   /**
    * Get all positions for a wallet

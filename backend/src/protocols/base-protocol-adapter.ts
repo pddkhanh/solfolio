@@ -1,11 +1,15 @@
 import { Logger } from '@nestjs/common';
 import { ProtocolType } from '@prisma/client';
-import { IProtocolAdapter, Position, ProtocolStats } from './protocol-adapter.interface';
+import {
+  IProtocolAdapter,
+  Position,
+  ProtocolStats,
+} from './protocol-adapter.interface';
 import { RedisService } from '../redis/redis.service';
 
 export abstract class BaseProtocolAdapter implements IProtocolAdapter {
   protected readonly logger: Logger;
-  
+
   constructor(
     public readonly protocolType: ProtocolType,
     public readonly protocolName: string,
@@ -16,12 +20,14 @@ export abstract class BaseProtocolAdapter implements IProtocolAdapter {
   }
 
   abstract getPositions(walletAddress: string): Promise<Position[]>;
-  
+
   abstract getProtocolStats(): Promise<ProtocolStats>;
-  
+
   abstract isSupported(tokenMint: string): boolean;
 
-  protected async getCachedPositions(walletAddress: string): Promise<Position[] | null> {
+  protected async getCachedPositions(
+    walletAddress: string,
+  ): Promise<Position[] | null> {
     if (!this.redisService) {
       return null;
     }
@@ -52,7 +58,7 @@ export abstract class BaseProtocolAdapter implements IProtocolAdapter {
         `positions:${this.protocolType.toLowerCase()}`,
         walletAddress,
       );
-      await this.redisService.set(cacheKey, positions, ttl);
+      await this.redisService.set(cacheKey, positions, { ttl });
     } catch (error) {
       this.logger.error('Error caching positions:', error);
     }
@@ -96,7 +102,7 @@ export abstract class BaseProtocolAdapter implements IProtocolAdapter {
 
     try {
       const cacheKey = `protocol:stats:${this.protocolType.toLowerCase()}`;
-      await this.redisService.set(cacheKey, stats, ttl);
+      await this.redisService.set(cacheKey, stats, { ttl });
     } catch (error) {
       this.logger.error('Error caching stats:', error);
     }

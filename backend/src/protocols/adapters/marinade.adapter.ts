@@ -22,12 +22,7 @@ export class MarinadeAdapter extends BaseProtocolAdapter {
     private readonly priceService: PriceService,
     redisService: RedisService,
   ) {
-    super(
-      ProtocolType.MARINADE,
-      'Marinade Finance',
-      100,
-      redisService,
-    );
+    super(ProtocolType.MARINADE, 'Marinade Finance', 100, redisService);
     this.initializeMarinade();
   }
 
@@ -61,8 +56,8 @@ export class MarinadeAdapter extends BaseProtocolAdapter {
 
       if (msolBalance > 0) {
         const stats = await this.getProtocolStats();
-        
-        const exchangeRate = stats.metadata['exchangeRate'] as number || 1.1;
+
+        const exchangeRate = (stats.metadata['exchangeRate'] as number) || 1.1;
         const solValue = msolBalance * exchangeRate;
 
         const solPrice = await this.priceService.getTokenPrice(this.SOL_MINT);
@@ -91,7 +86,10 @@ export class MarinadeAdapter extends BaseProtocolAdapter {
       await this.cachePositions(walletAddress, positions);
       return positions;
     } catch (error) {
-      this.handleError(error, `fetching Marinade positions for ${walletAddress}`);
+      this.handleError(
+        error,
+        `fetching Marinade positions for ${walletAddress}`,
+      );
       return [];
     }
   }

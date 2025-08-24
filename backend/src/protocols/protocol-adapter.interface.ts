@@ -27,11 +27,11 @@ export interface IProtocolAdapter {
   readonly priority: number;
 
   getPositions(walletAddress: string): Promise<Position[]>;
-  
+
   getProtocolStats(): Promise<ProtocolStats>;
-  
+
   isSupported(tokenMint: string): boolean;
-  
+
   invalidateCache?(walletAddress: string): Promise<void>;
 }
 
