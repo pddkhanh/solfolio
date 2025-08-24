@@ -178,12 +178,16 @@ export class PositionsController {
   @Get('marinade/stats')
   async getMarinadeStats() {
     try {
-      const { marinadeService } = this.positionsService as any;
-      const stats = await marinadeService.getMarinadeStats();
+      // Access marinadeService through proper typing
+      const serviceWithMarinade = this.positionsService as unknown as {
+        marinadeService: { getMarinadeStats: () => Promise<unknown> };
+      };
+      const stats =
+        await serviceWithMarinade.marinadeService.getMarinadeStats();
 
       return {
         success: true,
-        data: stats as any,
+        data: stats,
       };
     } catch (error) {
       this.logger.error('Error fetching Marinade stats:', error);

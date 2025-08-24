@@ -230,14 +230,14 @@ export class PositionsService {
       await this.prisma.cache.upsert({
         where: { key: cacheKey },
         update: {
-          value: summary as any,
+          value: JSON.parse(JSON.stringify(summary)),
           expiresAt: new Date(Date.now() + 60 * 1000), // 1 minute cache
           lastUpdated: new Date(),
         },
         create: {
           key: cacheKey,
           type: 'POSITION',
-          value: summary as any,
+          value: JSON.parse(JSON.stringify(summary)),
           walletId: wallet.id,
           expiresAt: new Date(Date.now() + 60 * 1000),
         },
@@ -263,7 +263,8 @@ export class PositionsService {
       });
 
       if (cache) {
-        return cache.value as any as PortfolioSummary;
+        // Cast through unknown for proper type conversion from Prisma JsonValue
+        return cache.value as unknown as PortfolioSummary;
       }
 
       return null;
