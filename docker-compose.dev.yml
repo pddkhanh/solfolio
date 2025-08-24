@@ -59,16 +59,18 @@ services:
       PORT: ${BACKEND_PORT:-3001}
       CORS_ORIGIN: http://localhost:3000
       GRPC_PORT: ${GRPC_PORT:-50051}
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT:-3001}  # WebSocket runs on same port
       DATABASE_URL: postgresql://${POSTGRES_USER:-solfolio}:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/${POSTGRES_DB:-solfolio_dev}
       REDIS_URL: redis://redis:6379
       HELIUS_API_KEY: ${HELIUS_API_KEY}
       HELIUS_RPC_URL: ${HELIUS_RPC_URL}
       SOLANA_NETWORK: ${SOLANA_NETWORK:-devnet}
       JUPITER_API_URL: ${JUPITER_API_URL:-https://price.jup.ag/v4}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     env_file:
       - .env
     ports:
-      - "3001:3001"  # HTTP port
+      - "3001:3001"  # HTTP + WebSocket port
       - "50051:50051"  # gRPC port
     volumes:
       - ./backend:/app
@@ -83,32 +85,6 @@ services:
       - solfolio-network
     command: pnpm run start:dev
 
-  websocket:
-    build:
-      context: ./websocket
-      dockerfile: Dockerfile.dev
-    container_name: solfolio-websocket
-    environment:
-      NODE_ENV: development
-      PORT: ${WEBSOCKET_PORT:-8081}
-      REDIS_URL: redis://redis:6379
-      GRPC_BACKEND_URL: backend:50051
-      HELIUS_API_KEY: ${HELIUS_API_KEY}
-      SOLANA_NETWORK: ${SOLANA_NETWORK:-devnet}
-    env_file:
-      - .env
-    ports:
-      - "8081:8081"
-    volumes:
-      - ./websocket:/app
-      - /app/node_modules
-    depends_on:
-      - redis
-      - backend
-    networks:
-      - solfolio-network
-    command: pnpm run dev
-
   frontend:
     build:
       context: .
@@ -117,7 +93,8 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_GRPC_WEB_URL: ${NEXT_PUBLIC_GRPC_WEB_URL:-http://localhost:8080}
-      NEXT_PUBLIC_WEBSOCKET_URL: ${NEXT_PUBLIC_WEBSOCKET_URL:-ws://localhost:8081}
+      NEXT_PUBLIC_WEBSOCKET_URL: ${NEXT_PUBLIC_WEBSOCKET_URL:-ws://localhost:3001}  # WebSocket on backend port
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       NEXT_PUBLIC_SOLANA_NETWORK: ${NEXT_PUBLIC_SOLANA_NETWORK:-devnet}
       NEXT_PUBLIC_HELIUS_RPC_URL: ${NEXT_PUBLIC_HELIUS_RPC_URL}
       NEXT_PUBLIC_CUSTOM_RPC_URL: ${NEXT_PUBLIC_CUSTOM_RPC_URL}
@@ -131,7 +108,7 @@ services:
       - /app/frontend/.next
     depends_on:
       - envoy
-      - websocket
+      - backend  # Depend on backend instead of websocket
     networks:
       - solfolio-network
     command: pnpm run dev
