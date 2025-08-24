@@ -285,7 +285,7 @@ export class WalletService {
       const allTokenMints = new Set<string>();
       allTokenMints.add('So11111111111111111111111111111111111112'); // SOL
 
-      for (const [walletKey, accounts] of tokenAccountsMap) {
+      for (const [, accounts] of tokenAccountsMap) {
         accounts.forEach((account: any) => {
           if (account.account.data.parsed.info.tokenAmount.uiAmount > 0) {
             allTokenMints.add(account.account.data.parsed.info.mint);
@@ -293,7 +293,7 @@ export class WalletService {
         });
       }
 
-      for (const [walletKey, accounts] of token2022AccountsMap) {
+      for (const [, accounts] of token2022AccountsMap) {
         accounts.forEach((account: any) => {
           if (account.account.data.parsed.info.tokenAmount.uiAmount > 0) {
             allTokenMints.add(account.account.data.parsed.info.mint);
@@ -311,7 +311,6 @@ export class WalletService {
       // Process results for each wallet
       for (let i = 0; i < walletAddresses.length; i++) {
         const walletAddress = walletAddresses[i];
-        const publicKey = publicKeys[i];
         const balance = balances[i];
 
         // Parse native SOL balance
@@ -353,10 +352,7 @@ export class WalletService {
 
       return results;
     } catch (error) {
-      this.logger.error(
-        `Failed to get multiple wallet balances`,
-        error,
-      );
+      this.logger.error(`Failed to get multiple wallet balances`, error);
       throw error;
     }
   }

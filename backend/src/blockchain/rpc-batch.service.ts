@@ -49,7 +49,7 @@ export class RpcBatchService {
 
       // If batch is full, execute immediately
       if (this.accountInfoBatch.requests.length >= this.maxBatchSize) {
-        this.executeAccountInfoBatch(connection);
+        void this.executeAccountInfoBatch(connection);
       } else {
         // Otherwise, schedule batch execution
         this.scheduleAccountInfoBatch(connection);
@@ -75,7 +75,7 @@ export class RpcBatchService {
 
       // If batch is full, execute immediately
       if (this.balanceBatch.requests.length >= this.maxBatchSize) {
-        this.executeBalanceBatch(connection);
+        void this.executeBalanceBatch(connection);
       } else {
         // Otherwise, schedule batch execution
         this.scheduleBalanceBatch(connection);
@@ -113,7 +113,7 @@ export class RpcBatchService {
     }
 
     this.accountInfoBatch.timer = setTimeout(() => {
-      this.executeAccountInfoBatch(connection);
+      void this.executeAccountInfoBatch(connection);
     }, this.batchDelay);
   }
 
@@ -123,7 +123,7 @@ export class RpcBatchService {
     }
 
     this.balanceBatch.timer = setTimeout(() => {
-      this.executeBalanceBatch(connection);
+      void this.executeBalanceBatch(connection);
     }, this.batchDelay);
   }
 
