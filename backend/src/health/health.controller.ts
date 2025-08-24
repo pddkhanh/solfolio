@@ -7,6 +7,7 @@ import {
   DiskHealthIndicator,
 } from '@nestjs/terminus';
 import { BlockchainHealthIndicator } from '../blockchain/blockchain.health';
+import { RedisHealthIndicator } from '../redis/redis.health';
 
 @Controller('health')
 export class HealthController {
@@ -16,6 +17,7 @@ export class HealthController {
     private memory: MemoryHealthIndicator,
     private disk: DiskHealthIndicator,
     @Optional() private blockchain?: BlockchainHealthIndicator,
+    @Optional() private redis?: RedisHealthIndicator,
   ) {}
 
   @Get()
@@ -31,6 +33,11 @@ export class HealthController {
     // Add blockchain health check if available
     if (this.blockchain) {
       checks.push(() => this.blockchain!.isHealthy('blockchain'));
+    }
+
+    // Add Redis health check if available
+    if (this.redis) {
+      checks.push(() => this.redis!.isHealthy('redis'));
     }
 
     return this.health.check(checks);
