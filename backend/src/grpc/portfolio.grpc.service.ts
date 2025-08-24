@@ -7,7 +7,7 @@ import { PriceService } from '../price/price.service';
 import { WebsocketService } from '../websocket/websocket.service';
 import { CacheService } from '../cache/cache.service';
 
-interface Token {
+export interface Token {
   mint: string;
   symbol: string;
   name: string;
@@ -17,7 +17,7 @@ interface Token {
   value: number;
 }
 
-interface Position {
+export interface Position {
   protocol: string;
   type: string;
   address: string;
@@ -27,7 +27,7 @@ interface Position {
   metadata: Record<string, string>;
 }
 
-interface Portfolio {
+export interface Portfolio {
   wallet: string;
   total_value: number;
   tokens: Token[];
@@ -79,7 +79,7 @@ interface HealthCheckRequest {
   service?: string;
 }
 
-interface HealthCheckResponse {
+export interface HealthCheckResponse {
   status: number;
   message: string;
 }
@@ -188,11 +188,14 @@ export class PortfolioGrpcService {
     data: GetPositionsRequest,
   ): Promise<{ positions: Position[] }> {
     const allPositions = await this.positionsService.getPositions(data.wallet);
-    
+
     // Filter by protocols if specified
-    const positions = data.protocols && data.protocols.length > 0
-      ? allPositions.filter((p: any) => data.protocols?.includes(p.protocolName || p.protocol))
-      : allPositions;
+    const positions =
+      data.protocols && data.protocols.length > 0
+        ? allPositions.filter((p: any) =>
+            data.protocols?.includes(p.protocolName || p.protocol),
+          )
+        : allPositions;
 
     const formattedPositions: Position[] = positions.map((position: any) => ({
       protocol: position.protocolName || position.protocol || '',

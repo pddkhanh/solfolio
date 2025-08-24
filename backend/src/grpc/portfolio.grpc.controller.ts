@@ -3,6 +3,14 @@ import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { PortfolioGrpcService } from './portfolio.grpc.service';
 
+// Re-export types from service to avoid TS4053 error
+export type {
+  Token,
+  Position,
+  Portfolio,
+  HealthCheckResponse,
+} from './portfolio.grpc.service';
+
 @Controller()
 export class PortfolioGrpcController {
   constructor(private readonly portfolioGrpcService: PortfolioGrpcService) {}
