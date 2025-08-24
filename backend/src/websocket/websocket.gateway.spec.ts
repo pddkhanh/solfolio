@@ -102,10 +102,7 @@ describe('WebsocketGateway', () => {
   describe('handleWalletSubscription', () => {
     it('should subscribe client to wallet room', async () => {
       const validWallet = 'So11111111111111111111111111111111111111112'; // Valid wrapped SOL address
-      await gateway.handleWalletSubscription(
-        mockSocket as Socket,
-        validWallet,
-      );
+      await gateway.handleWalletSubscription(mockSocket as Socket, validWallet);
       expect(mockSocket.join).toHaveBeenCalledWith(`wallet:${validWallet}`);
       expect(mockSocket.emit).toHaveBeenCalledWith('subscription:confirmed', {
         type: 'wallet',
@@ -129,9 +126,7 @@ describe('WebsocketGateway', () => {
         mockSocket as Socket,
         validWallet,
       );
-      expect(mockSocket.leave).toHaveBeenCalledWith(
-        `wallet:${validWallet}`,
-      );
+      expect(mockSocket.leave).toHaveBeenCalledWith(`wallet:${validWallet}`);
       expect(mockSocket.emit).toHaveBeenCalledWith('unsubscription:confirmed', {
         type: 'wallet',
         address: validWallet,

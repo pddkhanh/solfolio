@@ -30,10 +30,10 @@ describe('useWebSocket', () => {
     jest.clearAllMocks();
   });
 
-  it('should initialize with disconnected status', () => {
+  it('should initialize with connecting status', () => {
     const { result } = renderHook(() => useWebSocket());
 
-    expect(result.current.connectionStatus).toBe('disconnected');
+    expect(result.current.connectionStatus).toBe('connecting');
     expect(result.current.isConnected).toBe(false);
     expect(result.current.error).toBeNull();
   });

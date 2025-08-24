@@ -21,6 +21,7 @@ const statusConfig = {
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/20',
+    animate: '',
   },
   connecting: {
     icon: RefreshCw,
@@ -44,6 +45,7 @@ const statusConfig = {
     color: 'text-gray-500',
     bgColor: 'bg-gray-500/10',
     borderColor: 'border-gray-500/20',
+    animate: '',
   },
   error: {
     icon: AlertCircle,
@@ -51,6 +53,7 @@ const statusConfig = {
     color: 'text-red-500',
     bgColor: 'bg-red-500/10',
     borderColor: 'border-red-500/20',
+    animate: '',
   },
 };
 

@@ -35,10 +35,10 @@ export class PriceStreamService implements OnApplicationBootstrap {
   async onApplicationBootstrap() {
     // Start streaming default tokens
     await this.addTokensToStream(this.DEFAULT_TOKENS);
-    
+
     // Load previously tracked tokens from Redis
     await this.loadTrackedTokensFromCache();
-    
+
     this.startPriceStreaming();
     this.logger.log('Price streaming service initialized');
   }
@@ -47,23 +47,27 @@ export class PriceStreamService implements OnApplicationBootstrap {
    * Add tokens to the streaming list
    */
   async addTokensToStream(tokenMints: string[]): Promise<void> {
-    const newTokens = tokenMints.filter(mint => !this.streamingTokens.has(mint));
-    
+    const newTokens = tokenMints.filter(
+      (mint) => !this.streamingTokens.has(mint),
+    );
+
     if (newTokens.length === 0) {
       return;
     }
 
-    newTokens.forEach(mint => this.streamingTokens.add(mint));
-    
+    newTokens.forEach((mint) => this.streamingTokens.add(mint));
+
     // Cache the streaming tokens list
     await this.redisService.set(
       'price-stream:tokens',
       Array.from(this.streamingTokens),
-      { ttl: 86400 } // 24 hours
+      { ttl: 86400 }, // 24 hours
     );
 
-    this.logger.log(`Added ${newTokens.length} tokens to price stream. Total: ${this.streamingTokens.size}`);
-    
+    this.logger.log(
+      `Added ${newTokens.length} tokens to price stream. Total: ${this.streamingTokens.size}`,
+    );
+
     // Fetch initial prices for new tokens
     if (this.isStreaming) {
       await this.fetchAndBroadcastPrices(newTokens);
@@ -74,8 +78,10 @@ export class PriceStreamService implements OnApplicationBootstrap {
    * Remove tokens from the streaming list
    */
   async removeTokensFromStream(tokenMints: string[]): Promise<void> {
-    const removedCount = tokenMints.filter(mint => this.streamingTokens.delete(mint)).length;
-    
+    const removedCount = tokenMints.filter((mint) =>
+      this.streamingTokens.delete(mint),
+    ).length;
+
     if (removedCount === 0) {
       return;
     }
@@ -84,10 +90,12 @@ export class PriceStreamService implements OnApplicationBootstrap {
     await this.redisService.set(
       'price-stream:tokens',
       Array.from(this.streamingTokens),
-      { ttl: 86400 }
+      { ttl: 86400 },
     );
 
-    this.logger.log(`Removed ${removedCount} tokens from price stream. Total: ${this.streamingTokens.size}`);
+    this.logger.log(
+      `Removed ${removedCount} tokens from price stream. Total: ${this.streamingTokens.size}`,
+    );
   }
 
   /**
@@ -106,16 +114,18 @@ export class PriceStreamService implements OnApplicationBootstrap {
     }
 
     this.isStreaming = true;
-    
+
     // Initial fetch
     void this.fetchAndBroadcastPrices();
 
     // Set up interval for continuous streaming
-    this.intervalId = setInterval(async () => {
-      await this.fetchAndBroadcastPrices();
+    this.intervalId = setInterval(() => {
+      void this.fetchAndBroadcastPrices();
     }, this.PRICE_STREAM_INTERVAL_MS);
 
-    this.logger.log(`Started price streaming with ${this.PRICE_STREAM_INTERVAL_MS}ms interval`);
+    this.logger.log(
+      `Started price streaming with ${this.PRICE_STREAM_INTERVAL_MS}ms interval`,
+    );
   }
 
   /**
@@ -127,7 +137,7 @@ export class PriceStreamService implements OnApplicationBootstrap {
     }
 
     this.isStreaming = false;
-    
+
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -139,32 +149,38 @@ export class PriceStreamService implements OnApplicationBootstrap {
   /**
    * Fetch prices and broadcast updates
    */
-  private async fetchAndBroadcastPrices(specificTokens?: string[]): Promise<void> {
+  private async fetchAndBroadcastPrices(
+    specificTokens?: string[],
+  ): Promise<void> {
     if (this.streamingTokens.size === 0) {
       return;
     }
 
     const tokensToFetch = specificTokens || Array.from(this.streamingTokens);
-    
+
     if (tokensToFetch.length === 0) {
       return;
     }
 
     try {
       this.logger.debug(`Fetching prices for ${tokensToFetch.length} tokens`);
-      
-      const prices = await this.jupiterPriceService.getTokenPrices(tokensToFetch);
+
+      const prices =
+        await this.jupiterPriceService.getTokenPrices(tokensToFetch);
       const priceUpdates: PriceUpdate[] = [];
       const timestamp = Date.now();
 
       for (const [tokenMint, price] of prices) {
         const lastPrice = this.lastPrices.get(tokenMint);
-        
+
         // Calculate 24h change if we have previous price data
-        const change24h = lastPrice ? ((price - lastPrice) / lastPrice) * 100 : undefined;
-        
+        const change24h = lastPrice
+          ? ((price - lastPrice) / lastPrice) * 100
+          : undefined;
+
         // Only broadcast if price changed significantly or it's a new token
-        const hasSignificantChange = !lastPrice || 
+        const hasSignificantChange =
+          !lastPrice ||
           Math.abs(price - lastPrice) / lastPrice > this.PRICE_CHANGE_THRESHOLD;
 
         if (hasSignificantChange) {
@@ -183,10 +199,10 @@ export class PriceStreamService implements OnApplicationBootstrap {
       if (priceUpdates.length > 0) {
         // Broadcast via WebSocket
         this.websocketService.broadcastPriceUpdate(priceUpdates);
-        
+
         // Publish to Redis pub/sub for other services
         await this.websocketService.publishPriceUpdate(priceUpdates);
-        
+
         this.logger.log(`Broadcasted ${priceUpdates.length} price updates`);
       } else {
         this.logger.debug('No significant price changes to broadcast');
@@ -201,10 +217,12 @@ export class PriceStreamService implements OnApplicationBootstrap {
    */
   private async loadTrackedTokensFromCache(): Promise<void> {
     try {
-      const cachedTokens = await this.redisService.get<string[]>('price-stream:tokens');
-      
+      const cachedTokens = await this.redisService.get<string[]>(
+        'price-stream:tokens',
+      );
+
       if (cachedTokens && Array.isArray(cachedTokens)) {
-        cachedTokens.forEach(mint => this.streamingTokens.add(mint));
+        cachedTokens.forEach((mint) => this.streamingTokens.add(mint));
         this.logger.log(`Loaded ${cachedTokens.length} tokens from cache`);
       }
     } catch (error) {
@@ -216,7 +234,7 @@ export class PriceStreamService implements OnApplicationBootstrap {
    * Cron job to periodically clean up old price data
    */
   @Cron(CronExpression.EVERY_HOUR)
-  async cleanupOldPriceData(): Promise<void> {
+  cleanupOldPriceData(): void {
     try {
       // Clean up old price cache entries older than 1 hour
       this.logger.debug('Running hourly price data cleanup');
