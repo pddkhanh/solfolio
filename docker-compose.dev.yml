@@ -36,14 +36,13 @@ services:
       - solfolio-network
 
   envoy:
-    image: envoyproxy/envoy:v1.28-latest
+    build:
+      context: ./envoy
+      dockerfile: Dockerfile
     container_name: solfolio-envoy
     ports:
       - "8080:8080"  # gRPC-Web port
       - "9901:9901"  # Admin interface
-    volumes:
-      - ./docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
-    command: -c /etc/envoy/envoy.yaml
     depends_on:
       - backend
     networks:
