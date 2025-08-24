@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PublicKey } from '@solana/web3.js';
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { PrismaClient, ProtocolType, PositionType } from '@prisma/client';
@@ -29,7 +29,7 @@ export interface MarinadeStats {
 }
 
 @Injectable()
-export class MarinadeService {
+export class MarinadeService implements OnModuleInit {
   private readonly logger = new Logger(MarinadeService.name);
   private marinade: Marinade;
   private prisma: PrismaClient;
@@ -41,7 +41,9 @@ export class MarinadeService {
     private readonly priceService: PriceService,
   ) {
     this.prisma = new PrismaClient();
-    // Initialize Marinade SDK without async operation in constructor
+  }
+
+  onModuleInit() {
     this.initializeMarinade();
   }
 
@@ -56,7 +58,8 @@ export class MarinadeService {
       this.logger.log('Marinade SDK initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Marinade SDK:', error);
-      throw error;
+      // Don't throw in onModuleInit to allow the app to start even if Marinade init fails
+      // The service will be in a degraded state but won't crash the entire app
     }
   }
 

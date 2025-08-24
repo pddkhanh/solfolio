@@ -22,7 +22,7 @@ import { CacheModule } from '../cache/cache.module';
         transport: Transport.GRPC,
         options: {
           package: 'portfolio',
-          protoPath: join(__dirname, '../../../src/grpc/proto/portfolio.proto'),
+          protoPath: join(process.cwd(), 'src/grpc/proto/portfolio.proto'),
           url: '0.0.0.0:50051',
         },
       },

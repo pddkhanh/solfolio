@@ -12,14 +12,19 @@ import { RedisHealthIndicator } from './redis.health';
     CacheModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const redisHost = configService.get('REDIS_HOST', 'redis');
-        const redisPort = configService.get('REDIS_PORT', 6379);
-        const redisPassword = configService.get('REDIS_PASSWORD');
+        // First try to use REDIS_URL if available
+        let redisUrl = configService.get('REDIS_URL');
 
-        // Build Redis URL
-        let redisUrl = `redis://${redisHost}:${redisPort}`;
-        if (redisPassword) {
-          redisUrl = `redis://:${redisPassword}@${redisHost}:${redisPort}`;
+        // If REDIS_URL is not set, build it from parts
+        if (!redisUrl) {
+          const redisHost = configService.get('REDIS_HOST', 'redis');
+          const redisPort = configService.get('REDIS_PORT', 6379);
+          const redisPassword = configService.get('REDIS_PASSWORD');
+
+          redisUrl = `redis://${redisHost}:${redisPort}`;
+          if (redisPassword) {
+            redisUrl = `redis://:${redisPassword}@${redisHost}:${redisPort}`;
+          }
         }
 
         return {
