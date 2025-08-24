@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { AccountSubscriptionService } from './account-subscription.service';
 import { TransactionMonitoringService } from './transaction-monitoring.service';
+import { PositionChangeDetectorService } from './position-change-detector.service';
 import { WebsocketService } from '../websocket/websocket.service';
 import { PositionsService } from '../positions/positions.service';
 import { CacheService } from '../cache/cache.service';
@@ -21,6 +22,7 @@ export class WalletMonitorService implements OnModuleInit {
     private readonly accountSubscription: AccountSubscriptionService,
     @Inject(forwardRef(() => TransactionMonitoringService))
     private readonly transactionMonitoring: TransactionMonitoringService,
+    private readonly positionChangeDetector: PositionChangeDetectorService,
     @Inject(forwardRef(() => WebsocketService))
     private readonly websocketService: WebsocketService,
     @Inject(forwardRef(() => PositionsService))
@@ -197,6 +199,12 @@ export class WalletMonitorService implements OnModuleInit {
     this.logger.log(`Refreshing positions for wallet: ${walletAddress}`);
 
     try {
+      // Detect position changes
+      const changes = await this.positionChangeDetector.detectChanges(
+        walletAddress,
+        'transaction',
+      );
+
       // Clear cache for this wallet
       await this.cacheService.delete(`positions:${walletAddress}`);
 
@@ -206,8 +214,18 @@ export class WalletMonitorService implements OnModuleInit {
       // Broadcast updated positions
       this.websocketService.publishPositionUpdate(walletAddress, positions);
 
+      // If there were changes, notify clients
+      if (changes.length > 0) {
+        for (const change of changes) {
+          this.websocketService.broadcastToWallet(walletAddress, {
+            type: 'position_change_detected',
+            data: change,
+          });
+        }
+      }
+
       this.logger.log(
-        `Successfully refreshed ${positions.length} positions for ${walletAddress}`,
+        `Successfully refreshed ${positions.length} positions for ${walletAddress}, detected ${changes.length} changes`,
       );
     } catch (error) {
       this.logger.error(
