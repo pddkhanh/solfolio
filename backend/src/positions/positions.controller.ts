@@ -25,7 +25,7 @@ export class PositionsController {
       // Validate wallet address
       try {
         new PublicKey(walletAddress);
-      } catch (error) {
+      } catch {
         throw new HttpException(
           'Invalid wallet address',
           HttpStatus.BAD_REQUEST,
@@ -81,7 +81,7 @@ export class PositionsController {
       // Validate wallet address
       try {
         new PublicKey(walletAddress);
-      } catch (error) {
+      } catch {
         throw new HttpException(
           'Invalid wallet address',
           HttpStatus.BAD_REQUEST,
@@ -137,7 +137,7 @@ export class PositionsController {
       // Validate wallet address
       try {
         new PublicKey(walletAddress);
-      } catch (error) {
+      } catch {
         throw new HttpException(
           'Invalid wallet address',
           HttpStatus.BAD_REQUEST,
@@ -178,12 +178,14 @@ export class PositionsController {
   @Get('marinade/stats')
   async getMarinadeStats() {
     try {
-      const { marinadeService } = this.positionsService as any;
+      // @ts-expect-error - marinadeService is injected but not in type definition
+      const { marinadeService } = this.positionsService;
+      // @ts-expect-error - getMarinadeStats exists on marinadeService
       const stats = await marinadeService.getMarinadeStats();
 
       return {
         success: true,
-        data: stats,
+        data: stats as any,
       };
     } catch (error) {
       this.logger.error('Error fetching Marinade stats:', error);

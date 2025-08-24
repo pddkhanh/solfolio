@@ -73,7 +73,7 @@ export class WalletService {
         this.getTokenAccounts(publicKey, connection),
       ]);
 
-      const tokenBalances = await this.parseTokenAccounts(tokenAccounts as any);
+      const tokenBalances = await this.parseTokenAccounts(tokenAccounts);
 
       // Get real token prices including SOL
       const SOL_MINT = 'So11111111111111111111111111111111111112';
@@ -137,7 +137,9 @@ export class WalletService {
     const token2022Accounts = await this.connectionManager.executeWithRetry(
       () =>
         connection.getParsedTokenAccountsByOwner(publicKey, {
-          programId: new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb'), // TOKEN_2022_PROGRAM_ID
+          programId: new PublicKey(
+            'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
+          ), // TOKEN_2022_PROGRAM_ID
         }),
     );
 

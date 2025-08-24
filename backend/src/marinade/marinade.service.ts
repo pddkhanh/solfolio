@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PublicKey } from '@solana/web3.js';
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { PrismaClient, ProtocolType, PositionType } from '@prisma/client';
-// @ts-ignore - SPL token v0.4.13 has these functions but types are incorrect
+// @ts-expect-error - SPL token v0.4.13 has these functions but types are incorrect
 import { getAssociatedTokenAddressSync, getAccount } from '@solana/spl-token';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { PriceService } from '../price/price.service';
@@ -41,10 +41,10 @@ export class MarinadeService {
     private readonly priceService: PriceService,
   ) {
     this.prisma = new PrismaClient();
-    this.initializeMarinade();
+    void this.initializeMarinade();
   }
 
-  private async initializeMarinade(): Promise<void> {
+  private initializeMarinade(): void {
     try {
       const connection = this.blockchainService.getConnection();
       const config = new MarinadeConfig({
@@ -131,8 +131,10 @@ export class MarinadeService {
       const ata = getAssociatedTokenAddressSync(msolMint, walletPubkey);
 
       try {
+        // @ts-expect-error - getAccount returns Account but types are incomplete
         const account = await getAccount(connection, ata);
         // mSOL has 9 decimals
+        // @ts-expect-error - amount exists on account
         return Number(account.amount) / 1e9;
       } catch {
         // Account doesn't exist, return 0
@@ -180,7 +182,7 @@ export class MarinadeService {
         totalStaked,
         apy,
         validatorCount,
-        epochInfo,
+        epochInfo: epochInfo as any,
       };
 
       // Cache the stats
@@ -290,19 +292,19 @@ export class MarinadeService {
       await this.prisma.marinadeData.upsert({
         where: { msolMint: this.MSOL_MINT },
         update: {
-          exchangeRate: position.metadata.exchangeRate,
-          totalStaked: position.metadata.totalStaked,
+          exchangeRate: position.metadata.exchangeRate as number,
+          totalStaked: position.metadata.totalStaked as number,
           apy: position.apy,
-          validatorCount: position.metadata.validatorCount,
+          validatorCount: position.metadata.validatorCount as number,
           epochInfo: position.metadata.epochInfo,
           lastUpdated: new Date(),
         },
         create: {
           msolMint: this.MSOL_MINT,
-          exchangeRate: position.metadata.exchangeRate,
-          totalStaked: position.metadata.totalStaked,
+          exchangeRate: position.metadata.exchangeRate as number,
+          totalStaked: position.metadata.totalStaked as number,
           apy: position.apy,
-          validatorCount: position.metadata.validatorCount,
+          validatorCount: position.metadata.validatorCount as number,
           epochInfo: position.metadata.epochInfo,
         },
       });

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaClient, Position, Balance } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   MarinadeService,
   MarinadePosition,
@@ -19,7 +19,15 @@ export interface PortfolioSummary {
   totalValue: number;
   totalPositions: number;
   positions: PortfolioPosition[];
-  balances: any[];
+  balances: Array<{
+    mint: string;
+    amount: string;
+    decimals: number;
+    valueUSD: number;
+    symbol?: string;
+    name?: string;
+    logoUri?: string;
+  }>;
   breakdown: {
     tokens: number;
     staking: number;
@@ -94,7 +102,15 @@ export class PositionsService {
       // Get token balances
       const walletBalances =
         await this.walletService.getWalletBalances(walletAddress);
-      const balances = walletBalances.tokens;
+      const balances = walletBalances.tokens as Array<{
+        mint: string;
+        amount: string;
+        decimals: number;
+        valueUSD: number;
+        symbol?: string;
+        name?: string;
+        logoUri?: string;
+      }>;
 
       // Calculate total values
       const totalPositionValue = positions.reduce(
@@ -191,9 +207,9 @@ export class PositionsService {
             amount: balance.amount,
             decimals: balance.decimals,
             usdValue: balance.valueUSD,
-            symbol: balance.symbol,
-            name: balance.name,
-            logoUri: balance.logoUri,
+            symbol: balance.symbol || null,
+            name: balance.name || null,
+            logoUri: balance.logoUri || null,
             lastUpdated: new Date(),
           },
           create: {
@@ -202,9 +218,9 @@ export class PositionsService {
             amount: balance.amount,
             decimals: balance.decimals,
             usdValue: balance.valueUSD,
-            symbol: balance.symbol,
-            name: balance.name,
-            logoUri: balance.logoUri,
+            symbol: balance.symbol || null,
+            name: balance.name || null,
+            logoUri: balance.logoUri || null,
           },
         });
       }
