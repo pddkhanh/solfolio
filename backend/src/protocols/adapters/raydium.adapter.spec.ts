@@ -160,11 +160,9 @@ describe('RaydiumAdapter', () => {
 
     it('should handle errors gracefully and return empty array', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'getLpTokenBalance')
-        .mockImplementation(() => {
-          throw new Error('RPC Error');
-        });
+      jest.spyOn(adapter as any, 'getLpTokenBalance').mockImplementation(() => {
+        throw new Error('RPC Error');
+      });
 
       const positions = await adapter.getPositions(testWallet);
 
@@ -213,11 +211,9 @@ describe('RaydiumAdapter', () => {
 
     it('should return fallback stats on error', async () => {
       jest.spyOn(adapter as any, 'getCachedStats').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'cacheStats')
-        .mockImplementation(async () => {
-          throw new Error('Cache Error');
-        });
+      jest.spyOn(adapter as any, 'cacheStats').mockImplementation(() => {
+        throw new Error('Cache Error');
+      });
 
       const stats = await adapter.getProtocolStats();
 
@@ -275,11 +271,9 @@ describe('RaydiumAdapter', () => {
       const lpTokenMint = 'GVMLiqiRzsBUCwCzwkKWeUvWkqmNSKg6TDBhTkuiGLEe';
       const balance = 2.5;
 
-      jest
-        .spyOn(adapter, 'getProtocolStats')
-        .mockImplementation(async () => {
-          throw new Error('Stats error');
-        });
+      jest.spyOn(adapter, 'getProtocolStats').mockImplementation(() => {
+        throw new Error('Stats error');
+      });
 
       const position = await (adapter as any).createLpPosition(
         lpTokenMint,
@@ -295,22 +289,18 @@ describe('RaydiumAdapter', () => {
       const testWallet = '11111111111111111111111111111112';
 
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest
-        .spyOn(adapter as any, 'getLpTokenBalance')
-        .mockImplementation(() => {
-          throw new Error('Network error');
-        });
+      jest.spyOn(adapter as any, 'getLpTokenBalance').mockImplementation(() => {
+        throw new Error('Network error');
+      });
 
       const positions = await adapter.getPositions(testWallet);
       expect(positions).toEqual([]);
     });
 
     it('should handle errors in getProtocolStats gracefully', async () => {
-      jest
-        .spyOn(adapter as any, 'getCachedStats')
-        .mockImplementation(async () => {
-          throw new Error('Cache error');
-        });
+      jest.spyOn(adapter as any, 'getCachedStats').mockImplementation(() => {
+        throw new Error('Cache error');
+      });
 
       const stats = await adapter.getProtocolStats();
 
