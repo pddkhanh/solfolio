@@ -5,6 +5,7 @@ import { ConnectionManager } from './connection-manager.service';
 import { RateLimiterService } from './rate-limiter.service';
 import { BlockchainHealthIndicator } from './blockchain.health';
 import { CircuitBreakerService } from '../common/circuit-breaker/circuit-breaker.service';
+import { RpcBatchService } from './rpc-batch.service';
 
 @Module({
   imports: [ConfigModule],
@@ -14,12 +15,14 @@ import { CircuitBreakerService } from '../common/circuit-breaker/circuit-breaker
     RateLimiterService,
     BlockchainHealthIndicator,
     CircuitBreakerService,
+    RpcBatchService,
   ],
   exports: [
     BlockchainService,
     ConnectionManager,
     RateLimiterService,
     BlockchainHealthIndicator,
+    RpcBatchService,
   ],
 })
 export class BlockchainModule {}
