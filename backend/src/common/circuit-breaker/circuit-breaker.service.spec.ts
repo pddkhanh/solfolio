@@ -260,6 +260,13 @@ describe('CircuitBreakerService', () => {
       for (let i = 0; i < 5; i++) {
         try {
           await service.execute('service1', failingOperation);
+        } catch {
+          // Expected to fail
+        }
+      }
+
+      for (let i = 0; i < 5; i++) {
+        try {
           await service.execute('service2', failingOperation);
         } catch {
           // Expected to fail

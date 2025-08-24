@@ -56,7 +56,7 @@ describe('GlobalExceptionFilter', () => {
         expect.objectContaining({
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Test error',
-          error: 'Bad Request',
+          error: 'BAD_REQUEST',
           path: '/test',
           method: 'GET',
           correlationId: expect.any(String),

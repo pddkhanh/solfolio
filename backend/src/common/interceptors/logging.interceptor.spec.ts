@@ -54,7 +54,9 @@ describe('LoggingInterceptor', () => {
         handle: jest.fn().mockReturnValue(of(mockData)),
       };
 
-      const logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
+      const logSpy = jest
+        .spyOn(interceptor['logger'], 'log')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
@@ -106,8 +108,12 @@ describe('LoggingInterceptor', () => {
         handle: jest.fn().mockReturnValue(throwError(() => mockError)),
       };
 
-      const logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
-      const errorSpy = jest.spyOn(interceptor['logger'], 'error').mockImplementation();
+      const logSpy = jest
+        .spyOn(interceptor['logger'], 'log')
+        .mockImplementation();
+      const errorSpy = jest
+        .spyOn(interceptor['logger'], 'error')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
@@ -140,16 +146,21 @@ describe('LoggingInterceptor', () => {
       const mockData = { result: 'success' };
 
       // Mock Date.now properly with jest
-      const nowSpy = jest.spyOn(Date, 'now')
-        .mockReturnValueOnce(0)     // First call (start time)
+      const nowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValueOnce(0) // First call (start time)
         .mockReturnValueOnce(6000); // Second call (end time - 6 seconds later)
 
       mockCallHandler = {
         handle: jest.fn().mockReturnValue(of(mockData)),
       };
 
-      const logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
-      const warnSpy = jest.spyOn(interceptor['logger'], 'warn').mockImplementation();
+      const logSpy = jest
+        .spyOn(interceptor['logger'], 'log')
+        .mockImplementation();
+      const warnSpy = jest
+        .spyOn(interceptor['logger'], 'warn')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
@@ -165,7 +176,7 @@ describe('LoggingInterceptor', () => {
               threshold: 5000,
             }),
           );
-          
+
           // Verify the duration is greater than 5000 (slow threshold)
           const warnCall = warnSpy.mock.calls[0];
           expect(warnCall[1].duration).toBeGreaterThan(5000);
@@ -190,7 +201,9 @@ describe('LoggingInterceptor', () => {
         handle: jest.fn().mockReturnValue(of({ result: 'success' })),
       };
 
-      const logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
+      const logSpy = jest
+        .spyOn(interceptor['logger'], 'log')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
@@ -224,7 +237,9 @@ describe('LoggingInterceptor', () => {
         handle: jest.fn().mockReturnValue(of({ result: 'success' })),
       };
 
-      const logSpy = jest.spyOn(interceptor['logger'], 'log').mockImplementation();
+      const logSpy = jest
+        .spyOn(interceptor['logger'], 'log')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
@@ -298,7 +313,9 @@ describe('LoggingInterceptor', () => {
       };
 
       // Mock the logger's error method instead of console.error
-      const errorSpy = jest.spyOn(interceptor['logger'], 'error').mockImplementation();
+      const errorSpy = jest
+        .spyOn(interceptor['logger'], 'error')
+        .mockImplementation();
 
       const result = interceptor.intercept(
         mockExecutionContext as ExecutionContext,
