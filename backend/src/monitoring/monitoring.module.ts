@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { MonitoringController } from './monitoring.controller';
 import { TransactionMonitoringService } from './transaction-monitoring.service';
 import { WalletMonitorService } from './wallet-monitor.service';
 import { AccountSubscriptionService } from './account-subscription.service';
@@ -18,6 +19,7 @@ import { forwardRef } from '@nestjs/common';
     PrismaModule,
     CacheModule,
   ],
+  controllers: [MonitoringController],
   providers: [
     TransactionMonitoringService,
     WalletMonitorService,
