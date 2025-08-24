@@ -10,6 +10,9 @@ import { WalletModule } from './wallet/wallet.module';
 import { PriceModule } from './price/price.module';
 import { MarinadeModule } from './marinade/marinade.module';
 import { KaminoModule } from './kamino/kamino.module';
+import { JitoModule } from './jito/jito.module';
+import { OrcaModule } from './orca/orca.module';
+import { RaydiumModule } from './raydium/raydium.module';
 import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { WebsocketModule } from './websocket/websocket.module';
@@ -34,6 +37,9 @@ import {
     PriceModule,
     MarinadeModule,
     KaminoModule,
+    JitoModule,
+    OrcaModule,
+    RaydiumModule,
     PositionsModule,
     WebsocketModule,
   ],
