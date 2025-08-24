@@ -28,7 +28,7 @@ describe('PortfolioGrpcController', () => {
     }).compile();
 
     controller = module.get<PortfolioGrpcController>(PortfolioGrpcController);
-    service = module.get(PortfolioGrpcService) as jest.Mocked<PortfolioGrpcService>;
+    service = module.get(PortfolioGrpcService);
   });
 
   it('should be defined', () => {
@@ -85,7 +85,7 @@ describe('PortfolioGrpcController', () => {
 
   describe('getPositions', () => {
     it('should call service getPositions method', async () => {
-      const mockRequest = { 
+      const mockRequest = {
         wallet: mockWallet,
         protocols: ['Marinade'],
       };
@@ -119,7 +119,7 @@ describe('PortfolioGrpcController', () => {
       };
       const mockResponse = {
         prices: {
-          'So11111111111111111111111111111111111111112': 50.25,
+          So11111111111111111111111111111111111111112: 50.25,
         },
       };
 

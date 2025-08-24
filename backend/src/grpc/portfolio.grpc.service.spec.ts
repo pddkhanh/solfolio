@@ -15,7 +15,7 @@ describe('PortfolioGrpcService', () => {
   let cacheService: jest.Mocked<CacheService>;
 
   const mockWallet = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
-  
+
   const mockTokens = [
     {
       mint: 'So11111111111111111111111111111111111111112',
@@ -44,15 +44,17 @@ describe('PortfolioGrpcService', () => {
       address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
       value: 2500,
       apy: 6.5,
-      tokens: [{
-        mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-        symbol: 'mSOL',
-        name: 'Marinade Staked SOL',
-        balance: 48.5,
-        decimals: 9,
-        price: 51.55,
-        value: 2500,
-      }],
+      tokens: [
+        {
+          mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          symbol: 'mSOL',
+          name: 'Marinade Staked SOL',
+          balance: 48.5,
+          decimals: 9,
+          price: 51.55,
+          value: 2500,
+        },
+      ],
       metadata: {
         validator: 'Marinade',
       },
@@ -66,7 +68,7 @@ describe('PortfolioGrpcService', () => {
         {
           provide: WalletService,
           useValue: {
-            getTokenBalances: jest.fn(),
+            getWalletBalances: jest.fn(),
           },
         },
         {
@@ -99,11 +101,11 @@ describe('PortfolioGrpcService', () => {
     }).compile();
 
     service = module.get<PortfolioGrpcService>(PortfolioGrpcService);
-    walletService = module.get(WalletService) as jest.Mocked<WalletService>;
-    positionsService = module.get(PositionsService) as jest.Mocked<PositionsService>;
-    priceService = module.get(PriceService) as jest.Mocked<PriceService>;
-    websocketService = module.get(WebsocketService) as jest.Mocked<WebsocketService>;
-    cacheService = module.get(CacheService) as jest.Mocked<CacheService>;
+    walletService = module.get(WalletService);
+    positionsService = module.get(PositionsService);
+    priceService = module.get(PriceService);
+    websocketService = module.get(WebsocketService);
+    cacheService = module.get(CacheService);
   });
 
   describe('getPortfolio', () => {
@@ -122,21 +124,27 @@ describe('PortfolioGrpcService', () => {
 
       expect(cacheService.get).toHaveBeenCalledWith(`portfolio:${mockWallet}`);
       expect(result.portfolio).toEqual(cachedPortfolio);
-      expect(walletService.getTokenBalances).not.toHaveBeenCalled();
+      expect(walletService.getWalletBalances).not.toHaveBeenCalled();
       expect(positionsService.getPositions).not.toHaveBeenCalled();
     });
 
     it('should fetch fresh data when cache miss or force refresh', async () => {
       cacheService.get.mockResolvedValue(null);
-      walletService.getTokenBalances.mockResolvedValue(mockTokens);
+      walletService.getWalletBalances.mockResolvedValue({
+        tokens: mockTokens,
+        totalAccounts: mockTokens.length,
+        totalValueUSD: 1527.625,
+        lastUpdated: new Date().toISOString(),
+        nfts: [],
+      });
       positionsService.getPositions.mockResolvedValue(mockPositions);
 
-      const result = await service.getPortfolio({ 
-        wallet: mockWallet, 
-        force_refresh: true 
+      const result = await service.getPortfolio({
+        wallet: mockWallet,
+        force_refresh: true,
       });
 
-      expect(walletService.getTokenBalances).toHaveBeenCalledWith(mockWallet);
+      expect(walletService.getWalletBalances).toHaveBeenCalledWith(mockWallet);
       expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet);
       expect(result.portfolio.wallet).toBe(mockWallet);
       expect(result.portfolio.total_value).toBe(4027.625);
@@ -146,11 +154,17 @@ describe('PortfolioGrpcService', () => {
 
   describe('getTokenBalances', () => {
     it('should return token balances', async () => {
-      walletService.getTokenBalances.mockResolvedValue(mockTokens);
+      walletService.getWalletBalances.mockResolvedValue({
+        tokens: mockTokens,
+        totalAccounts: mockTokens.length,
+        totalValueUSD: 1527.625,
+        lastUpdated: new Date().toISOString(),
+        nfts: [],
+      });
 
       const result = await service.getTokenBalances({ wallet: mockWallet });
 
-      expect(walletService.getTokenBalances).toHaveBeenCalledWith(mockWallet);
+      expect(walletService.getWalletBalances).toHaveBeenCalledWith(mockWallet);
       expect(result.tokens).toEqual(mockTokens);
     });
   });
@@ -161,7 +175,7 @@ describe('PortfolioGrpcService', () => {
 
       const result = await service.getPositions({ wallet: mockWallet });
 
-      expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet, undefined);
+      expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet);
       expect(result.positions).toHaveLength(1);
       expect(result.positions[0].protocol).toBe('Marinade');
     });
@@ -169,15 +183,12 @@ describe('PortfolioGrpcService', () => {
     it('should filter positions by protocols', async () => {
       positionsService.getPositions.mockResolvedValue(mockPositions);
 
-      const result = await service.getPositions({ 
+      const result = await service.getPositions({
         wallet: mockWallet,
         protocols: ['Marinade', 'Kamino'],
       });
 
-      expect(positionsService.getPositions).toHaveBeenCalledWith(
-        mockWallet, 
-        ['Marinade', 'Kamino']
-      );
+      expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet);
     });
   });
 
@@ -196,8 +207,8 @@ describe('PortfolioGrpcService', () => {
 
       expect(priceService.getTokenPrice).toHaveBeenCalledTimes(2);
       expect(result.prices).toEqual({
-        'So11111111111111111111111111111111111111112': 50.25,
-        'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v': 1,
+        So11111111111111111111111111111111111111112: 50.25,
+        EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: 1,
       });
     });
 
@@ -214,7 +225,7 @@ describe('PortfolioGrpcService', () => {
       const result = await service.getPrices({ mints });
 
       expect(result.prices).toEqual({
-        'So11111111111111111111111111111111111111112': 50.25,
+        So11111111111111111111111111111111111111112: 50.25,
       });
     });
   });

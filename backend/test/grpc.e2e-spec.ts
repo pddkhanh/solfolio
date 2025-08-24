@@ -81,7 +81,7 @@ describe('gRPC Server (e2e)', () => {
           done();
           return;
         }
-        
+
         expect(error).toBeNull();
         expect(response.portfolio).toBeDefined();
         expect(response.portfolio.wallet).toBe(request.wallet);
@@ -101,7 +101,7 @@ describe('gRPC Server (e2e)', () => {
           done();
           return;
         }
-        
+
         expect(error).toBeNull();
         expect(response.tokens).toBeDefined();
         expect(Array.isArray(response.tokens)).toBe(true);
@@ -122,7 +122,7 @@ describe('gRPC Server (e2e)', () => {
           done();
           return;
         }
-        
+
         expect(error).toBeNull();
         expect(response.positions).toBeDefined();
         expect(Array.isArray(response.positions)).toBe(true);
@@ -145,7 +145,7 @@ describe('gRPC Server (e2e)', () => {
           done();
           return;
         }
-        
+
         expect(error).toBeNull();
         expect(response.prices).toBeDefined();
         expect(typeof response.prices).toBe('object');

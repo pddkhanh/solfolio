@@ -6,7 +6,7 @@ import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const logger = new Logger('gRPC');
-  
+
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {

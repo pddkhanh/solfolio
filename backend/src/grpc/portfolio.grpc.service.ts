@@ -99,9 +99,11 @@ export class PortfolioGrpcService {
   }
 
   @GrpcMethod('PortfolioService', 'GetPortfolio')
-  async getPortfolio(data: GetPortfolioRequest): Promise<{ portfolio: Portfolio }> {
+  async getPortfolio(
+    data: GetPortfolioRequest,
+  ): Promise<{ portfolio: Portfolio }> {
     const cacheKey = `portfolio:${data.wallet}`;
-    
+
     if (!data.force_refresh) {
       const cached = await this.cacheService.get<Portfolio>(cacheKey);
       if (cached) {
@@ -109,41 +111,43 @@ export class PortfolioGrpcService {
       }
     }
 
-    const [tokenBalances, positions] = await Promise.all([
-      this.walletService.getTokenBalances(data.wallet),
+    const [walletBalances, positions] = await Promise.all([
+      this.walletService.getWalletBalances(data.wallet),
       this.positionsService.getPositions(data.wallet),
     ]);
 
-    const tokens: Token[] = tokenBalances.map(token => ({
+    const tokens: Token[] = walletBalances.tokens.map((token: any) => ({
       mint: token.mint,
-      symbol: token.symbol,
-      name: token.name,
-      balance: token.balance,
+      symbol: token.symbol || token.metadata?.symbol || '',
+      name: token.name || token.metadata?.name || '',
+      balance: parseFloat(token.balance) || token.uiAmount || 0,
       decimals: token.decimals,
-      price: token.price || 0,
-      value: token.value || 0,
+      price: token.valueUSD / (token.uiAmount || 1) || 0,
+      value: token.valueUSD || 0,
     }));
 
-    const formattedPositions: Position[] = positions.map(position => ({
-      protocol: position.protocol,
-      type: position.type,
-      address: position.address || '',
-      value: position.value,
+    const formattedPositions: Position[] = positions.map((position: any) => ({
+      protocol: position.protocolName || position.protocol || '',
+      type: position.type || '',
+      address: position.address || position.mint || '',
+      value: position.value || 0,
       apy: position.apy || 0,
-      tokens: position.tokens?.map(t => ({
-        mint: t.mint || '',
-        symbol: t.symbol || '',
-        name: t.name || '',
-        balance: t.balance || 0,
-        decimals: t.decimals || 0,
-        price: t.price || 0,
-        value: t.value || 0,
-      })) || [],
+      tokens:
+        position.tokens?.map((t: any) => ({
+          mint: t.mint || '',
+          symbol: t.symbol || '',
+          name: t.name || '',
+          balance: t.balance || 0,
+          decimals: t.decimals || 0,
+          price: t.price || 0,
+          value: t.value || 0,
+        })) || [],
       metadata: position.metadata || {},
     }));
 
-    const totalValue = tokens.reduce((sum, t) => sum + t.value, 0) +
-                      formattedPositions.reduce((sum, p) => sum + p.value, 0);
+    const totalValue =
+      tokens.reduce((sum, t) => sum + t.value, 0) +
+      formattedPositions.reduce((sum, p) => sum + p.value, 0);
 
     const portfolio: Portfolio = {
       wallet: data.wallet,
@@ -159,44 +163,53 @@ export class PortfolioGrpcService {
   }
 
   @GrpcMethod('PortfolioService', 'GetTokenBalances')
-  async getTokenBalances(data: GetTokenBalancesRequest): Promise<{ tokens: Token[] }> {
-    const tokenBalances = await this.walletService.getTokenBalances(data.wallet);
-    
-    const tokens: Token[] = tokenBalances.map(token => ({
+  async getTokenBalances(
+    data: GetTokenBalancesRequest,
+  ): Promise<{ tokens: Token[] }> {
+    const walletBalances = await this.walletService.getWalletBalances(
+      data.wallet,
+    );
+
+    const tokens: Token[] = walletBalances.tokens.map((token: any) => ({
       mint: token.mint,
-      symbol: token.symbol,
-      name: token.name,
-      balance: token.balance,
+      symbol: token.symbol || token.metadata?.symbol || '',
+      name: token.name || token.metadata?.name || '',
+      balance: parseFloat(token.balance) || token.uiAmount || 0,
       decimals: token.decimals,
-      price: token.price || 0,
-      value: token.value || 0,
+      price: token.valueUSD / (token.uiAmount || 1) || 0,
+      value: token.valueUSD || 0,
     }));
 
     return { tokens };
   }
 
   @GrpcMethod('PortfolioService', 'GetPositions')
-  async getPositions(data: GetPositionsRequest): Promise<{ positions: Position[] }> {
-    const positions = await this.positionsService.getPositions(
-      data.wallet,
-      data.protocols,
-    );
+  async getPositions(
+    data: GetPositionsRequest,
+  ): Promise<{ positions: Position[] }> {
+    const allPositions = await this.positionsService.getPositions(data.wallet);
+    
+    // Filter by protocols if specified
+    const positions = data.protocols && data.protocols.length > 0
+      ? allPositions.filter((p: any) => data.protocols?.includes(p.protocolName || p.protocol))
+      : allPositions;
 
-    const formattedPositions: Position[] = positions.map(position => ({
-      protocol: position.protocol,
-      type: position.type,
-      address: position.address || '',
-      value: position.value,
+    const formattedPositions: Position[] = positions.map((position: any) => ({
+      protocol: position.protocolName || position.protocol || '',
+      type: position.type || '',
+      address: position.address || position.mint || '',
+      value: position.value || 0,
       apy: position.apy || 0,
-      tokens: position.tokens?.map(t => ({
-        mint: t.mint || '',
-        symbol: t.symbol || '',
-        name: t.name || '',
-        balance: t.balance || 0,
-        decimals: t.decimals || 0,
-        price: t.price || 0,
-        value: t.value || 0,
-      })) || [],
+      tokens:
+        position.tokens?.map((t: any) => ({
+          mint: t.mint || '',
+          symbol: t.symbol || '',
+          name: t.name || '',
+          balance: t.balance || 0,
+          decimals: t.decimals || 0,
+          price: t.price || 0,
+          value: t.value || 0,
+        })) || [],
       metadata: position.metadata || {},
     }));
 
@@ -204,9 +217,11 @@ export class PortfolioGrpcService {
   }
 
   @GrpcMethod('PortfolioService', 'GetPrices')
-  async getPrices(data: GetPricesRequest): Promise<{ prices: Record<string, number> }> {
+  async getPrices(
+    data: GetPricesRequest,
+  ): Promise<{ prices: Record<string, number> }> {
     const prices: Record<string, number> = {};
-    
+
     for (const mint of data.mints) {
       const price = await this.priceService.getTokenPrice(mint);
       if (price) {
@@ -218,15 +233,21 @@ export class PortfolioGrpcService {
   }
 
   @GrpcStreamMethod('PortfolioService', 'SubscribeToUpdates')
-  subscribeToUpdates(data: Observable<SubscribeToUpdatesRequest>): Observable<UpdateEvent> {
+  subscribeToUpdates(
+    data: Observable<SubscribeToUpdatesRequest>,
+  ): Observable<UpdateEvent> {
     const subject = new Subject<UpdateEvent>();
 
     data.subscribe({
       next: (request) => {
         const subjectKey = `${request.wallet}:${JSON.stringify(request.event_types || [])}`;
         this.updateSubjects.set(subjectKey, subject);
-        
-        this.setupUpdateSubscriptions(request.wallet, request.event_types || [], subject);
+
+        this.setupUpdateSubscriptions(
+          request.wallet,
+          request.event_types || [],
+          subject,
+        );
       },
       complete: () => {
         subject.complete();
@@ -240,7 +261,7 @@ export class PortfolioGrpcService {
   async healthCheck(data: HealthCheckRequest): Promise<HealthCheckResponse> {
     try {
       const isHealthy = await this.checkServiceHealth(data.service);
-      
+
       return {
         status: isHealthy ? 1 : 2, // 1 = SERVING, 2 = NOT_SERVING
         message: isHealthy ? 'Service is healthy' : 'Service is unhealthy',
@@ -269,25 +290,31 @@ export class PortfolioGrpcService {
     subject: Subject<UpdateEvent>,
   ) {
     if (eventTypes.length === 0 || eventTypes.includes('price')) {
-      this.websocketService.on(`price-update:${wallet}`, (data: PriceUpdate) => {
-        subject.next({
-          type: 'price',
-          wallet,
-          data: { price_update: data },
-          timestamp: Date.now(),
-        });
-      });
+      this.websocketService.on(
+        `price-update:${wallet}`,
+        (data: PriceUpdate) => {
+          subject.next({
+            type: 'price',
+            wallet,
+            data: { price_update: data },
+            timestamp: Date.now(),
+          });
+        },
+      );
     }
 
     if (eventTypes.length === 0 || eventTypes.includes('position')) {
-      this.websocketService.on(`position-update:${wallet}`, (data: Position) => {
-        subject.next({
-          type: 'position',
-          wallet,
-          data: { position_update: data },
-          timestamp: Date.now(),
-        });
-      });
+      this.websocketService.on(
+        `position-update:${wallet}`,
+        (data: Position) => {
+          subject.next({
+            type: 'position',
+            wallet,
+            data: { position_update: data },
+            timestamp: Date.now(),
+          });
+        },
+      );
     }
 
     if (eventTypes.length === 0 || eventTypes.includes('token')) {
@@ -343,7 +370,9 @@ export class PortfolioGrpcService {
       try {
         await Promise.all([
           this.cacheService.get('health-check'),
-          this.priceService.getTokenPrice('So11111111111111111111111111111111111111112'),
+          this.priceService.getTokenPrice(
+            'So11111111111111111111111111111111111111112',
+          ),
         ]);
         return true;
       } catch {
@@ -361,7 +390,9 @@ export class PortfolioGrpcService {
         }
       case 'price':
         try {
-          await this.priceService.getTokenPrice('So11111111111111111111111111111111111111112');
+          await this.priceService.getTokenPrice(
+            'So11111111111111111111111111111111111111112',
+          );
           return true;
         } catch {
           return false;
