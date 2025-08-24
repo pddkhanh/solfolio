@@ -20,7 +20,7 @@ export interface WalletUpdate {
 export class WebsocketService {
   private server: Server;
   private readonly logger = new Logger(WebsocketService.name);
-  private priceUpdateInterval: NodeJS.Timeout;
+  private priceUpdateInterval: NodeJS.Timeout | undefined;
   private readonly PRICE_UPDATE_INTERVAL = 30000; // 30 seconds
 
   constructor(private readonly redisService: RedisService) {}
@@ -28,7 +28,7 @@ export class WebsocketService {
   setServer(server: Server) {
     this.server = server;
     this.startPriceUpdates();
-    this.subscribeToRedisEvents();
+    void this.subscribeToRedisEvents();
   }
 
   private startPriceUpdates() {
@@ -36,18 +36,18 @@ export class WebsocketService {
       clearInterval(this.priceUpdateInterval);
     }
 
-    this.priceUpdateInterval = setInterval(async () => {
-      await this.fetchAndBroadcastPrices();
+    this.priceUpdateInterval = setInterval(() => {
+      void this.fetchAndBroadcastPrices();
     }, this.PRICE_UPDATE_INTERVAL);
 
-    this.fetchAndBroadcastPrices();
+    void this.fetchAndBroadcastPrices();
   }
 
   private async fetchAndBroadcastPrices() {
     try {
-      const cachedPrices = await this.redisService.get('prices:latest');
+      const cachedPrices = await this.redisService.get<string>('prices:latest');
       if (cachedPrices) {
-        const prices = JSON.parse(cachedPrices);
+        const prices = JSON.parse(cachedPrices) as PriceUpdate | PriceUpdate[];
         this.broadcastPriceUpdate(prices);
       }
     } catch (error) {
@@ -58,13 +58,15 @@ export class WebsocketService {
   private async subscribeToRedisEvents() {
     try {
       const subscriber = this.redisService.getSubscriber();
-      
-      await subscriber.subscribe('price:update');
-      await subscriber.subscribe('wallet:update');
-      await subscriber.subscribe('position:update');
 
-      subscriber.on('message', (channel, message) => {
-        this.handleRedisMessage(channel, message);
+      await subscriber.subscribe('price:update', (message) => {
+        this.handleRedisMessage('price:update', message);
+      });
+      await subscriber.subscribe('wallet:update', (message) => {
+        this.handleRedisMessage('wallet:update', message);
+      });
+      await subscriber.subscribe('position:update', (message) => {
+        this.handleRedisMessage('position:update', message);
       });
 
       this.logger.log('Subscribed to Redis pub/sub channels');
@@ -102,23 +104,27 @@ export class WebsocketService {
     }
 
     const priceArray = Array.isArray(prices) ? prices : [prices];
-    
+
     this.server.to('prices').emit('price:update', {
       prices: priceArray,
       timestamp: Date.now(),
     });
 
-    this.logger.debug(`Broadcasted price update to ${priceArray.length} tokens`);
+    this.logger.debug(
+      `Broadcasted price update to ${priceArray.length} tokens`,
+    );
   }
 
   broadcastWalletUpdate(update: WalletUpdate) {
     if (!this.server) {
-      this.logger.warn('Server not initialized, cannot broadcast wallet update');
+      this.logger.warn(
+        'Server not initialized, cannot broadcast wallet update',
+      );
       return;
     }
 
     const room = `wallet:${update.walletAddress}`;
-    
+
     this.server.to(room).emit('wallet:update', {
       type: update.type,
       data: update.data,
@@ -130,12 +136,14 @@ export class WebsocketService {
 
   broadcastPositionUpdate(data: { walletAddress: string; positions: any[] }) {
     if (!this.server) {
-      this.logger.warn('Server not initialized, cannot broadcast position update');
+      this.logger.warn(
+        'Server not initialized, cannot broadcast position update',
+      );
       return;
     }
 
     const room = `wallet:${data.walletAddress}`;
-    
+
     this.server.to(room).emit('position:update', {
       positions: data.positions,
       timestamp: Date.now(),
@@ -150,7 +158,7 @@ export class WebsocketService {
       await this.redisService.set(
         'prices:latest',
         JSON.stringify(prices),
-        60, // TTL: 1 minute
+        { ttl: 60 }, // TTL: 1 minute
       );
     } catch (error) {
       this.logger.error('Error publishing price update to Redis', error);
@@ -186,13 +194,13 @@ export class WebsocketService {
       return [];
     }
     const sockets = await this.server.in(room).fetchSockets();
-    return sockets.map(socket => socket.id);
+    return sockets.map((socket) => socket.id);
   }
 
   disconnect() {
     if (this.priceUpdateInterval) {
       clearInterval(this.priceUpdateInterval);
-      this.priceUpdateInterval = null;
+      this.priceUpdateInterval = undefined;
     }
     this.logger.log('WebSocket service disconnected');
   }

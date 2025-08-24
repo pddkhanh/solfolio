@@ -14,7 +14,9 @@ describe('WebsocketService', () => {
         emit: jest.fn(),
       })),
       in: jest.fn(() => ({
-        fetchSockets: jest.fn(() => Promise.resolve([{ id: 'socket1' }, { id: 'socket2' }])),
+        fetchSockets: jest.fn(() =>
+          Promise.resolve([{ id: 'socket1' }, { id: 'socket2' }]),
+        ),
       })),
       sockets: {
         sockets: new Map([
@@ -54,9 +56,9 @@ describe('WebsocketService', () => {
     it('should set server and initialize subscriptions', () => {
       const subscribeSpy = jest.spyOn(service as any, 'subscribeToRedisEvents');
       const priceUpdateSpy = jest.spyOn(service as any, 'startPriceUpdates');
-      
+
       service.setServer(mockServer as Server);
-      
+
       expect(subscribeSpy).toHaveBeenCalled();
       expect(priceUpdateSpy).toHaveBeenCalled();
     });
@@ -65,36 +67,40 @@ describe('WebsocketService', () => {
   describe('broadcastPriceUpdate', () => {
     it('should broadcast price update to price room', () => {
       service.setServer(mockServer as Server);
-      
+
       const priceUpdate = {
         tokenMint: 'test-mint',
         price: 100,
         timestamp: Date.now(),
       };
-      
+
       service.broadcastPriceUpdate(priceUpdate);
-      
+
       expect(mockServer.to).toHaveBeenCalledWith('prices');
     });
 
     it('should handle array of price updates', () => {
       service.setServer(mockServer as Server);
-      
+
       const priceUpdates = [
         { tokenMint: 'mint1', price: 100, timestamp: Date.now() },
         { tokenMint: 'mint2', price: 200, timestamp: Date.now() },
       ];
-      
+
       service.broadcastPriceUpdate(priceUpdates);
-      
+
       expect(mockServer.to).toHaveBeenCalledWith('prices');
     });
 
     it('should not broadcast if server not initialized', () => {
       const loggerSpy = jest.spyOn((service as any).logger, 'warn');
-      
-      service.broadcastPriceUpdate({ tokenMint: 'test', price: 100, timestamp: Date.now() });
-      
+
+      service.broadcastPriceUpdate({
+        tokenMint: 'test',
+        price: 100,
+        timestamp: Date.now(),
+      });
+
       expect(loggerSpy).toHaveBeenCalledWith(
         'Server not initialized, cannot broadcast price update',
       );
@@ -104,16 +110,16 @@ describe('WebsocketService', () => {
   describe('broadcastWalletUpdate', () => {
     it('should broadcast wallet update to wallet room', () => {
       service.setServer(mockServer as Server);
-      
+
       const walletUpdate = {
         walletAddress: 'test-wallet',
         type: 'balance' as const,
         data: { balance: 100 },
         timestamp: Date.now(),
       };
-      
+
       service.broadcastWalletUpdate(walletUpdate);
-      
+
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
     });
   });
@@ -121,14 +127,14 @@ describe('WebsocketService', () => {
   describe('broadcastPositionUpdate', () => {
     it('should broadcast position update to wallet room', () => {
       service.setServer(mockServer as Server);
-      
+
       const positionData = {
         walletAddress: 'test-wallet',
         positions: [{ protocol: 'Marinade', value: 1000 }],
       };
-      
+
       service.broadcastPositionUpdate(positionData);
-      
+
       expect(mockServer.to).toHaveBeenCalledWith('wallet:test-wallet');
     });
   });
@@ -140,9 +146,9 @@ describe('WebsocketService', () => {
         price: 100,
         timestamp: Date.now(),
       };
-      
+
       await service.publishPriceUpdate(priceUpdate);
-      
+
       expect(redisService.publish).toHaveBeenCalledWith(
         'price:update',
         JSON.stringify(priceUpdate),
@@ -150,7 +156,7 @@ describe('WebsocketService', () => {
       expect(redisService.set).toHaveBeenCalledWith(
         'prices:latest',
         JSON.stringify(priceUpdate),
-        60,
+        { ttl: 60 },
       );
     });
   });
@@ -163,9 +169,9 @@ describe('WebsocketService', () => {
         data: { balance: 100 },
         timestamp: Date.now(),
       };
-      
+
       await service.publishWalletUpdate(walletUpdate);
-      
+
       expect(redisService.publish).toHaveBeenCalledWith(
         'wallet:update',
         JSON.stringify(walletUpdate),
@@ -176,9 +182,9 @@ describe('WebsocketService', () => {
   describe('publishPositionUpdate', () => {
     it('should publish position update to Redis', async () => {
       const positions = [{ protocol: 'Marinade', value: 1000 }];
-      
+
       await service.publishPositionUpdate('test-wallet', positions);
-      
+
       expect(redisService.publish).toHaveBeenCalledWith(
         'position:update',
         JSON.stringify({ walletAddress: 'test-wallet', positions }),
@@ -216,7 +222,7 @@ describe('WebsocketService', () => {
     it('should clear price update interval on disconnect', () => {
       service.setServer(mockServer as Server);
       service.disconnect();
-      expect((service as any).priceUpdateInterval).toBeNull();
+      expect((service as any).priceUpdateInterval).toBeUndefined();
     });
   });
 });

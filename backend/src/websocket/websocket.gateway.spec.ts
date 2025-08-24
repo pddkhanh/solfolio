@@ -73,7 +73,9 @@ describe('WebsocketGateway', () => {
         message: 'Connected to SolFolio WebSocket server',
         clientId: 'test-socket-id',
       });
-      expect(mockSocket.join).toHaveBeenCalledWith('wallet:test-wallet-address');
+      expect(mockSocket.join).toHaveBeenCalledWith(
+        'wallet:test-wallet-address',
+      );
     });
 
     it('should handle client connection without wallet address', async () => {
@@ -125,7 +127,9 @@ describe('WebsocketGateway', () => {
         mockSocket as Socket,
         'test-wallet-address',
       );
-      expect(mockSocket.leave).toHaveBeenCalledWith('wallet:test-wallet-address');
+      expect(mockSocket.leave).toHaveBeenCalledWith(
+        'wallet:test-wallet-address',
+      );
       expect(mockSocket.emit).toHaveBeenCalledWith('unsubscription:confirmed', {
         type: 'wallet',
         address: 'test-wallet-address',

@@ -37,7 +37,7 @@ export class RedisService implements OnModuleDestroy {
   private async initializePubSub(): Promise<void> {
     try {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-      
+
       this.publisher = createClient({ url: redisUrl });
       this.subscriber = createClient({ url: redisUrl });
 

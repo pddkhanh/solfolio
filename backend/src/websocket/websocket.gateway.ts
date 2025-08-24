@@ -39,13 +39,13 @@ export class WebsocketGateway
 
   async handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
-    
+
     const walletAddress = client.handshake.query.wallet as string;
     if (walletAddress) {
       await this.handleWalletSubscription(client, walletAddress);
     }
 
-    client.emit('connected', { 
+    client.emit('connected', {
       message: 'Connected to SolFolio WebSocket server',
       clientId: client.id,
     });
@@ -53,7 +53,7 @@ export class WebsocketGateway
 
   async handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
-    
+
     const walletAddress = this.clientWallets.get(client.id);
     if (walletAddress) {
       await this.handleWalletUnsubscription(client, walletAddress);
@@ -77,17 +77,21 @@ export class WebsocketGateway
       return;
     }
 
-    this.logger.log(`Client ${client.id} subscribing to wallet: ${walletAddress}`);
-    
+    this.logger.log(
+      `Client ${client.id} subscribing to wallet: ${walletAddress}`,
+    );
+
     const previousWallet = this.clientWallets.get(client.id);
     if (previousWallet && previousWallet !== walletAddress) {
       await client.leave(`wallet:${previousWallet}`);
-      this.logger.log(`Client ${client.id} left room: wallet:${previousWallet}`);
+      this.logger.log(
+        `Client ${client.id} left room: wallet:${previousWallet}`,
+      );
     }
 
     await client.join(`wallet:${walletAddress}`);
     this.clientWallets.set(client.id, walletAddress);
-    
+
     client.emit('subscription:confirmed', {
       type: 'wallet',
       address: walletAddress,
@@ -106,14 +110,16 @@ export class WebsocketGateway
       return;
     }
 
-    this.logger.log(`Client ${client.id} unsubscribing from wallet: ${walletAddress}`);
-    
+    this.logger.log(
+      `Client ${client.id} unsubscribing from wallet: ${walletAddress}`,
+    );
+
     await client.leave(`wallet:${walletAddress}`);
-    
+
     if (this.clientWallets.get(client.id) === walletAddress) {
       this.clientWallets.delete(client.id);
     }
-    
+
     client.emit('unsubscription:confirmed', {
       type: 'wallet',
       address: walletAddress,
@@ -125,9 +131,9 @@ export class WebsocketGateway
   @SubscribeMessage('subscribe:prices')
   async handlePriceSubscription(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} subscribing to price updates`);
-    
+
     await client.join('prices');
-    
+
     client.emit('subscription:confirmed', {
       type: 'prices',
       room: 'prices',
@@ -139,9 +145,9 @@ export class WebsocketGateway
   @SubscribeMessage('unsubscribe:prices')
   async handlePriceUnsubscription(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client ${client.id} unsubscribing from price updates`);
-    
+
     await client.leave('prices');
-    
+
     client.emit('unsubscription:confirmed', {
       type: 'prices',
     });
