@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { WebsocketGateway } from './websocket.gateway';
 import { WebsocketService } from './websocket.service';
 import { RedisModule } from '../redis/redis.module';
@@ -7,7 +7,12 @@ import { WalletModule } from '../wallet/wallet.module';
 import { PositionsModule } from '../positions/positions.module';
 
 @Module({
-  imports: [RedisModule, PriceModule, WalletModule, PositionsModule],
+  imports: [
+    RedisModule,
+    forwardRef(() => PriceModule),
+    forwardRef(() => WalletModule),
+    PositionsModule,
+  ],
   providers: [WebsocketGateway, WebsocketService],
   exports: [WebsocketService],
 })

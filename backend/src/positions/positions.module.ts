@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PositionsController } from './positions.controller';
 import { PositionsService } from './positions.service';
 import { MarinadeModule } from '../marinade/marinade.module';
@@ -7,7 +7,12 @@ import { PriceModule } from '../price/price.module';
 import { ProtocolsModule } from '../protocols/protocols.module';
 
 @Module({
-  imports: [MarinadeModule, WalletModule, PriceModule, ProtocolsModule],
+  imports: [
+    MarinadeModule,
+    forwardRef(() => WalletModule),
+    forwardRef(() => PriceModule),
+    ProtocolsModule,
+  ],
   controllers: [PositionsController],
   providers: [PositionsService],
   exports: [PositionsService],
