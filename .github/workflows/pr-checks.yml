@@ -167,6 +167,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-e2e-${{ hashFiles('frontend/**/package-lock.json', 'frontend/**/pnpm-lock.yaml', 'frontend/**/yarn.lock') }}-
             
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+            
       - name: Install frontend dependencies
         working-directory: ./frontend
         run: |
@@ -175,13 +183,9 @@ jobs:
           pnpm config set fetch-retry-maxtimeout 120000
           pnpm install --frozen-lockfile --prefer-offline
         
-      # Use Playwright's official GitHub Action for intelligent caching
-      # This automatically caches browsers based on Playwright version
-      # and handles system dependencies installation
-      - name: Setup Playwright
-        uses: microsoft/playwright-github-action@v1
-        with:
-          browsers: chromium
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps chromium
         
       - name: Build frontend for E2E
         working-directory: ./frontend
