@@ -19,8 +19,11 @@ export class RedisService implements OnModuleDestroy {
   private subscriber: RedisClientType;
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
-    void this.checkConnection();
-    void this.initializePubSub();
+    // Only initialize connections in non-test environments
+    if (process.env.NODE_ENV !== 'test') {
+      void this.checkConnection();
+      void this.initializePubSub();
+    }
   }
 
   async onModuleDestroy() {

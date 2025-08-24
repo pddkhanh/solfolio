@@ -30,7 +30,7 @@ describe('WebsocketGateway', () => {
       leave: jest.fn(),
       handshake: {
         query: {
-          wallet: 'test-wallet-address',
+          wallet: '11111111111111111111111111111111', // Valid Solana address (System Program)
         },
       },
     } as any;
@@ -74,7 +74,7 @@ describe('WebsocketGateway', () => {
         clientId: 'test-socket-id',
       });
       expect(mockSocket.join).toHaveBeenCalledWith(
-        'wallet:test-wallet-address',
+        'wallet:11111111111111111111111111111111',
       );
     });
 
@@ -101,15 +101,16 @@ describe('WebsocketGateway', () => {
 
   describe('handleWalletSubscription', () => {
     it('should subscribe client to wallet room', async () => {
+      const validWallet = 'So11111111111111111111111111111111111111112'; // Valid wrapped SOL address
       await gateway.handleWalletSubscription(
         mockSocket as Socket,
-        'new-wallet-address',
+        validWallet,
       );
-      expect(mockSocket.join).toHaveBeenCalledWith('wallet:new-wallet-address');
+      expect(mockSocket.join).toHaveBeenCalledWith(`wallet:${validWallet}`);
       expect(mockSocket.emit).toHaveBeenCalledWith('subscription:confirmed', {
         type: 'wallet',
-        address: 'new-wallet-address',
-        room: 'wallet:new-wallet-address',
+        address: validWallet,
+        room: `wallet:${validWallet}`,
       });
     });
 
@@ -123,16 +124,17 @@ describe('WebsocketGateway', () => {
 
   describe('handleWalletUnsubscription', () => {
     it('should unsubscribe client from wallet room', async () => {
+      const validWallet = '11111111111111111111111111111111';
       await gateway.handleWalletUnsubscription(
         mockSocket as Socket,
-        'test-wallet-address',
+        validWallet,
       );
       expect(mockSocket.leave).toHaveBeenCalledWith(
-        'wallet:test-wallet-address',
+        `wallet:${validWallet}`,
       );
       expect(mockSocket.emit).toHaveBeenCalledWith('unsubscription:confirmed', {
         type: 'wallet',
-        address: 'test-wallet-address',
+        address: validWallet,
       });
     });
   });

@@ -186,7 +186,7 @@ jobs:
         
       - name: Run unit tests
         working-directory: ./backend
-        run: pnpm run test --passWithNoTests
+        run: pnpm run test
         
       - name: Build backend
         working-directory: ./backend
