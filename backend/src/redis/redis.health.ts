@@ -12,7 +12,7 @@ export class RedisHealthIndicator extends HealthIndicator {
     super();
   }
 
-  isHealthy(key: string): HealthIndicatorResult {
+  isHealthy(key: string): Promise<HealthIndicatorResult> {
     const isHealthy = this.redisService.isHealthy();
     const status = this.redisService.getConnectionStatus();
 
@@ -22,9 +22,9 @@ export class RedisHealthIndicator extends HealthIndicator {
     });
 
     if (isHealthy) {
-      return result;
+      return Promise.resolve(result);
     }
 
-    throw new HealthCheckError('Redis check failed', result);
+    return Promise.reject(new HealthCheckError('Redis check failed', result));
   }
 }
