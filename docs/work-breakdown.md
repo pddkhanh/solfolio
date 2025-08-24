@@ -236,11 +236,11 @@
 - [ ] **TASK-125** Implement lazy loading for positions (1.5h)
 
 ### 7.2 gRPC Migration (Optional but recommended)
-- [ ] **TASK-126** Set up basic gRPC server (2h)
-- [ ] **TASK-127** Create portfolio.proto definitions (1.5h)
-- [ ] **TASK-128** Implement gRPC service methods (2h)
-- [ ] **TASK-129** Add Envoy proxy for gRPC-Web (1.5h)
-- [ ] **TASK-130** Migrate frontend to use gRPC-Web (2h)
+- [x] **TASK-126** Set up basic gRPC server (2h) ✅
+- [x] **TASK-127** Create portfolio.proto definitions (1.5h) ✅
+- [x] **TASK-128** Implement gRPC service methods (2h) ✅
+- [x] **TASK-129** Add Envoy proxy for gRPC-Web (1.5h) ✅
+- [x] **TASK-130** Migrate frontend to use gRPC-Web (2h) ✅
 
 ### 7.3 Error Handling & Recovery
 - [x] **TASK-131** Add comprehensive error boundaries (1h) ✅

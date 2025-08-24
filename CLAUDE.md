@@ -102,6 +102,8 @@ cd backend
 pnpm run start:dev    # Development server with hot-reload
 pnpm run start:debug  # Debug mode
 pnpm run start:prod   # Production mode
+pnpm run start:grpc   # Start gRPC server
+pnpm run start:grpc:dev # Start gRPC server in dev mode
 
 # Building
 pnpm run build        # Build for production
