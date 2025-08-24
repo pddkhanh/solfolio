@@ -10,7 +10,7 @@ import { RedisHealthIndicator } from './redis.health';
   imports: [
     CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         store: redisStore as any,
         host: configService.get('REDIS_HOST', 'redis'),
         port: configService.get('REDIS_PORT', 6379),

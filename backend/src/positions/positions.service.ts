@@ -63,8 +63,11 @@ export class PositionsService {
   async getPositions(walletAddress: string): Promise<PortfolioPosition[]> {
     try {
       // Generate cache key
-      const cacheKey = this.redisService.generateKey('positions', walletAddress);
-      
+      const cacheKey = this.redisService.generateKey(
+        'positions',
+        walletAddress,
+      );
+
       // Use Redis wrap to handle caching automatically
       return await this.redisService.wrap(
         cacheKey,
@@ -109,8 +112,11 @@ export class PositionsService {
   async getPortfolioSummary(walletAddress: string): Promise<PortfolioSummary> {
     try {
       // Generate cache key for portfolio summary
-      const cacheKey = this.redisService.generateKey('portfolio', walletAddress);
-      
+      const cacheKey = this.redisService.generateKey(
+        'portfolio',
+        walletAddress,
+      );
+
       // Use Redis wrap to handle caching automatically
       return await this.redisService.wrap(
         cacheKey,
@@ -157,7 +163,9 @@ export class PositionsService {
             other: positions
               .filter(
                 (p) =>
-                  !['STAKING', 'LENDING', 'LP_POSITION'].includes(p.positionType),
+                  !['STAKING', 'LENDING', 'LP_POSITION'].includes(
+                    p.positionType,
+                  ),
               )
               .reduce((sum, p) => sum + p.usdValue, 0),
           };
@@ -168,7 +176,10 @@ export class PositionsService {
             return sum + pos.apy * weight;
           }, 0);
 
-          const dailyRewards = positions.reduce((sum, pos) => sum + pos.rewards, 0);
+          const dailyRewards = positions.reduce(
+            (sum, pos) => sum + pos.rewards,
+            0,
+          );
           const monthlyRewards = dailyRewards * 30;
 
           const summary: PortfolioSummary = {
@@ -277,7 +288,10 @@ export class PositionsService {
     walletAddress: string,
   ): Promise<PortfolioSummary | null> {
     try {
-      const cacheKey = this.redisService.generateKey('portfolio', walletAddress);
+      const cacheKey = this.redisService.generateKey(
+        'portfolio',
+        walletAddress,
+      );
       return await this.redisService.get<PortfolioSummary>(cacheKey);
     } catch (error) {
       this.logger.error('Error fetching cached portfolio:', error);

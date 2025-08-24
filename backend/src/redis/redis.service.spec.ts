@@ -5,7 +5,6 @@ import { RedisService } from './redis.service';
 
 describe('RedisService', () => {
   let service: RedisService;
-  let cacheManager: Cache;
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -26,8 +25,7 @@ describe('RedisService', () => {
     }).compile();
 
     service = module.get<RedisService>(RedisService);
-    cacheManager = module.get<Cache>(CACHE_MANAGER);
-    
+
     // Clear all mocks
     jest.clearAllMocks();
   });
@@ -94,9 +92,7 @@ describe('RedisService', () => {
       mockCacheManager.set.mockRejectedValue(new Error('Redis error'));
 
       // Should not throw
-      await expect(
-        service.set('error-key', 'value'),
-      ).resolves.toBeUndefined();
+      await expect(service.set('error-key', 'value')).resolves.toBeUndefined();
     });
   });
 
@@ -227,8 +223,16 @@ describe('RedisService', () => {
       await service.mset(items);
 
       expect(mockCacheManager.set).toHaveBeenCalledTimes(2);
-      expect(mockCacheManager.set).toHaveBeenCalledWith('key1', 'value1', 300000);
-      expect(mockCacheManager.set).toHaveBeenCalledWith('key2', 'value2', 60000);
+      expect(mockCacheManager.set).toHaveBeenCalledWith(
+        'key1',
+        'value1',
+        300000,
+      );
+      expect(mockCacheManager.set).toHaveBeenCalledWith(
+        'key2',
+        'value2',
+        60000,
+      );
     });
   });
 

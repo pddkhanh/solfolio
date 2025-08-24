@@ -9,11 +9,6 @@ export interface TokenPriceInfo {
   updatedAt: Date;
 }
 
-interface CachedPrice {
-  price: number;
-  timestamp: number;
-}
-
 @Injectable()
 export class PriceService {
   private readonly logger = new Logger(PriceService.name);
@@ -40,11 +35,11 @@ export class PriceService {
     // Check cache first
     if (!forceRefresh) {
       // Use batch get for efficiency
-      const cacheKeys = tokenMints.map(mint => 
-        this.redisService.generateKey('price', mint)
+      const cacheKeys = tokenMints.map((mint) =>
+        this.redisService.generateKey('price', mint),
       );
       const cachedPrices = await this.redisService.mget<number>(cacheKeys);
-      
+
       tokenMints.forEach((mint, index) => {
         const cachedPrice = cachedPrices[index];
         if (cachedPrice !== null) {
@@ -65,8 +60,12 @@ export class PriceService {
           await this.jupiterPriceService.getTokenPrices(mintsToFetch);
 
         // Update cache and result using batch set
-        const cacheItems: Array<{ key: string; value: number; options?: { ttl: number } }> = [];
-        
+        const cacheItems: Array<{
+          key: string;
+          value: number;
+          options?: { ttl: number };
+        }> = [];
+
         for (const [mint, price] of freshPrices) {
           const cacheKey = this.redisService.generateKey('price', mint);
           cacheItems.push({
@@ -76,7 +75,7 @@ export class PriceService {
           });
           result.set(mint, price);
         }
-        
+
         // Batch set all prices at once
         if (cacheItems.length > 0) {
           await this.redisService.mset(cacheItems);
@@ -168,10 +167,10 @@ export class PriceService {
   /**
    * Clear price cache
    */
-  async clearCache(): Promise<void> {
+  clearCache(): void {
     // Clear all price entries from Redis
     // In production, you might want to use pattern-based deletion
-    await this.redisService.delByPattern('price:*');
+    this.redisService.delByPattern('price:*');
     this.logger.log('Price cache cleared');
   }
 

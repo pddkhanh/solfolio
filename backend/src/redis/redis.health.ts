@@ -12,7 +12,7 @@ export class RedisHealthIndicator extends HealthIndicator {
     super();
   }
 
-  async isHealthy(key: string): Promise<HealthIndicatorResult> {
+  isHealthy(key: string): HealthIndicatorResult {
     const isHealthy = this.redisService.isHealthy();
     const status = this.redisService.getConnectionStatus();
 
