@@ -2,11 +2,7 @@ import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { Connection, PublicKey, AccountInfo } from '@solana/web3.js';
 import { HeliusService } from '../helius/helius.service';
 import { EventEmitter } from 'events';
-import {
-  AccountChangeEvent,
-  MonitoredWallet,
-  DEFAULT_MONITORING_CONFIG,
-} from './monitoring.interfaces';
+import { AccountChangeEvent, MonitoredWallet } from './monitoring.interfaces';
 
 @Injectable()
 export class AccountSubscriptionService
@@ -39,7 +35,7 @@ export class AccountSubscriptionService
     });
   }
 
-  async subscribeToWallet(walletAddress: string): Promise<number | null> {
+  subscribeToWallet(walletAddress: string): number | null {
     try {
       // Check if already subscribed
       if (this.subscriptions.has(walletAddress)) {
@@ -51,7 +47,7 @@ export class AccountSubscriptionService
       let publicKey: PublicKey;
       try {
         publicKey = new PublicKey(walletAddress);
-      } catch (error) {
+      } catch {
         this.logger.error(`Invalid wallet address: ${walletAddress}`);
         return null;
       }
@@ -71,7 +67,7 @@ export class AccountSubscriptionService
       );
 
       // Also subscribe to logs for this account to catch transactions
-      await this.subscribeToLogs(walletAddress);
+      this.subscribeToLogs(walletAddress);
 
       return subscriptionId;
     } catch (error) {
@@ -83,7 +79,7 @@ export class AccountSubscriptionService
     }
   }
 
-  private async subscribeToLogs(walletAddress: string) {
+  private subscribeToLogs(walletAddress: string) {
     try {
       const publicKey = new PublicKey(walletAddress);
 
@@ -197,7 +193,7 @@ export class AccountSubscriptionService
     );
   }
 
-  async getActiveSubscriptions(): Promise<MonitoredWallet[]> {
+  getActiveSubscriptions(): MonitoredWallet[] {
     const wallets: MonitoredWallet[] = [];
 
     for (const [address, subscriptionId] of this.subscriptions.entries()) {

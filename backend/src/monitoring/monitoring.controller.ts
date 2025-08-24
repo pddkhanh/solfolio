@@ -24,9 +24,9 @@ export class MonitoringController {
   ) {}
 
   @Get('status')
-  async getMonitoringStatus() {
+  getMonitoringStatus() {
     try {
-      const activeWallets = await this.walletMonitor.getActiveWallets();
+      const activeWallets = this.walletMonitor.getActiveWallets();
       return {
         success: true,
         data: {
@@ -50,7 +50,7 @@ export class MonitoringController {
       // Validate address
       this.validateSolanaAddress(address);
 
-      const status = await this.walletMonitor.getMonitoringStatus(address);
+      const status = this.walletMonitor.getMonitoringStatus(address);
       const recentChanges = await this.changeDetector.getRecentChanges(
         address,
         5,

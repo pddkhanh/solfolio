@@ -40,22 +40,22 @@ export class WalletMonitorService implements OnModuleInit {
     this.accountSubscription.on(
       'accountChange',
       (event: AccountChangeEvent) => {
-        this.handleAccountChange(event);
+        void this.handleAccountChange(event);
       },
     );
 
     // Listen for transactions
     this.accountSubscription.on('transaction', (event: any) => {
-      this.handleTransaction(event);
+      void this.handleTransaction(event);
     });
 
     // Listen for WebSocket client connections
     this.websocketService.on('walletSubscribed', (walletAddress: string) => {
-      this.startMonitoring(walletAddress);
+      void this.startMonitoring(walletAddress);
     });
 
     this.websocketService.on('walletUnsubscribed', (walletAddress: string) => {
-      this.stopMonitoring(walletAddress);
+      void this.stopMonitoring(walletAddress);
     });
   }
 
@@ -70,7 +70,7 @@ export class WalletMonitorService implements OnModuleInit {
 
       // Subscribe to account changes
       const subscriptionId =
-        await this.accountSubscription.subscribeToWallet(walletAddress);
+        this.accountSubscription.subscribeToWallet(walletAddress);
 
       if (subscriptionId) {
         this.activeWallets.add(walletAddress);
@@ -127,7 +127,7 @@ export class WalletMonitorService implements OnModuleInit {
     }
   }
 
-  private async handleAccountChange(event: AccountChangeEvent) {
+  private handleAccountChange(event: AccountChangeEvent) {
     const { accountId: walletAddress } = event;
 
     this.logger.debug(
@@ -182,16 +182,17 @@ export class WalletMonitorService implements OnModuleInit {
     }
 
     // Schedule new refresh
-    const timer = setTimeout(async () => {
-      try {
-        await this.refreshPositions(walletAddress);
-        this.positionRefreshQueue.delete(walletAddress);
-      } catch (error) {
-        this.logger.error(
-          `Failed to refresh positions for ${walletAddress}:`,
-          error,
-        );
-      }
+    const timer = setTimeout(() => {
+      void this.refreshPositions(walletAddress)
+        .then(() => {
+          this.positionRefreshQueue.delete(walletAddress);
+        })
+        .catch((error) => {
+          this.logger.error(
+            `Failed to refresh positions for ${walletAddress}:`,
+            error,
+          );
+        });
     }, delay);
 
     this.positionRefreshQueue.set(walletAddress, timer);
@@ -238,11 +239,11 @@ export class WalletMonitorService implements OnModuleInit {
     }
   }
 
-  async getMonitoringStatus(walletAddress: string): Promise<{
+  getMonitoringStatus(walletAddress: string): {
     isMonitored: boolean;
     hasActiveSubscription: boolean;
     hasPendingRefresh: boolean;
-  }> {
+  } {
     return {
       isMonitored: this.activeWallets.has(walletAddress),
       hasActiveSubscription:
@@ -251,7 +252,7 @@ export class WalletMonitorService implements OnModuleInit {
     };
   }
 
-  async getActiveWallets(): Promise<MonitoredWallet[]> {
+  getActiveWallets(): MonitoredWallet[] {
     return this.accountSubscription.getActiveSubscriptions();
   }
 
