@@ -8,6 +8,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { PriceModule } from './price/price.module';
 import { MarinadeModule } from './marinade/marinade.module';
 import { PositionsModule } from './positions/positions.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PositionsModule } from './positions/positions.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    RedisModule,
     HealthModule,
     BlockchainModule,
     WalletModule,
