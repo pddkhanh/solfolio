@@ -3,6 +3,7 @@ import { WalletService } from './wallet.service';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { ConnectionManager } from '../blockchain/connection-manager.service';
 import { RateLimiterService } from '../blockchain/rate-limiter.service';
+import { RpcBatchService } from '../blockchain/rpc-batch.service';
 import { TokenMetadataService } from './token-metadata.service';
 import { PriceService } from '../price/price.service';
 import { PublicKey, Connection } from '@solana/web3.js';
@@ -42,6 +43,15 @@ describe('WalletService', () => {
           provide: RateLimiterService,
           useValue: {
             waitForSlot: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: RpcBatchService,
+          useValue: {
+            getBalance: jest.fn(),
+            getAccountInfo: jest.fn(),
+            batchGetParsedTokenAccountsByOwner: jest.fn().mockResolvedValue(new Map()),
+            getMultipleTokenAccounts: jest.fn().mockResolvedValue([]),
           },
         },
         {
