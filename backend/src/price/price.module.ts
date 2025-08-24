@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { PriceService } from './price.service';
@@ -9,7 +9,12 @@ import { RedisModule } from '../redis/redis.module';
 import { WebsocketModule } from '../websocket/websocket.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule, RedisModule, WebsocketModule],
+  imports: [
+    HttpModule,
+    ConfigModule,
+    RedisModule,
+    forwardRef(() => WebsocketModule),
+  ],
   controllers: [PriceController],
   providers: [PriceService, JupiterPriceService, PriceStreamService],
   exports: [PriceService, JupiterPriceService, PriceStreamService],
