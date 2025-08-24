@@ -9,6 +9,7 @@ import { PriceModule } from './price/price.module';
 import { MarinadeModule } from './marinade/marinade.module';
 import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RedisModule } from './redis/redis.module';
     PriceModule,
     MarinadeModule,
     PositionsModule,
+    WebsocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
