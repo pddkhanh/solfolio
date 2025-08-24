@@ -44,7 +44,7 @@ export class OrcaAdapter extends BaseProtocolAdapter {
 
       // Check for LP token balances
       for (const lpTokenMint of this.ORCA_LP_TOKENS) {
-        const balance = await this.getLpTokenBalance(walletPubkey, lpTokenMint);
+        const balance = this.getLpTokenBalance(walletPubkey, lpTokenMint);
 
         if (balance > 0) {
           const lpPosition = await this.createLpPosition(lpTokenMint, balance);
@@ -100,15 +100,17 @@ export class OrcaAdapter extends BaseProtocolAdapter {
     return this.ORCA_LP_TOKENS.has(tokenMint);
   }
 
-  private async getLpTokenBalance(
+  private getLpTokenBalance(
     walletPubkey: PublicKey,
     lpTokenMint: string,
-  ): Promise<number> {
+  ): number {
     try {
       // Simplified mock implementation for proof of concept
       // In production, would use Orca SDK to fetch actual LP token balances
       // For now, return 0 to indicate no LP positions detected
-      this.logger.debug(`Checking LP balance for ${lpTokenMint} - using mock implementation`);
+      this.logger.debug(
+        `Checking LP balance for ${lpTokenMint} - using mock implementation`,
+      );
       return 0;
     } catch (error) {
       this.logger.error(
