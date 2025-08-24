@@ -166,7 +166,9 @@ describe('PortfolioGrpcService', () => {
 
       expect(walletService.getWalletBalances).toHaveBeenCalledWith(mockWallet);
       expect(result.tokens).toHaveLength(2);
-      expect(result.tokens[0].mint).toBe('So11111111111111111111111111111111111111112');
+      expect(result.tokens[0].mint).toBe(
+        'So11111111111111111111111111111111111111112',
+      );
       expect(result.tokens[0].value).toBe(527.625);
       expect(result.tokens[1].value).toBe(1000);
     });

@@ -14,6 +14,11 @@ describe('CircuitBreakerService', () => {
     }).compile();
 
     service = module.get<CircuitBreakerService>(CircuitBreakerService);
+
+    // Mock the logger to prevent console output during tests
+    jest.spyOn(service['logger'], 'log').mockImplementation();
+    jest.spyOn(service['logger'], 'warn').mockImplementation();
+    jest.spyOn(service['logger'], 'error').mockImplementation();
   });
 
   afterEach(() => {

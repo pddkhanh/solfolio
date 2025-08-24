@@ -17,6 +17,11 @@ describe('GlobalExceptionFilter', () => {
 
     filter = module.get<GlobalExceptionFilter>(GlobalExceptionFilter);
 
+    // Mock the logger to prevent console output during tests
+    jest.spyOn(filter['logger'], 'error').mockImplementation();
+    jest.spyOn(filter['logger'], 'warn').mockImplementation();
+    jest.spyOn(filter['logger'], 'log').mockImplementation();
+
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),

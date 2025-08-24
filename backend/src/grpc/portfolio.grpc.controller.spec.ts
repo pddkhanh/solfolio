@@ -150,7 +150,9 @@ describe('PortfolioGrpcController', () => {
       });
 
       // Mock the service method to return an observable
-      (service.subscribeToUpdates as jest.Mock).mockReturnValue(mockUpdateEvent);
+      (service.subscribeToUpdates as jest.Mock).mockReturnValue(
+        mockUpdateEvent,
+      );
 
       const result = controller.subscribeToUpdates(mockRequest);
 
