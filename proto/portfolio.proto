@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package portfolio;
+
+// Token balance information
+message Token {
+  string mint = 1;
+  string symbol = 2;
+  string name = 3;
+  double balance = 4;
+  int32 decimals = 5;
+  double price = 6;
+  double value = 7;
+}
+
+// Protocol position information
+message Position {
+  string protocol = 1;
+  string type = 2;
+  string address = 3;
+  double value = 4;
+  double apy = 5;
+  repeated Token tokens = 6;
+  map<string, string> metadata = 7;
+}
+
+// Portfolio summary
+message Portfolio {
+  string wallet = 1;
+  double total_value = 2;
+  repeated Token tokens = 3;
+  repeated Position positions = 4;
+  int64 timestamp = 5;
+}
+
+// Request messages
+message GetPortfolioRequest {
+  string wallet = 1;
+  bool force_refresh = 2;
+}
+
+message GetTokenBalancesRequest {
+  string wallet = 1;
+}
+
+message GetPositionsRequest {
+  string wallet = 1;
+  repeated string protocols = 2;
+}
+
+message GetPricesRequest {
+  repeated string mints = 1;
+}
+
+message SubscribeToUpdatesRequest {
+  string wallet = 1;
+  repeated string event_types = 2;
+}
+
+// Response messages
+message GetPortfolioResponse {
+  Portfolio portfolio = 1;
+}
+
+message GetTokenBalancesResponse {
+  repeated Token tokens = 1;
+}
+
+message GetPositionsResponse {
+  repeated Position positions = 1;
+}
+
+message GetPricesResponse {
+  map<string, double> prices = 1;
+}
+
+message UpdateEvent {
+  string type = 1;
+  string wallet = 2;
+  oneof data {
+    Token token_update = 3;
+    Position position_update = 4;
+    PriceUpdate price_update = 5;
+  }
+  int64 timestamp = 6;
+}
+
+message PriceUpdate {
+  string mint = 1;
+  double price = 2;
+  double change_24h = 3;
+}
+
+// Health check messages
+message HealthCheckRequest {
+  string service = 1;
+}
+
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+  }
+  ServingStatus status = 1;
+  string message = 2;
+}
+
+// Portfolio Service
+service PortfolioService {
+  rpc GetPortfolio(GetPortfolioRequest) returns (GetPortfolioResponse);
+  rpc GetTokenBalances(GetTokenBalancesRequest) returns (GetTokenBalancesResponse);
+  rpc GetPositions(GetPositionsRequest) returns (GetPositionsResponse);
+  rpc GetPrices(GetPricesRequest) returns (GetPricesResponse);
+  rpc SubscribeToUpdates(SubscribeToUpdatesRequest) returns (stream UpdateEvent);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
