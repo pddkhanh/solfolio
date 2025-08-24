@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PublicKey } from '@solana/web3.js';
 import { Marinade, MarinadeConfig } from '@marinade.finance/marinade-ts-sdk';
 import { ProtocolType, PositionType } from '@prisma/client';
@@ -11,7 +11,10 @@ import { PriceService } from '../../price/price.service';
 import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
-export class MarinadeAdapter extends BaseProtocolAdapter {
+export class MarinadeAdapter
+  extends BaseProtocolAdapter
+  implements OnModuleInit
+{
   private marinade: Marinade;
   private readonly MSOL_MINT = 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So';
   private readonly SOL_MINT = 'So11111111111111111111111111111111111111112';
@@ -23,6 +26,9 @@ export class MarinadeAdapter extends BaseProtocolAdapter {
     redisService: RedisService,
   ) {
     super(ProtocolType.MARINADE, 'Marinade Finance', 100, redisService);
+  }
+
+  onModuleInit() {
     this.initializeMarinade();
   }
 
@@ -37,7 +43,7 @@ export class MarinadeAdapter extends BaseProtocolAdapter {
       this.logger.log('Marinade SDK initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize Marinade SDK:', error);
-      throw error;
+      // Don't throw to allow the app to start even if Marinade init fails
     }
   }
 
