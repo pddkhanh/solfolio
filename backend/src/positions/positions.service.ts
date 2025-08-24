@@ -7,6 +7,8 @@ import {
 import { WalletService } from '../wallet/wallet.service';
 import { PriceService } from '../price/price.service';
 import { RedisService } from '../redis/redis.service';
+import { ProtocolsService } from '../protocols/protocols.service';
+import { ProtocolAdapterRegistry } from '../protocols/protocol-adapter.registry';
 
 export interface PortfolioPosition extends MarinadePosition {
   protocolName: string;
@@ -53,12 +55,14 @@ export class PositionsService {
     private readonly walletService: WalletService,
     private readonly priceService: PriceService,
     private readonly redisService: RedisService,
+    private readonly protocolsService: ProtocolsService,
+    private readonly protocolRegistry: ProtocolAdapterRegistry,
   ) {
     this.prisma = new PrismaClient();
   }
 
   /**
-   * Get all positions for a wallet address
+   * Get all positions for a wallet address using parallel fetching
    */
   async getPositions(walletAddress: string): Promise<PortfolioPosition[]> {
     try {
@@ -72,26 +76,46 @@ export class PositionsService {
       return await this.redisService.wrap(
         cacheKey,
         async () => {
-          const positions: PortfolioPosition[] = [];
+          // Use the new protocol adapter system with parallel fetching
+          const aggregatedPositions =
+            await this.protocolsService.fetchAllPositions(walletAddress, {
+              parallel: true, // Enable parallel fetching
+              useCache: true,
+              cacheTtl: 300,
+              timeout: 10000, // 10 second timeout per protocol
+            });
 
-          // Get Marinade positions
-          const marinadePositions =
-            await this.marinadeService.getPositions(walletAddress);
-          positions.push(
-            ...marinadePositions.map((pos) => ({
-              ...pos,
-              protocolName: 'Marinade Finance',
-              tokenSymbol: 'mSOL',
-              tokenName: 'Marinade staked SOL',
-              logoUri:
-                'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png',
-            })),
+          // Transform to PortfolioPosition format
+          const positions: PortfolioPosition[] =
+            aggregatedPositions.positions.map((pos) => {
+              // Add token metadata based on protocol
+              let tokenSymbol = '';
+              let tokenName = '';
+              let logoUri = '';
+
+              // Map known tokens (can be extended)
+              if (
+                pos.tokenMint === 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So'
+              ) {
+                tokenSymbol = 'mSOL';
+                tokenName = 'Marinade staked SOL';
+                logoUri =
+                  'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So/logo.png';
+              }
+              // Add more token mappings as needed
+
+              return {
+                ...pos,
+                protocolName: pos.protocolName,
+                tokenSymbol,
+                tokenName,
+                logoUri,
+              };
+            });
+
+          this.logger.log(
+            `Fetched ${positions.length} positions from ${aggregatedPositions.byProtocol.size} protocols for ${walletAddress}`,
           );
-
-          // In the future, add other protocol adapters here
-          // const kaminoPositions = await this.kaminoService.getPositions(walletAddress);
-          // const jitoPositions = await this.jitoService.getPositions(walletAddress);
-          // etc.
 
           return positions;
         },
