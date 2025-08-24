@@ -11,6 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { WebsocketService } from './websocket.service';
+import { PublicKey } from '@solana/web3.js';
 
 @WebSocketGateway({
   cors: {
@@ -67,6 +68,12 @@ export class WebsocketGateway
   ) {
     if (!walletAddress) {
       client.emit('error', { message: 'Wallet address is required' });
+      return;
+    }
+
+    // Validate Solana wallet address
+    if (!this.isValidSolanaAddress(walletAddress)) {
+      client.emit('error', { message: 'Invalid Solana wallet address' });
       return;
     }
 
@@ -145,5 +152,14 @@ export class WebsocketGateway
   @SubscribeMessage('ping')
   handlePing(@ConnectedSocket() client: Socket) {
     client.emit('pong', { timestamp: Date.now() });
+  }
+
+  private isValidSolanaAddress(address: string): boolean {
+    try {
+      new PublicKey(address);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }
