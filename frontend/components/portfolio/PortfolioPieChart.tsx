@@ -36,9 +36,9 @@ interface ChartData {
   percentage: number;
 }
 
-// Define a color palette for the pie chart
+// Define a color palette for the pie chart with better visibility
 const COLORS = [
-  '#0ea5e9', // sky-500
+  '#3b82f6', // blue-500
   '#8b5cf6', // violet-500
   '#ec4899', // pink-500
   '#f97316', // orange-500
@@ -197,8 +197,8 @@ export function PortfolioPieChart() {
           <CardTitle>Portfolio Distribution</CardTitle>
           <CardDescription>Token allocation by value</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Skeleton className="h-[400px] w-full" />
+        <CardContent className="p-4 md:p-6">
+          <Skeleton className="h-[300px] sm:h-[350px] md:h-[400px] w-full rounded-lg" />
         </CardContent>
       </Card>
     );
@@ -242,39 +242,48 @@ export function PortfolioPieChart() {
           Token allocation by value - Total: {formatUSD(balances.totalValueUSD)}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={renderCustomLabel}
-              outerRadius={120}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={COLORS[index % COLORS.length]}
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="bottom" 
-              height={36}
-              formatter={(value, entry: any) => (
-                <span className="text-sm">
-                  {value} ({formatNumber(entry.payload.percentage)}%)
-                </span>
-              )}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+      <CardContent className="p-4 md:p-6">
+        <div className="w-full h-[300px] sm:h-[350px] md:h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomLabel}
+                outerRadius="80%"
+                fill="#8884d8"
+                dataKey="value"
+                animationBegin={0}
+                animationDuration={800}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]}
+                    className="hover:opacity-80 transition-opacity cursor-pointer stroke-background"
+                    strokeWidth={2}
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                wrapperStyle={{
+                  paddingTop: '20px',
+                  fontSize: '12px',
+                }}
+                formatter={(value, entry: any) => (
+                  <span className="text-xs sm:text-sm">
+                    {value} ({formatNumber(entry.payload.percentage)}%)
+                  </span>
+                )}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );

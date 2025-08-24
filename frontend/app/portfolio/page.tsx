@@ -56,9 +56,11 @@ export default function PortfolioPage() {
         {/* Portfolio Overview */}
         <PortfolioOverview />
 
-        {/* Portfolio Distribution Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <PortfolioPieChart />
+        {/* Portfolio Analytics Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
+          <div className="w-full">
+            <PortfolioPieChart />
+          </div>
           <div className="space-y-4">
             {/* This space is reserved for additional analytics components */}
             {/* Future: Protocol breakdown chart, historical value chart, etc. */}
