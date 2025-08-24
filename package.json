@@ -4,7 +4,7 @@
   "description": "Solana DeFi Portfolio Tracker",
   "private": true,
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=22.0.0",
