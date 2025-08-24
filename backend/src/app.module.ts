@@ -16,6 +16,7 @@ import { RaydiumModule } from './raydium/raydium.module';
 import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 import {
   GlobalExceptionFilter,
   LoggingInterceptor,
@@ -42,6 +43,7 @@ import {
     RaydiumModule,
     PositionsModule,
     WebsocketModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [
