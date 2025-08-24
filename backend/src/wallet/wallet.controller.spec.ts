@@ -43,6 +43,11 @@ describe('WalletController', () => {
 
     controller = module.get<WalletController>(WalletController);
     walletService = module.get(WalletService);
+    
+    // Mock the logger to prevent console output during tests
+    jest.spyOn(controller['logger'], 'log').mockImplementation();
+    jest.spyOn(controller['logger'], 'warn').mockImplementation();
+    jest.spyOn(controller['logger'], 'error').mockImplementation();
   });
 
   it('should be defined', () => {
