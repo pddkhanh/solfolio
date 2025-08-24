@@ -17,6 +17,7 @@ import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { GrpcModule } from './grpc/grpc.module';
 import {
   GlobalExceptionFilter,
   LoggingInterceptor,
@@ -44,6 +45,7 @@ import {
     PositionsModule,
     WebsocketModule,
     MonitoringModule,
+    GrpcModule,
   ],
   controllers: [AppController],
   providers: [
