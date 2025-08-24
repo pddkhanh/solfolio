@@ -19,14 +19,16 @@ export interface RateLimitOptions {
 }
 
 export const RATE_LIMIT_KEY = 'rate_limit';
-export const RateLimit = (options: RateLimitOptions) => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
-  if (key) {
-    Reflect.defineMetadata(RATE_LIMIT_KEY, options, target, key);
-  } else {
-    Reflect.defineMetadata(RATE_LIMIT_KEY, options, target);
-  }
-  return descriptor;
-};
+export const RateLimit =
+  (options: RateLimitOptions) =>
+  (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+    if (key) {
+      Reflect.defineMetadata(RATE_LIMIT_KEY, options, target, key);
+    } else {
+      Reflect.defineMetadata(RATE_LIMIT_KEY, options, target);
+    }
+    return descriptor;
+  };
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {

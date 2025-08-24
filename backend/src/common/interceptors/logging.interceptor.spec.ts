@@ -276,8 +276,8 @@ describe('LoggingInterceptor', () => {
         }
       };
 
-      result1.subscribe({ next: checkComplete });
-      result2.subscribe({ next: checkComplete });
+      result1.subscribe({ next: () => checkComplete() });
+      result2.subscribe({ next: () => checkComplete() });
     });
 
     it('should include stack trace in development mode for errors', (done) => {
