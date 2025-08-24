@@ -27,15 +27,40 @@ import { RedisHealthIndicator } from './redis.health';
           }
         }
 
-        return {
-          stores: [
-            new Keyv({
-              store: new KeyvRedis(redisUrl),
-              ttl: 300000, // 5 minutes in milliseconds (cache-manager v7 uses ms)
-              namespace: 'solfolio',
-            }),
-          ],
-        };
+        try {
+          const keyvRedis = new KeyvRedis(redisUrl);
+
+          // Add error handling for Redis connection
+          keyvRedis.on('error', (error) => {
+            console.error('KeyvRedis connection error:', error);
+          });
+
+          const keyv = new Keyv({
+            store: keyvRedis,
+            ttl: 300000, // 5 minutes in milliseconds
+            namespace: 'solfolio',
+          });
+
+          // Add error handling for Keyv
+          keyv.on('error', (error) => {
+            console.error('Keyv error:', error);
+          });
+
+          return {
+            stores: [keyv],
+          };
+        } catch (error) {
+          console.error('Failed to initialize Redis cache:', error);
+          // Return in-memory cache as fallback
+          return {
+            stores: [
+              new Keyv({
+                ttl: 300000,
+                namespace: 'solfolio',
+              }),
+            ],
+          };
+        }
       },
       inject: [ConfigService],
     }),

@@ -22,7 +22,10 @@ export class RedisService implements OnModuleDestroy {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     // Only initialize connections in non-test environments
     if (process.env.NODE_ENV !== 'test') {
-      void this.checkConnection();
+      // Delay connection check to allow cache manager to initialize
+      setTimeout(() => {
+        void this.checkConnection();
+      }, 1000);
       void this.initializePubSub();
       this.startFallbackCacheCleanup();
     }
@@ -67,13 +70,22 @@ export class RedisService implements OnModuleDestroy {
     try {
       // Test connection by setting and getting a test key
       const testKey = '__redis_connection_test__';
-      await this.cacheManager.set(testKey, 'test', 1);
+      const testValue = `test_${Date.now()}`;
+
+      // Try to set with TTL in milliseconds (cache-manager v5+ uses ms)
+      await this.cacheManager.set(testKey, testValue, 1000);
       const result = await this.cacheManager.get(testKey);
 
-      if (result === 'test') {
+      if (result === testValue) {
         this.isConnected = true;
         this.connectionRetries = 0;
         this.logger.log('Redis connection established successfully');
+        // Clean up test key
+        await this.cacheManager.del(testKey);
+      } else {
+        throw new Error(
+          `Connection test failed: expected ${testValue}, got ${String(result)}`,
+        );
       }
     } catch (error) {
       this.isConnected = false;
