@@ -37,6 +37,11 @@ describe('RpcBatchService', () => {
     service = module.get<RpcBatchService>(RpcBatchService);
     connectionManager = module.get(ConnectionManager);
     rateLimiter = module.get(RateLimiterService);
+    
+    // Mock the logger to prevent console output during tests
+    jest.spyOn(service['logger'], 'log').mockImplementation();
+    jest.spyOn(service['logger'], 'warn').mockImplementation();
+    jest.spyOn(service['logger'], 'error').mockImplementation();
   });
 
   afterEach(() => {
@@ -114,31 +119,36 @@ describe('RpcBatchService', () => {
       expect(results).toHaveLength(batchSize);
     });
 
-    it.skip('should handle errors and reject all promises in the batch', (done) => {
+    it.skip('should handle errors and reject all promises in the batch', async () => {
       const publicKey1 = new PublicKey('11111111111111111111111111111112');
       const publicKey2 = new PublicKey('11111111111111111111111111111113');
 
-      const error = new Error('RPC error');
-      connectionManager.executeWithRetry.mockRejectedValue(error);
+      // Mock to reject with error
+      connectionManager.executeWithRetry.mockImplementation(() => 
+        Promise.reject(new Error('RPC error'))
+      );
 
       const promise1 = service.getAccountInfo(mockConnection, publicKey1);
       const promise2 = service.getAccountInfo(mockConnection, publicKey2);
 
-      // Wait for batching and check results
-      setTimeout(() => {
-        Promise.allSettled([promise1, promise2]).then((results) => {
-          expect(results[0].status).toBe('rejected');
-          expect(results[1].status).toBe('rejected');
+      // Wait for batching to occur
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
-          if (results[0].status === 'rejected') {
-            expect(results[0].reason.message).toBe('RPC error');
-          }
-          if (results[1].status === 'rejected') {
-            expect(results[1].reason.message).toBe('RPC error');
-          }
-          done();
-        });
-      }, 20);
+      // Use allSettled to handle rejected promises
+      const results = await Promise.allSettled([promise1, promise2]);
+      
+      expect(results).toHaveLength(2);
+      expect(results[0].status).toBe('rejected');
+      expect(results[1].status).toBe('rejected');
+
+      if (results[0].status === 'rejected') {
+        expect(results[0].reason).toBeInstanceOf(Error);
+        expect(results[0].reason.message).toBe('RPC error');
+      }
+      if (results[1].status === 'rejected') {
+        expect(results[1].reason).toBeInstanceOf(Error);
+        expect(results[1].reason.message).toBe('RPC error');
+      }
     });
   });
 
