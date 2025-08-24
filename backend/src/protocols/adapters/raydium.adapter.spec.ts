@@ -112,7 +112,7 @@ describe('RaydiumAdapter', () => {
 
     it('should return empty array if no LP token balances found', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'getLpTokenBalance').mockResolvedValue(0);
+      jest.spyOn(adapter as any, 'getLpTokenBalance').mockReturnValue(0);
       jest.spyOn(adapter as any, 'cachePositions').mockResolvedValue(undefined);
 
       const positions = await adapter.getPositions(testWallet);
@@ -124,9 +124,9 @@ describe('RaydiumAdapter', () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest
         .spyOn(adapter as any, 'getLpTokenBalance')
-        .mockResolvedValueOnce(1.5) // First LP token
-        .mockResolvedValueOnce(0) // Second LP token
-        .mockResolvedValueOnce(0); // Third LP token
+        .mockReturnValueOnce(1.5) // First LP token
+        .mockReturnValueOnce(0) // Second LP token
+        .mockReturnValueOnce(0); // Third LP token
 
       const mockPosition = {
         protocol: ProtocolType.RAYDIUM,

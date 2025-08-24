@@ -109,7 +109,7 @@ describe('OrcaAdapter', () => {
 
     it('should return empty array if no LP token balances found', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'getLpTokenBalance').mockResolvedValue(0);
+      jest.spyOn(adapter as any, 'getLpTokenBalance').mockReturnValue(0);
       jest.spyOn(adapter as any, 'cachePositions').mockResolvedValue(undefined);
 
       const positions = await adapter.getPositions(testWallet);
@@ -121,8 +121,8 @@ describe('OrcaAdapter', () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest
         .spyOn(adapter as any, 'getLpTokenBalance')
-        .mockResolvedValueOnce(2) // First LP token
-        .mockResolvedValueOnce(0); // Second LP token
+        .mockReturnValueOnce(2) // First LP token - synchronous return
+        .mockReturnValueOnce(0); // Second LP token - synchronous return
 
       const mockPosition = {
         protocol: ProtocolType.ORCA,
