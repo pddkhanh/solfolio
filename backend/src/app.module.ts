@@ -13,11 +13,11 @@ import { KaminoModule } from './kamino/kamino.module';
 import { PositionsModule } from './positions/positions.module';
 import { RedisModule } from './redis/redis.module';
 import { WebsocketModule } from './websocket/websocket.module';
-import { 
-  GlobalExceptionFilter, 
-  LoggingInterceptor, 
+import {
+  GlobalExceptionFilter,
+  LoggingInterceptor,
   RateLimitGuard,
-  CircuitBreakerService 
+  CircuitBreakerService,
 } from './common';
 
 @Module({

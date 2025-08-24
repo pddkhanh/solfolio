@@ -71,7 +71,10 @@ describe('GlobalExceptionFilter', () => {
         error: 'Validation Error',
         details: { field: 'value' },
       };
-      const exception = new HttpException(exceptionResponse, HttpStatus.BAD_REQUEST);
+      const exception = new HttpException(
+        exceptionResponse,
+        HttpStatus.BAD_REQUEST,
+      );
 
       filter.catch(exception, mockArgumentsHost as ArgumentsHost);
 
@@ -92,7 +95,9 @@ describe('GlobalExceptionFilter', () => {
 
       filter.catch(error, mockArgumentsHost as ArgumentsHost);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+      expect(mockResponse.status).toHaveBeenCalledWith(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -168,7 +173,9 @@ describe('GlobalExceptionFilter', () => {
 
       filter.catch(unknownException, mockArgumentsHost as ArgumentsHost);
 
-      expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+      expect(mockResponse.status).toHaveBeenCalledWith(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -200,7 +207,10 @@ describe('GlobalExceptionFilter', () => {
       mockRequest.url = '/api/users/123';
       mockRequest.method = 'POST';
 
-      const exception = new HttpException('User not found', HttpStatus.NOT_FOUND);
+      const exception = new HttpException(
+        'User not found',
+        HttpStatus.NOT_FOUND,
+      );
 
       filter.catch(exception, mockArgumentsHost as ArgumentsHost);
 

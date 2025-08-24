@@ -4,7 +4,10 @@ import {
   HealthIndicatorResult,
   HealthCheckError,
 } from '@nestjs/terminus';
-import { CircuitBreakerService, CircuitBreakerState } from './circuit-breaker.service';
+import {
+  CircuitBreakerService,
+  CircuitBreakerState,
+} from './circuit-breaker.service';
 
 @Injectable()
 export class CircuitBreakerHealthIndicator extends HealthIndicator {
@@ -12,7 +15,7 @@ export class CircuitBreakerHealthIndicator extends HealthIndicator {
     super();
   }
 
-  async isHealthy(key: string): Promise<HealthIndicatorResult> {
+  isHealthy(key: string): HealthIndicatorResult {
     const stats = this.circuitBreakerService.getAllStats();
     const openCircuits = Object.entries(stats).filter(
       ([, stat]) => stat.state === CircuitBreakerState.OPEN,

@@ -29,7 +29,7 @@ export class LoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
-    
+
     const correlationId = this.generateCorrelationId();
     const startTime = Date.now();
 
@@ -46,14 +46,11 @@ export class LoggingInterceptor implements NestInterceptor {
     response.setHeader('X-Correlation-ID', correlationId);
 
     // Log the incoming request
-    this.logger.log(
-      `Incoming ${request.method} ${request.url}`,
-      {
-        ...requestLog,
-        body: this.sanitizeRequestBody(request.body),
-        query: request.query,
-      },
-    );
+    this.logger.log(`Incoming ${request.method} ${request.url}`, {
+      ...requestLog,
+      body: this.sanitizeRequestBody(request.body),
+      query: request.query,
+    });
 
     return next.handle().pipe(
       tap((data) => {
@@ -71,7 +68,8 @@ export class LoggingInterceptor implements NestInterceptor {
         );
 
         // Log slow requests
-        if (duration > 5000) { // 5 seconds
+        if (duration > 5000) {
+          // 5 seconds
           this.logger.warn(
             `Slow request detected: ${request.method} ${request.url}`,
             {
@@ -94,7 +92,10 @@ export class LoggingInterceptor implements NestInterceptor {
             error: {
               name: error.name,
               message: error.message,
-              stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+              stack:
+                process.env.NODE_ENV === 'development'
+                  ? error.stack
+                  : undefined,
             },
           },
         );
@@ -121,7 +122,7 @@ export class LoggingInterceptor implements NestInterceptor {
     ];
 
     const sanitized = { ...body };
-    
+
     for (const field of sensitiveFields) {
       if (field in sanitized) {
         sanitized[field] = '[REDACTED]';

@@ -135,7 +135,7 @@ describe('LoggingInterceptor', () => {
 
     it('should warn about slow requests', (done) => {
       const mockData = { result: 'success' };
-      
+
       // Mock Date.now to simulate slow request
       const originalNow = Date.now;
       let callCount = 0;

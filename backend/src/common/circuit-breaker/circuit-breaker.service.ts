@@ -15,7 +15,10 @@ export interface CircuitBreakerOptions {
 }
 
 export class CircuitBreakerError extends Error {
-  constructor(public readonly service: string, message?: string) {
+  constructor(
+    public readonly service: string,
+    message?: string,
+  ) {
     super(message || `Circuit breaker is OPEN for service: ${service}`);
     this.name = 'CircuitBreakerError';
   }
@@ -59,11 +62,13 @@ export class CircuitBreakerService {
         this.logger.warn(`Circuit breaker OPEN for ${serviceId}`);
         throw new CircuitBreakerError(serviceId);
       }
-      
+
       // Transition to half-open
       stats.state = CircuitBreakerState.HALF_OPEN;
       stats.successes = 0;
-      this.logger.log(`Circuit breaker transitioning to HALF-OPEN for ${serviceId}`);
+      this.logger.log(
+        `Circuit breaker transitioning to HALF-OPEN for ${serviceId}`,
+      );
     }
 
     try {
@@ -115,7 +120,10 @@ export class CircuitBreakerService {
       }
     }
 
-    if (options.resetTimeoutOnSuccess && stats.state === CircuitBreakerState.CLOSED) {
+    if (
+      options.resetTimeoutOnSuccess &&
+      stats.state === CircuitBreakerState.CLOSED
+    ) {
       stats.failures = 0;
     }
   }

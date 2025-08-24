@@ -19,8 +19,14 @@ export interface RateLimitOptions {
 }
 
 export const RATE_LIMIT_KEY = 'rate_limit';
-export const RateLimit = (options: RateLimitOptions) =>
-  Reflector.createDecorator<RateLimitOptions>({ key: RATE_LIMIT_KEY, options });
+export const RateLimit = (options: RateLimitOptions) => (target: any, key?: string, descriptor?: PropertyDescriptor) => {
+  if (key) {
+    Reflect.defineMetadata(RATE_LIMIT_KEY, options, target, key);
+  } else {
+    Reflect.defineMetadata(RATE_LIMIT_KEY, options, target);
+  }
+  return descriptor;
+};
 
 @Injectable()
 export class RateLimitGuard implements CanActivate {
@@ -32,13 +38,12 @@ export class RateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const rateLimitOptions = this.reflector.get<RateLimitOptions>(
-      RATE_LIMIT_KEY,
-      context.getHandler(),
-    ) || this.reflector.get<RateLimitOptions>(
-      RATE_LIMIT_KEY,
-      context.getClass(),
-    );
+    const rateLimitOptions =
+      this.reflector.get<RateLimitOptions>(
+        RATE_LIMIT_KEY,
+        context.getHandler(),
+      ) ||
+      this.reflector.get<RateLimitOptions>(RATE_LIMIT_KEY, context.getClass());
 
     if (!rateLimitOptions) {
       return true; // No rate limiting applied
@@ -46,17 +51,17 @@ export class RateLimitGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<Request>();
     const key = this.generateKey(request, rateLimitOptions);
-    
+
     try {
       const isAllowed = await this.checkRateLimit(key, rateLimitOptions);
-      
+
       if (!isAllowed) {
         this.logger.warn(`Rate limit exceeded for key: ${key}`, {
           ip: request.ip,
           userAgent: request.get('user-agent'),
           path: request.path,
         });
-        
+
         throw new HttpException(
           {
             error: 'Too Many Requests',
@@ -73,22 +78,16 @@ export class RateLimitGuard implements CanActivate {
       if (error instanceof HttpException) {
         throw error;
       }
-      
-      this.logger.error(
-        `Rate limiting check failed for key: ${key}`,
-        error,
-      );
-      
+
+      this.logger.error(`Rate limiting check failed for key: ${key}`, error);
+
       // On Redis failure, allow the request to proceed
       // This ensures the application doesn't fail completely
       return true;
     }
   }
 
-  private generateKey(
-    request: Request,
-    options: RateLimitOptions,
-  ): string {
+  private generateKey(request: Request, options: RateLimitOptions): string {
     if (options.keyGenerator) {
       return options.keyGenerator(request);
     }

@@ -29,7 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     const correlationId = this.generateCorrelationId();
-    
+
     let status: number;
     let message: string | string[];
     let error: string;
@@ -38,7 +38,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
         error = HttpStatus[status];
@@ -50,11 +50,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = this.shouldExposeError(exception) 
-        ? exception.message 
+      message = this.shouldExposeError(exception)
+        ? exception.message
         : 'Internal server error occurred';
       error = 'Internal Server Error';
-      details = process.env.NODE_ENV === 'development' ? exception.stack : undefined;
+      details =
+        process.env.NODE_ENV === 'development' ? exception.stack : undefined;
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'An unexpected error occurred';
@@ -80,18 +81,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode: status,
       userAgent: request.get('user-agent'),
       ip: request.ip,
-      ...(request.body && Object.keys(request.body).length > 0 && {
-        body: this.sanitizeRequestBody(request.body),
-      }),
+      ...(request.body &&
+        Object.keys(request.body).length > 0 && {
+          body: this.sanitizeRequestBody(request.body),
+        }),
     };
 
     if (status >= 500) {
       this.logger.error(
-        `${message} - ${exception instanceof Error ? exception.stack : JSON.stringify(exception)}`,
+        `${Array.isArray(message) ? message.join(', ') : message} - ${exception instanceof Error ? exception.stack : JSON.stringify(exception)}`,
         logContext,
       );
     } else if (status >= 400) {
-      this.logger.warn(`Client error: ${message}`, logContext);
+      this.logger.warn(
+        `Client error: ${Array.isArray(message) ? message.join(', ') : message}`,
+        logContext,
+      );
     }
 
     response.status(status).json(errorResponse);
@@ -111,9 +116,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       'MulterError',
     ];
 
-    return safeErrors.some(safe => 
-      error.constructor.name === safe || 
-      error.name === safe
+    return safeErrors.some(
+      (safe) => error.constructor.name === safe || error.name === safe,
     );
   }
 
@@ -130,7 +134,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     ];
 
     const sanitized = { ...body };
-    
+
     for (const field of sensitiveFields) {
       if (field in sanitized) {
         sanitized[field] = '[REDACTED]';

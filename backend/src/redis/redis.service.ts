@@ -117,7 +117,7 @@ export class RedisService implements OnModuleDestroy {
       const ttl = options?.ttl || 300; // Default 5 minutes
       await this.cacheManager.set(key, value, ttl * 1000); // Convert to milliseconds
       this.logger.debug(`Cache set for key: ${key} with TTL: ${ttl}s`);
-      
+
       // Also set in fallback cache
       this.setFallback(key, value, ttl);
     } catch (error) {
@@ -184,7 +184,7 @@ export class RedisService implements OnModuleDestroy {
 
       // If not in cache, execute function and cache result
       const result = await fn();
-      
+
       // Try to cache the result, but don't fail if caching fails
       try {
         await this.set(key, result, options);
@@ -193,7 +193,7 @@ export class RedisService implements OnModuleDestroy {
           `Failed to cache result for key ${key}: ${cacheError instanceof Error ? cacheError.message : String(cacheError)}`,
         );
       }
-      
+
       return result;
     } catch (error) {
       this.logger.error(
@@ -295,22 +295,24 @@ export class RedisService implements OnModuleDestroy {
   }
 
   private setFallback<T>(key: string, value: T, ttlSeconds: number): void {
-    const expiry = Date.now() + (ttlSeconds * 1000);
+    const expiry = Date.now() + ttlSeconds * 1000;
     this.fallbackCache.set(key, { value, expiry });
-    this.logger.debug(`Fallback cache set for key: ${key} with TTL: ${ttlSeconds}s`);
+    this.logger.debug(
+      `Fallback cache set for key: ${key} with TTL: ${ttlSeconds}s`,
+    );
   }
 
   private cleanupFallbackCache(): void {
     const now = Date.now();
     let removed = 0;
-    
+
     for (const [key, item] of this.fallbackCache.entries()) {
       if (now > item.expiry) {
         this.fallbackCache.delete(key);
         removed++;
       }
     }
-    
+
     if (removed > 0) {
       this.logger.debug(`Cleaned up ${removed} expired fallback cache entries`);
     }

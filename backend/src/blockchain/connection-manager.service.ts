@@ -53,7 +53,7 @@ export class ConnectionManager {
     options?: RetryOptions,
   ): Promise<T> {
     const serviceId = 'solana-rpc';
-    
+
     return this.circuitBreaker.execute(
       serviceId,
       async () => {
