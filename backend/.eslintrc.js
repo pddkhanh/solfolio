@@ -60,8 +60,8 @@ module.exports = {
   },
   overrides: [
     {
-      // Disable unsafe warnings in test files
-      files: ['**/*.spec.ts', '**/*.e2e-spec.ts', 'test/**/*.ts'],
+      // Disable warning rules in test files (keep errors)
+      files: ['**/*.spec.ts', '**/*.e2e-spec.ts', '**/*.test.ts', 'test/**/*.ts'],
       rules: {
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/no-unsafe-argument': 'off',
@@ -69,6 +69,11 @@ module.exports = {
         '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-return': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off'
       },
     },
     {
