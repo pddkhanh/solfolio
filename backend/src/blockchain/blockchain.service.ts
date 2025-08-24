@@ -30,10 +30,12 @@ export class BlockchainService implements OnModuleInit {
 
       // In test environment or as fallback, use public RPC
       let finalRpcUrl = rpcUrl;
-      
+
       if (!finalRpcUrl) {
         finalRpcUrl = 'https://api.devnet.solana.com';
-        this.logger.warn('HELIUS_RPC_URL not configured, using public devnet RPC');
+        this.logger.warn(
+          'HELIUS_RPC_URL not configured, using public devnet RPC',
+        );
       }
 
       this.connection = this.connectionManager.createConnection(finalRpcUrl);
@@ -48,11 +50,17 @@ export class BlockchainService implements OnModuleInit {
       } catch (connectionError) {
         // If Helius fails, fallback to public RPC
         if (rpcUrl && rpcUrl.includes('helius')) {
-          this.logger.warn('Helius RPC failed, falling back to public devnet RPC');
-          this.connection = this.connectionManager.createConnection('https://api.devnet.solana.com');
-          
+          this.logger.warn(
+            'Helius RPC failed, falling back to public devnet RPC',
+          );
+          this.connection = this.connectionManager.createConnection(
+            'https://api.devnet.solana.com',
+          );
+
           const version = await this.connection.getVersion();
-          this.logger.log(`Connected to Solana ${network} via public RPC (fallback)`);
+          this.logger.log(
+            `Connected to Solana ${network} via public RPC (fallback)`,
+          );
           this.logger.log(`Solana version: ${JSON.stringify(version)}`);
         } else {
           throw connectionError;

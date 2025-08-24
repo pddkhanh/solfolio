@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnApplicationBootstrap, Optional } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnApplicationBootstrap,
+  Optional,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JupiterPriceService } from './jupiter-price.service';
 import { WebsocketService, PriceUpdate } from '../websocket/websocket.service';

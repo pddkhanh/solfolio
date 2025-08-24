@@ -224,14 +224,14 @@ describe('JitoAdapter', () => {
 
   describe('error handling', () => {
     it('should handle network errors gracefully in getPositions', async () => {
-      const testWallet = '11111111111111111111111111111112';
-
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest
         .spyOn(adapter as any, 'getJitosolBalance')
         .mockRejectedValue(new Error('Network error'));
 
-      const positions = await adapter.getPositions(testWallet);
+      const positions = await adapter.getPositions(
+        '11111111111111111111111111111112',
+      );
       expect(positions).toEqual([]);
     });
 

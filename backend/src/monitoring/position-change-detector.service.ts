@@ -124,9 +124,9 @@ export class PositionChangeDetectorService {
   ): PositionSnapshot[] {
     return positions.map((pos) => ({
       walletAddress,
-      protocol: pos.protocol,
-      type: pos.type || 'unknown',
-      value: pos.value || 0,
+      protocol: pos.protocolName || pos.protocol,
+      type: pos.positionType || pos.type || 'unknown',
+      value: pos.usdValue || pos.value || 0,
       amount: pos.amount?.toString() || '0',
       apy: pos.apy,
       timestamp: new Date(),

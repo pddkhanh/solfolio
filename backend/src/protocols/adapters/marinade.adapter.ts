@@ -11,7 +11,10 @@ import { PriceService } from '../../price/price.service';
 import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
-export class MarinadeAdapter extends BaseProtocolAdapter implements OnModuleInit {
+export class MarinadeAdapter
+  extends BaseProtocolAdapter
+  implements OnModuleInit
+{
   private marinade: Marinade;
   private readonly MSOL_MINT = 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So';
   private readonly SOL_MINT = 'So11111111111111111111111111111111111111112';
@@ -32,8 +35,8 @@ export class MarinadeAdapter extends BaseProtocolAdapter implements OnModuleInit
   private async initializeMarinade(): Promise<void> {
     try {
       // Wait for blockchain service to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const connection = this.blockchainService.getConnection();
       const config = new MarinadeConfig({
         connection,

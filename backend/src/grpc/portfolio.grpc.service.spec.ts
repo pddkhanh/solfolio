@@ -39,25 +39,31 @@ describe('PortfolioGrpcService', () => {
 
   const mockPositions = [
     {
-      protocol: 'Marinade',
-      type: 'staking',
-      address: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-      value: 2500,
+      protocolName: 'MARINADE',
+      positionType: 'STAKING',
+      tokenMint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+      amount: 48.5,
+      underlyingMint: 'So11111111111111111111111111111111111111112',
+      underlyingAmount: 48.0,
+      usdValue: 2500,
       apy: 6.5,
-      tokens: [
-        {
-          mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
-          symbol: 'mSOL',
-          name: 'Marinade Staked SOL',
-          balance: 48.5,
-          decimals: 9,
-          price: 51.55,
-          value: 2500,
-        },
-      ],
+      rewards: 0.5,
       metadata: {
         validator: 'Marinade',
+        tokens: [
+          {
+            mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+            symbol: 'mSOL',
+            name: 'Marinade Staked SOL',
+            balance: 48.5,
+            decimals: 9,
+            price: 51.55,
+            value: 2500,
+          },
+        ],
       },
+      tokenSymbol: 'mSOL',
+      tokenName: 'Marinade Staked SOL',
     },
   ];
 
@@ -147,7 +153,7 @@ describe('PortfolioGrpcService', () => {
       expect(walletService.getWalletBalances).toHaveBeenCalledWith(mockWallet);
       expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet);
       expect(result.portfolio.wallet).toBe(mockWallet);
-      expect(result.portfolio.total_value).toBe(4027.625);
+      expect(result.portfolio.total_value).toBe(1527.625);
       expect(cacheService.set).toHaveBeenCalled();
     });
   });
@@ -182,7 +188,7 @@ describe('PortfolioGrpcService', () => {
 
       expect(positionsService.getPositions).toHaveBeenCalledWith(mockWallet);
       expect(result.positions).toHaveLength(1);
-      expect(result.positions[0].protocol).toBe('Marinade');
+      expect(result.positions[0].protocol).toBe('MARINADE');
     });
 
     it('should filter positions by protocols', async () => {

@@ -67,24 +67,34 @@ describe('PositionChangeDetectorService', () => {
     it('should detect new positions', async () => {
       const currentPositions = [
         {
-          protocol: 'marinade',
-          type: 'staking',
-          value: 1000,
-          amount: '10',
+          protocol: 'MARINADE' as any,
+          protocolName: 'MARINADE',
+          positionType: 'STAKING',
+          tokenMint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          amount: 10,
+          underlyingMint: 'So11111111111111111111111111111111111111112',
+          underlyingAmount: 9.5,
+          usdValue: 1000,
           apy: 6.5,
+          rewards: 0.1,
+          metadata: {},
+          tokenSymbol: 'mSOL',
+          tokenName: 'Marinade Staked SOL',
         },
       ];
 
       // No previous snapshot
       cacheService.get.mockResolvedValue(null);
-      prismaService.position.findMany.mockResolvedValue([]);
+      (prismaService.position.findMany as jest.Mock).mockResolvedValue([]);
 
       // Current positions
       positionsService.getPositions.mockResolvedValue(currentPositions);
 
       // Mock database operations
-      prismaService.position.upsert.mockResolvedValue({} as any);
-      prismaService.transaction.create.mockResolvedValue({} as any);
+      (prismaService.position.upsert as jest.Mock).mockResolvedValue({} as any);
+      (prismaService.transaction.create as jest.Mock).mockResolvedValue(
+        {} as any,
+      );
 
       const changes = await service.detectChanges(
         mockWalletAddress,
@@ -94,7 +104,7 @@ describe('PositionChangeDetectorService', () => {
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
         walletAddress: mockWalletAddress,
-        protocol: 'marinade',
+        protocol: 'MARINADE',
         changeType: 'deposit',
         currentValue: 1000,
       });
@@ -104,8 +114,8 @@ describe('PositionChangeDetectorService', () => {
       const previousSnapshot = [
         {
           walletAddress: mockWalletAddress,
-          protocol: 'marinade',
-          type: 'staking',
+          protocol: 'MARINADE',
+          type: 'STAKING',
           value: 1000,
           amount: '10',
           timestamp: new Date(),
@@ -126,7 +136,7 @@ describe('PositionChangeDetectorService', () => {
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
         walletAddress: mockWalletAddress,
-        protocol: 'marinade',
+        protocol: 'MARINADE',
         changeType: 'withdraw',
         previousValue: 1000,
       });
@@ -136,8 +146,8 @@ describe('PositionChangeDetectorService', () => {
       const previousSnapshot = [
         {
           walletAddress: mockWalletAddress,
-          protocol: 'marinade',
-          type: 'staking',
+          protocol: 'MARINADE',
+          type: 'STAKING',
           value: 1000,
           amount: '10',
           timestamp: new Date(),
@@ -146,11 +156,19 @@ describe('PositionChangeDetectorService', () => {
 
       const currentPositions = [
         {
-          protocol: 'marinade',
-          type: 'staking',
-          value: 1500,
-          amount: '15',
+          protocol: 'MARINADE' as any,
+          protocolName: 'MARINADE',
+          positionType: 'STAKING',
+          tokenMint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          amount: 15,
+          underlyingMint: 'So11111111111111111111111111111111111111112',
+          underlyingAmount: 14.5,
+          usdValue: 1500,
           apy: 6.5,
+          rewards: 0.1,
+          metadata: {},
+          tokenSymbol: 'mSOL',
+          tokenName: 'Marinade Staked SOL',
         },
       ];
 
@@ -165,7 +183,7 @@ describe('PositionChangeDetectorService', () => {
       expect(changes).toHaveLength(1);
       expect(changes[0]).toMatchObject({
         walletAddress: mockWalletAddress,
-        protocol: 'marinade',
+        protocol: 'MARINADE',
         changeType: 'deposit',
         previousValue: 1000,
         currentValue: 1500,
@@ -176,8 +194,8 @@ describe('PositionChangeDetectorService', () => {
       const previousSnapshot = [
         {
           walletAddress: mockWalletAddress,
-          protocol: 'marinade',
-          type: 'staking',
+          protocol: 'MARINADE',
+          type: 'STAKING',
           value: 1000,
           amount: '10',
           timestamp: new Date(),
@@ -186,11 +204,19 @@ describe('PositionChangeDetectorService', () => {
 
       const currentPositions = [
         {
-          protocol: 'marinade',
-          type: 'staking',
-          value: 1000.5, // 0.05% change, below 0.1% threshold
-          amount: '10.005',
+          protocol: 'MARINADE' as any,
+          protocolName: 'MARINADE',
+          positionType: 'STAKING',
+          tokenMint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          amount: 10.005,
+          underlyingMint: 'So11111111111111111111111111111111111111112',
+          underlyingAmount: 9.555,
+          usdValue: 1000.5, // 0.05% change, below 0.1% threshold
           apy: 6.5,
+          rewards: 0.1,
+          metadata: {},
+          tokenSymbol: 'mSOL',
+          tokenName: 'Marinade Staked SOL',
         },
       ];
 
@@ -233,7 +259,9 @@ describe('PositionChangeDetectorService', () => {
         },
       ];
 
-      prismaService.transaction.findMany.mockResolvedValue(mockTransactions);
+      (prismaService.transaction.findMany as jest.Mock).mockResolvedValue(
+        mockTransactions,
+      );
 
       const changes = await service.getRecentChanges(mockWalletAddress, 5);
 
@@ -248,7 +276,7 @@ describe('PositionChangeDetectorService', () => {
     });
 
     it('should handle database errors', async () => {
-      prismaService.transaction.findMany.mockRejectedValue(
+      (prismaService.transaction.findMany as jest.Mock).mockRejectedValue(
         new Error('Database error'),
       );
 

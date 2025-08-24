@@ -170,7 +170,22 @@ describe('WalletMonitorService', () => {
 
   describe('account change handling', () => {
     it('should handle account changes', async () => {
-      const mockPositions = [{ protocol: 'marinade', value: 1000 }];
+      const mockPositions = [
+        {
+          protocolName: 'MARINADE',
+          positionType: 'STAKING',
+          tokenMint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
+          amount: 10,
+          underlyingMint: 'So11111111111111111111111111111111111111112',
+          underlyingAmount: 9.5,
+          usdValue: 1000,
+          apy: 6.5,
+          rewards: 0.1,
+          metadata: {},
+          tokenSymbol: 'mSOL',
+          tokenName: 'Marinade Staked SOL',
+        },
+      ];
       const mockChanges = [
         {
           walletAddress: mockWalletAddress,

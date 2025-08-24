@@ -62,13 +62,13 @@ export class WebsocketService extends EventEmitter {
     try {
       const subscriber = this.redisService.getSubscriber();
 
-      await subscriber.subscribe('price:update', (message) => {
+      await subscriber.subscribe('price:update', (message: any) => {
         this.handleRedisMessage('price:update', message);
       });
-      await subscriber.subscribe('wallet:update', (message) => {
+      await subscriber.subscribe('wallet:update', (message: any) => {
         this.handleRedisMessage('wallet:update', message);
       });
-      await subscriber.subscribe('position:update', (message) => {
+      await subscriber.subscribe('position:update', (message: any) => {
         this.handleRedisMessage('position:update', message);
       });
 
@@ -197,7 +197,7 @@ export class WebsocketService extends EventEmitter {
       return [];
     }
     const sockets = await this.server.in(room).fetchSockets();
-    return sockets.map((socket) => socket.id);
+    return sockets.map((socket: any) => socket.id);
   }
 
   broadcastToWallet(walletAddress: string, data: any) {

@@ -7,7 +7,7 @@ import { RpcBatchService } from '../blockchain/rpc-batch.service';
 import { TokenMetadataService } from './token-metadata.service';
 import { PriceService } from '../price/price.service';
 import { PublicKey, Connection } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -215,7 +215,7 @@ describe('WalletService', () => {
       expect(
         mockConnection.getParsedTokenAccountsByOwner as jest.Mock,
       ).toHaveBeenCalledWith(expect.any(PublicKey), {
-        programId: TOKEN_2022_PROGRAM_ID,
+        programId: TOKEN_PROGRAM_ID,
       });
     });
 

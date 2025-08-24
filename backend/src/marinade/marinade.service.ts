@@ -51,8 +51,8 @@ export class MarinadeService implements OnModuleInit {
   private async initializeMarinade(): Promise<void> {
     try {
       // Wait a bit for blockchain service to initialize
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       const connection = this.blockchainService.getConnection();
       const config = new MarinadeConfig({
         connection,
@@ -172,7 +172,9 @@ export class MarinadeService implements OnModuleInit {
 
       // Check if Marinade is initialized
       if (!this.marinade) {
-        this.logger.warn('Marinade SDK not initialized, returning default stats');
+        this.logger.warn(
+          'Marinade SDK not initialized, returning default stats',
+        );
         return {
           exchangeRate: 1.1,
           totalStaked: 8000000,

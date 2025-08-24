@@ -18,13 +18,18 @@ describe('WalletController', () => {
       {
         mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
         owner: '7S3P4HxJpyyigGzodYwHtCxZyUQe9JiBMHyRWXArAaKv',
+        balance: '1000000',
         amount: '1000000',
         decimals: 6,
         uiAmount: 1,
+        valueUSD: 1.0,
         tokenAccount: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA',
       },
     ],
+    nfts: [],
     totalAccounts: 1,
+    totalValueUSD: 1.0,
+    lastUpdated: new Date().toISOString(),
     fetchedAt: new Date(),
   };
 

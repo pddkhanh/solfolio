@@ -45,14 +45,18 @@ class MockProtocolAdapter implements IProtocolAdapter {
   isSupported(tokenMint: string): boolean {
     return tokenMint === `${this.protocolType.toLowerCase()}-token`;
   }
+
+  invalidateCache(walletAddress: string): void {
+    // Mock implementation
+  }
 }
 
 describe('ProtocolsService', () => {
   let service: ProtocolsService;
   let registry: ProtocolAdapterRegistry;
-  // let redisService: RedisService;
+  let mockRedisService: any;
 
-  const mockRedisService: any = {
+  mockRedisService = {
     generateKey: jest.fn((prefix: string, key: string) => `${prefix}:${key}`),
     get: jest.fn(),
     set: jest.fn(),
@@ -74,7 +78,7 @@ describe('ProtocolsService', () => {
 
     service = module.get<ProtocolsService>(ProtocolsService);
     registry = module.get<ProtocolAdapterRegistry>(ProtocolAdapterRegistry);
-    redisService = module.get<RedisService>(RedisService);
+    mockRedisService = module.get<RedisService>(RedisService);
 
     // Reset mocks
     jest.clearAllMocks();
