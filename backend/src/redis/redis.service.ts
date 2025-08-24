@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
+import { createClient, RedisClientType } from 'redis';
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
@@ -14,14 +15,47 @@ export class RedisService implements OnModuleDestroy {
   private connectionRetries = 0;
   private readonly maxRetries = 5;
   private readonly retryDelay = 1000; // 1 second
+  private publisher: RedisClientType;
+  private subscriber: RedisClientType;
 
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
     void this.checkConnection();
+    void this.initializePubSub();
   }
 
-  onModuleDestroy() {
-    this.logger.log('Closing Redis connection...');
+  async onModuleDestroy() {
+    this.logger.log('Closing Redis connections...');
     // Cache manager handles connection cleanup
+    if (this.publisher) {
+      await this.publisher.quit();
+    }
+    if (this.subscriber) {
+      await this.subscriber.quit();
+    }
+  }
+
+  private async initializePubSub(): Promise<void> {
+    try {
+      const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+      
+      this.publisher = createClient({ url: redisUrl });
+      this.subscriber = createClient({ url: redisUrl });
+
+      this.publisher.on('error', (err) => {
+        this.logger.error('Redis Publisher Error:', err);
+      });
+
+      this.subscriber.on('error', (err) => {
+        this.logger.error('Redis Subscriber Error:', err);
+      });
+
+      await this.publisher.connect();
+      await this.subscriber.connect();
+
+      this.logger.log('Redis pub/sub clients connected successfully');
+    } catch (error) {
+      this.logger.error('Failed to initialize Redis pub/sub clients:', error);
+    }
   }
 
   private async checkConnection(): Promise<void> {
@@ -186,5 +220,28 @@ export class RedisService implements OnModuleDestroy {
       connected: this.isConnected,
       retries: this.connectionRetries,
     };
+  }
+
+  // Pub/Sub methods
+  async publish(channel: string, message: string): Promise<void> {
+    try {
+      if (!this.publisher) {
+        this.logger.warn('Redis publisher not initialized');
+        return;
+      }
+      await this.publisher.publish(channel, message);
+      this.logger.debug(`Published message to channel: ${channel}`);
+    } catch (error) {
+      this.logger.error(
+        `Error publishing to channel ${channel}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  getSubscriber(): RedisClientType {
+    if (!this.subscriber) {
+      throw new Error('Redis subscriber not initialized');
+    }
+    return this.subscriber;
   }
 }
