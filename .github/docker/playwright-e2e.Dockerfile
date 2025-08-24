@@ -1,6 +1,6 @@
 # Custom E2E Test Docker Image based on Playwright
 # Includes pnpm and all necessary tools for running E2E tests
-FROM mcr.microsoft.com/playwright:v1.49.0-noble
+FROM mcr.microsoft.com/playwright:v1.55.0-noble
 
 # Install pnpm globally as root before switching users
 USER root
@@ -41,3 +41,4 @@ LABEL org.opencontainers.image.source="https://github.com/pddkhanh/solfolio"
 LABEL org.opencontainers.image.description="E2E test environment with Playwright and pnpm"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL maintainer="SolFolio Team"
+LABEL playwright.version="1.55.0"

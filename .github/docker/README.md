@@ -8,13 +8,13 @@ We use a custom Docker image based on Microsoft's Playwright image for E2E tests
 ### Custom Image
 - **Registry**: GitHub Container Registry (ghcr.io)
 - **Image**: `ghcr.io/pddkhanh/solfolio-e2e:latest`
-- **Base Image**: `mcr.microsoft.com/playwright:v1.49.0-noble`
+- **Base Image**: `mcr.microsoft.com/playwright:v1.55.0-noble`
 - **Dockerfile**: `.github/docker/playwright-e2e.Dockerfile`
 
 ### Pre-installed Components
 - Node.js 22
 - pnpm (latest) - **Pre-installed globally**
-- Playwright 1.49.0
+- Playwright 1.55.0
 - Chromium browser
 - All system dependencies for browser automation
 - Git, curl, jq utilities
