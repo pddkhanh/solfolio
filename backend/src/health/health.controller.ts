@@ -37,7 +37,7 @@ export class HealthController {
 
     // Add Redis health check if available
     if (this.redis) {
-      checks.push(async () => this.redis!.isHealthy('redis'));
+      checks.push(() => this.redis!.isHealthy('redis'));
     }
 
     return this.health.check(checks);

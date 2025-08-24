@@ -94,7 +94,7 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  async reset(): Promise<void> {
+  reset(): void {
     try {
       // Reset is not available in the Cache interface
       // We could iterate and delete keys if needed

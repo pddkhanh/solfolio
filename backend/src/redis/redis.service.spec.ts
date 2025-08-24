@@ -112,17 +112,19 @@ describe('RedisService', () => {
   });
 
   describe('reset', () => {
-    it('should reset the cache', async () => {
-      await service.reset();
+    it('should reset the cache', () => {
+      service.reset();
 
       expect(mockCacheManager.reset).toHaveBeenCalled();
     });
 
-    it('should handle reset errors gracefully', async () => {
-      mockCacheManager.reset.mockRejectedValue(new Error('Redis error'));
+    it('should handle reset errors gracefully', () => {
+      mockCacheManager.reset.mockImplementation(() => {
+        throw new Error('Redis error');
+      });
 
       // Should not throw
-      await expect(service.reset()).resolves.toBeUndefined();
+      expect(() => service.reset()).not.toThrow();
     });
   });
 
