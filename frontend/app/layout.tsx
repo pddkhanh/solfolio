@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer'
 import { WalletContextProvider } from '@/contexts/WalletContextProvider'
 import WalletPersistenceProvider from '@/components/providers/WalletPersistenceProvider'
 import WebSocketProvider from '@/contexts/WebSocketProvider'
+import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
             <WebSocketProvider>
               <div className="relative flex min-h-screen flex-col">
                 <Header />
+                <PositionChangeNotifications />
                 <main className="flex-1">
                   {children}
                 </main>
