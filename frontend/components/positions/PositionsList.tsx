@@ -156,7 +156,7 @@ export function PositionsList() {
       <Card className="w-full">
         <CardContent className="py-8">
           <div className="text-center text-gray-500 dark:text-gray-400">
-            No positions found. Start by staking SOL on Marinade Finance!
+            No positions found. Start by staking SOL or providing liquidity on supported protocols!
           </div>
         </CardContent>
       </Card>
