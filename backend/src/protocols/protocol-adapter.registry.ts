@@ -151,7 +151,7 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
     timeoutMs: number,
     description: string,
   ): Promise<T> {
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout | undefined;
 
     const timeoutPromise = new Promise<T>((_, reject) => {
       timeoutId = setTimeout(
@@ -163,10 +163,10 @@ export class ProtocolAdapterRegistry implements OnModuleInit {
 
     try {
       const result = await Promise.race([promise, timeoutPromise]);
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       return result;
     } catch (error) {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       throw error;
     }
   }
