@@ -119,42 +119,44 @@ describe('RpcBatchService', () => {
       expect(results).toHaveLength(batchSize);
     });
 
-    // TODO: This test has a strange Jest issue where creating an Error object
-    // causes the test to fail with the error being thrown 4 times. This appears
-    // to be a Jest-specific issue with how it handles Error objects in certain
-    // async contexts. The actual service code works correctly in production.
-    it.skip('should handle errors and reject all promises in the batch', (done) => {
+    it('should handle errors and reject all promises in the batch', async () => {
       const publicKey1 = new PublicKey('11111111111111111111111111111112');
       const publicKey2 = new PublicKey('11111111111111111111111111111113');
 
-      const mockError = new Error('RPC error');
-      connectionManager.executeWithRetry.mockRejectedValue(mockError);
+      // Create a simple error object
+      const rpcError = { message: 'RPC error', name: 'Error' };
 
+      // Mock executeWithRetry to reject
+      connectionManager.executeWithRetry.mockRejectedValue(rpcError);
+
+      // Collect the promises before they reject
       const promise1 = service.getAccountInfo(mockConnection, publicKey1);
       const promise2 = service.getAccountInfo(mockConnection, publicKey2);
 
-      // Wait for batching and then check results
-      setTimeout(() => {
-        Promise.allSettled([promise1, promise2])
-          .then((results) => {
-            expect(results).toHaveLength(2);
-            expect(results[0].status).toBe('rejected');
-            expect(results[1].status).toBe('rejected');
+      // Immediately start handling rejections to prevent unhandled rejection
+      const resultsPromise = Promise.allSettled([promise1, promise2]);
 
-            if (
-              results[0].status === 'rejected' &&
-              results[1].status === 'rejected'
-            ) {
-              expect(results[0].reason).toEqual(mockError);
-              expect(results[1].reason).toEqual(mockError);
-            }
+      // Wait for batching timer to trigger
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
-            done();
-          })
-          .catch((error) => {
-            done(error);
-          });
-      }, 30);
+      // Now wait for the results
+      const results = await resultsPromise;
+
+      expect(results).toHaveLength(2);
+      expect(results[0].status).toBe('rejected');
+      expect(results[1].status).toBe('rejected');
+
+      // Verify the errors match what we expected
+      if (
+        results[0].status === 'rejected' &&
+        results[1].status === 'rejected'
+      ) {
+        expect(results[0].reason).toEqual(rpcError);
+        expect(results[1].reason).toEqual(rpcError);
+      }
+
+      // Verify that executeWithRetry was called once
+      expect(connectionManager.executeWithRetry).toHaveBeenCalledTimes(1);
     });
   });
 
