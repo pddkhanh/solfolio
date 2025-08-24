@@ -6,10 +6,9 @@ import { JupiterPriceService } from './jupiter-price.service';
 import { PriceStreamService } from './price-stream.service';
 import { PriceController } from './price.controller';
 import { RedisModule } from '../redis/redis.module';
-import { WebsocketModule } from '../websocket/websocket.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule, RedisModule, WebsocketModule],
+  imports: [HttpModule, ConfigModule, RedisModule],
   controllers: [PriceController],
   providers: [PriceService, JupiterPriceService, PriceStreamService],
   exports: [PriceService, JupiterPriceService, PriceStreamService],

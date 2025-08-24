@@ -5,16 +5,32 @@ WORKDIR /app
 # Enable pnpm
 RUN corepack enable pnpm
 
+# Setup pnpm environment
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="${PNPM_HOME}:${PATH}"
+ENV SHELL="/bin/sh"
+
+# Create pnpm home directory
+RUN mkdir -p ${PNPM_HOME} && \
+    pnpm config set global-bin-dir ${PNPM_HOME}
+
 # Copy package files
-COPY package*.json pnpm-lock.yaml* ./
+COPY package.json ./
 
-# Install dependencies
-RUN pnpm install
+# Install dependencies including dev dependencies
+RUN pnpm install --frozen-lockfile=false
 
-# Copy source code
-COPY . .
+# Copy prisma schema and generate client
+COPY prisma ./prisma/
+RUN pnpm exec prisma generate
 
-EXPOSE 3001
+# Install NestJS CLI globally
+RUN pnpm add -g @nestjs/cli
 
-# Use nodemon for hot-reloading in development
-CMD ["pnpm", "run", "start:dev"]
+EXPOSE 3001 50051
+
+# Copy startup script
+COPY start-dev.sh ./
+
+# Run the app
+CMD ["./start-dev.sh"]

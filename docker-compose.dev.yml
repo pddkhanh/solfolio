@@ -53,6 +53,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     container_name: solfolio-backend
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       NODE_ENV: development
       PORT: ${BACKEND_PORT:-3001}
@@ -73,8 +76,8 @@ services:
       - "50051:50051"  # gRPC port
     volumes:
       - ./backend:/app
-      - ./proto:/proto
       - /app/node_modules
+      - ./proto:/proto
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,7 +85,6 @@ services:
         condition: service_healthy
     networks:
       - solfolio-network
-    command: pnpm run start:dev
 
   frontend:
     build:

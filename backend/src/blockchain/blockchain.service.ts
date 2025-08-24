@@ -28,28 +28,40 @@ export class BlockchainService implements OnModuleInit {
         'devnet',
       );
 
-      // In test environment, use a default RPC URL if not configured
-      const finalRpcUrl =
-        rpcUrl ||
-        (process.env.NODE_ENV === 'test'
-          ? 'https://api.devnet.solana.com'
-          : null);
-
+      // In test environment or as fallback, use public RPC
+      let finalRpcUrl = rpcUrl;
+      
       if (!finalRpcUrl) {
-        throw new Error('HELIUS_RPC_URL is not configured');
+        finalRpcUrl = 'https://api.devnet.solana.com';
+        this.logger.warn('HELIUS_RPC_URL not configured, using public devnet RPC');
       }
 
       this.connection = this.connectionManager.createConnection(finalRpcUrl);
 
-      const version = await this.connection.getVersion();
-      this.logger.log(`Connected to Solana ${network} via Helius RPC`);
-      this.logger.log(`Solana version: ${JSON.stringify(version)}`);
+      try {
+        const version = await this.connection.getVersion();
+        this.logger.log(`Connected to Solana ${network}`);
+        this.logger.log(`Solana version: ${JSON.stringify(version)}`);
 
-      const slot = await this.connection.getSlot();
-      this.logger.log(`Current slot: ${slot}`);
+        const slot = await this.connection.getSlot();
+        this.logger.log(`Current slot: ${slot}`);
+      } catch (connectionError) {
+        // If Helius fails, fallback to public RPC
+        if (rpcUrl && rpcUrl.includes('helius')) {
+          this.logger.warn('Helius RPC failed, falling back to public devnet RPC');
+          this.connection = this.connectionManager.createConnection('https://api.devnet.solana.com');
+          
+          const version = await this.connection.getVersion();
+          this.logger.log(`Connected to Solana ${network} via public RPC (fallback)`);
+          this.logger.log(`Solana version: ${JSON.stringify(version)}`);
+        } else {
+          throw connectionError;
+        }
+      }
     } catch (error) {
       this.logger.error('Failed to initialize blockchain connection', error);
-      throw error;
+      // Don't throw - allow service to start with degraded functionality
+      this.logger.warn('Blockchain service will run in degraded mode');
     }
   }
 

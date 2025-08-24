@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, Optional } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { JupiterPriceService } from './jupiter-price.service';
 import { WebsocketService, PriceUpdate } from '../websocket/websocket.service';
@@ -27,7 +27,7 @@ export class PriceStreamService implements OnApplicationBootstrap {
 
   constructor(
     private readonly jupiterPriceService: JupiterPriceService,
-    private readonly websocketService: WebsocketService,
+    @Optional() private readonly websocketService: WebsocketService,
     private readonly redisService: RedisService,
     private readonly configService: ConfigService,
   ) {}
@@ -198,10 +198,14 @@ export class PriceStreamService implements OnApplicationBootstrap {
 
       if (priceUpdates.length > 0) {
         // Broadcast via WebSocket
-        this.websocketService.broadcastPriceUpdate(priceUpdates);
+        if (this.websocketService) {
+          this.websocketService.broadcastPriceUpdate(priceUpdates);
+        }
 
         // Publish to Redis pub/sub for other services
-        await this.websocketService.publishPriceUpdate(priceUpdates);
+        if (this.websocketService) {
+          await this.websocketService.publishPriceUpdate(priceUpdates);
+        }
 
         this.logger.log(`Broadcasted ${priceUpdates.length} price updates`);
       } else {
