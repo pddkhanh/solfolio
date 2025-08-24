@@ -43,9 +43,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = exceptionResponse;
         error = HttpStatus[status];
       } else {
-        const responseObject = exceptionResponse as any;
-        message = responseObject.message || exception.message;
-        error = responseObject.error || HttpStatus[status];
+        const responseObject = exceptionResponse as Record<string, unknown>;
+        message =
+          (responseObject.message as string | string[]) || exception.message;
+        error = (responseObject.error as string) || HttpStatus[status];
         details = responseObject.details;
       }
     } else if (exception instanceof Error) {
@@ -121,8 +122,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     );
   }
 
-  private sanitizeRequestBody(body: any): any {
-    if (!body || typeof body !== 'object') return body;
+  private sanitizeRequestBody(body: unknown): unknown {
+    if (!body || typeof body !== 'object' || body === null) return body;
 
     const sensitiveFields = [
       'password',
@@ -133,7 +134,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       'authorization',
     ];
 
-    const sanitized = { ...body };
+    const sanitized = { ...body } as Record<string, unknown>;
 
     for (const field of sensitiveFields) {
       if (field in sanitized) {

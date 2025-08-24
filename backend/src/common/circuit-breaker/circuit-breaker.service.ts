@@ -149,7 +149,7 @@ export class CircuitBreakerService {
     }
 
     this.logger.warn(
-      `Circuit breaker failure for ${serviceId}: ${error.message}`,
+      `Circuit breaker failure for ${serviceId}: ${error instanceof Error ? error.message : String(error)}`,
       {
         failures: stats.failures,
         threshold: options.failureThreshold,

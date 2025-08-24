@@ -96,8 +96,11 @@ describe('LoggingInterceptor', () => {
     });
 
     it('should log failed requests', (done) => {
-      const mockError = new Error('Test error');
-      (mockError as any).status = 500;
+      interface ErrorWithStatus extends Error {
+        status?: number;
+      }
+      const mockError: ErrorWithStatus = new Error('Test error');
+      mockError.status = 500;
 
       mockCallHandler = {
         handle: jest.fn().mockReturnValue(throwError(() => mockError)),
@@ -158,7 +161,7 @@ describe('LoggingInterceptor', () => {
       );
 
       result.subscribe({
-        next: (data) => {
+        next: () => {
           expect(warnSpy).toHaveBeenCalledWith(
             'Slow request detected: GET /test',
             expect.objectContaining({
@@ -284,8 +287,11 @@ describe('LoggingInterceptor', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      const mockError = new Error('Test error');
-      (mockError as any).status = 500;
+      interface ErrorWithStatus extends Error {
+        status?: number;
+      }
+      const mockError: ErrorWithStatus = new Error('Test error');
+      mockError.status = 500;
 
       mockCallHandler = {
         handle: jest.fn().mockReturnValue(throwError(() => mockError)),
