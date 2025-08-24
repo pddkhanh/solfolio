@@ -11,7 +11,8 @@ import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class JitoAdapter extends BaseProtocolAdapter {
-  private readonly JITOSOL_MINT = 'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn';
+  private readonly JITOSOL_MINT =
+    'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn';
   private readonly SOL_MINT = 'So11111111111111111111111111111111111111112';
   private readonly SUPPORTED_TOKENS = new Set([this.JITOSOL_MINT]);
 
@@ -47,7 +48,8 @@ export class JitoAdapter extends BaseProtocolAdapter {
         const solPrice = await this.priceService.getTokenPrice(this.SOL_MINT);
         const usdValue = solValue * (solPrice || 0);
 
-        const estimatedDailyRewards = (jitosolBalance * (stats.apy / 100)) / 365;
+        const estimatedDailyRewards =
+          (jitosolBalance * (stats.apy / 100)) / 365;
 
         positions.push({
           protocol: ProtocolType.JITO,
@@ -71,10 +73,7 @@ export class JitoAdapter extends BaseProtocolAdapter {
       await this.cachePositions(walletAddress, positions);
       return positions;
     } catch (error) {
-      this.handleError(
-        error,
-        `fetching Jito positions for ${walletAddress}`,
-      );
+      this.handleError(error, `fetching Jito positions for ${walletAddress}`);
       return [];
     }
   }

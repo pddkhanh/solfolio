@@ -61,7 +61,7 @@ describe('OrcaAdapter', () => {
     it('should return true for supported LP tokens', () => {
       const solUsdcLp = '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm';
       const orcaUsdcLp = '2p7nYbtPBgtmY69NsE8DAW6szpRJn7tQvDnqvoEWQvjY';
-      
+
       expect(adapter.isSupported(solUsdcLp)).toBe(true);
       expect(adapter.isSupported(orcaUsdcLp)).toBe(true);
     });
@@ -75,7 +75,7 @@ describe('OrcaAdapter', () => {
   });
 
   describe('getPositions', () => {
-    const testWallet = 'DemoWallet1111111111111111111111111111111111';
+    const testWallet = '11111111111111111111111111111112';
 
     it('should return cached positions if available', async () => {
       const mockCachedPositions = [
@@ -119,10 +119,11 @@ describe('OrcaAdapter', () => {
 
     it('should create positions for LP token balances', async () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'getLpTokenBalance')
+      jest
+        .spyOn(adapter as any, 'getLpTokenBalance')
         .mockResolvedValueOnce(2) // First LP token
         .mockResolvedValueOnce(0); // Second LP token
-      
+
       const mockPosition = {
         protocol: ProtocolType.ORCA,
         positionType: PositionType.LP_POSITION,
@@ -139,8 +140,10 @@ describe('OrcaAdapter', () => {
           isConcentratedLiquidity: true,
         },
       };
-      
-      jest.spyOn(adapter as any, 'createLpPosition').mockResolvedValue(mockPosition);
+
+      jest
+        .spyOn(adapter as any, 'createLpPosition')
+        .mockResolvedValue(mockPosition);
       jest.spyOn(adapter as any, 'cachePositions').mockResolvedValue(undefined);
 
       const positions = await adapter.getPositions(testWallet);
@@ -201,7 +204,9 @@ describe('OrcaAdapter', () => {
 
     it('should return fallback stats on error', async () => {
       jest.spyOn(adapter as any, 'getCachedStats').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'cacheStats').mockRejectedValue(new Error('Cache Error'));
+      jest
+        .spyOn(adapter as any, 'cacheStats')
+        .mockRejectedValue(new Error('Cache Error'));
 
       const stats = await adapter.getProtocolStats();
 
@@ -216,29 +221,35 @@ describe('OrcaAdapter', () => {
     it('should handle LP token balance fetching errors', async () => {
       const mockPublicKey = { toString: () => testWallet } as any;
       const lpTokenMint = '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm';
-      
+
       mockBlockchainService.getConnection.mockReturnValue({
         // Mock connection that throws an error
       } as any);
 
-      const balance = await (adapter as any).getLpTokenBalance(mockPublicKey, lpTokenMint);
+      const balance = await (adapter as any).getLpTokenBalance(
+        mockPublicKey,
+        lpTokenMint,
+      );
       expect(balance).toBe(0);
     });
 
     it('should create LP position with correct properties', async () => {
       const lpTokenMint = '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm';
       const balance = 5;
-      
+
       const mockStats = {
         protocolName: 'Orca',
         tvl: 350000000,
         apy: 15.0,
         metadata: { totalPools: 100 },
       };
-      
+
       jest.spyOn(adapter, 'getProtocolStats').mockResolvedValue(mockStats);
 
-      const position = await (adapter as any).createLpPosition(lpTokenMint, balance);
+      const position = await (adapter as any).createLpPosition(
+        lpTokenMint,
+        balance,
+      );
 
       expect(position).toBeDefined();
       expect(position.protocol).toBe(ProtocolType.ORCA);
@@ -250,10 +261,15 @@ describe('OrcaAdapter', () => {
     it('should handle createLpPosition errors', async () => {
       const lpTokenMint = '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm';
       const balance = 5;
-      
-      jest.spyOn(adapter, 'getProtocolStats').mockRejectedValue(new Error('Stats error'));
 
-      const position = await (adapter as any).createLpPosition(lpTokenMint, balance);
+      jest
+        .spyOn(adapter, 'getProtocolStats')
+        .mockRejectedValue(new Error('Stats error'));
+
+      const position = await (adapter as any).createLpPosition(
+        lpTokenMint,
+        balance,
+      );
 
       expect(position).toBeNull();
     });
@@ -261,17 +277,21 @@ describe('OrcaAdapter', () => {
 
   describe('error handling', () => {
     it('should handle network errors gracefully in getPositions', async () => {
-      const testWallet = 'DemoWallet1111111111111111111111111111111111';
+      const testWallet = '11111111111111111111111111111112';
 
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'getLpTokenBalance').mockRejectedValue(new Error('Network error'));
+      jest
+        .spyOn(adapter as any, 'getLpTokenBalance')
+        .mockRejectedValue(new Error('Network error'));
 
       const positions = await adapter.getPositions(testWallet);
       expect(positions).toEqual([]);
     });
 
     it('should handle errors in getProtocolStats gracefully', async () => {
-      jest.spyOn(adapter as any, 'getCachedStats').mockRejectedValue(new Error('Cache error'));
+      jest
+        .spyOn(adapter as any, 'getCachedStats')
+        .mockRejectedValue(new Error('Cache error'));
 
       const stats = await adapter.getProtocolStats();
 

@@ -72,7 +72,7 @@ describe('JitoAdapter', () => {
   });
 
   describe('getPositions', () => {
-    const testWallet = 'DemoWallet1111111111111111111111111111111111';
+    const testWallet = '11111111111111111111111111111112';
 
     it('should return cached positions if available', async () => {
       const mockCachedPositions = [
@@ -119,7 +119,7 @@ describe('JitoAdapter', () => {
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
       jest.spyOn(adapter as any, 'getJitosolBalance').mockResolvedValue(5);
       jest.spyOn(adapter as any, 'cachePositions').mockResolvedValue(undefined);
-      
+
       const mockStats = {
         protocolName: 'Jito',
         tvl: 12000000,
@@ -191,7 +191,9 @@ describe('JitoAdapter', () => {
 
     it('should return fallback stats on error', async () => {
       jest.spyOn(adapter as any, 'getCachedStats').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'cacheStats').mockRejectedValue(new Error('Cache Error'));
+      jest
+        .spyOn(adapter as any, 'cacheStats')
+        .mockRejectedValue(new Error('Cache Error'));
 
       const stats = await adapter.getProtocolStats();
 
@@ -205,7 +207,7 @@ describe('JitoAdapter', () => {
   describe('private helper methods', () => {
     it('should handle JitoSOL balance fetching errors', async () => {
       const mockPublicKey = { toString: () => testWallet } as any;
-      
+
       mockBlockchainService.getConnection.mockReturnValue({
         // Mock connection that throws an error
       } as any);
@@ -217,17 +219,21 @@ describe('JitoAdapter', () => {
 
   describe('error handling', () => {
     it('should handle network errors gracefully in getPositions', async () => {
-      const testWallet = 'DemoWallet1111111111111111111111111111111111';
+      const testWallet = '11111111111111111111111111111112';
 
       jest.spyOn(adapter as any, 'getCachedPositions').mockResolvedValue(null);
-      jest.spyOn(adapter as any, 'getJitosolBalance').mockRejectedValue(new Error('Network error'));
+      jest
+        .spyOn(adapter as any, 'getJitosolBalance')
+        .mockRejectedValue(new Error('Network error'));
 
       const positions = await adapter.getPositions(testWallet);
       expect(positions).toEqual([]);
     });
 
     it('should handle errors in getProtocolStats gracefully', async () => {
-      jest.spyOn(adapter as any, 'getCachedStats').mockRejectedValue(new Error('Cache error'));
+      jest
+        .spyOn(adapter as any, 'getCachedStats')
+        .mockRejectedValue(new Error('Cache error'));
 
       const stats = await adapter.getProtocolStats();
 
