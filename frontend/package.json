@@ -15,7 +15,11 @@
     "test:e2e": "playwright test --reporter=list",
     "test:e2e:headless": "playwright test --reporter=list --workers=1",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug --headed"
+    "test:e2e:debug": "playwright test --debug --headed",
+    "test:e2e:testmode": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --reporter=list",
+    "test:e2e:testmode:ui": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --ui",
+    "test:e2e:testmode:debug": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --debug --headed",
+    "dev:testmode": "NEXT_PUBLIC_E2E_TEST_MODE=true next dev"
   },
   "engines": {
     "node": ">=22.0.0",

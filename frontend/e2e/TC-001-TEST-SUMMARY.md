@@ -3,6 +3,21 @@
 ## Overview
 This document summarizes the E2E test implementation for **TC-001: Connect Wallet via Modal** from the SolFolio regression test suite.
 
+## ⚠️ IMPORTANT: Test Mode Required
+**These tests require the Test Wallet Adapter to be enabled.** Without it, wallet connections will fail because Playwright cannot interact with real browser extensions.
+
+### Quick Setup
+```bash
+# Run dev server with test mode
+pnpm dev:testmode
+
+# In another terminal, run tests with test mode
+pnpm test:e2e:testmode tc-001-connect-wallet.spec.ts
+
+# Or use UI mode for debugging
+pnpm test:e2e:testmode:ui tc-001-connect-wallet.spec.ts
+```
+
 ## Test Implementation
 - **Test Files**: 
   - `frontend/e2e/tc-001-connect-wallet.spec.ts` - Main test with mocks
