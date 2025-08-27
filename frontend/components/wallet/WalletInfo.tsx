@@ -88,7 +88,7 @@ export default function WalletInfo() {
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" data-testid="wallet-info">
       <CardHeader>
         <CardTitle>Wallet Information</CardTitle>
         <CardDescription>
