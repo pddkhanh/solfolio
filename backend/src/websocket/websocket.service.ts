@@ -186,7 +186,7 @@ export class WebsocketService extends EventEmitter {
   }
 
   getConnectedClientsCount(): number {
-    if (!this.server) {
+    if (!this.server || !this.server.sockets) {
       return 0;
     }
     return this.server.sockets.sockets.size;
@@ -218,6 +218,10 @@ export class WebsocketService extends EventEmitter {
 
   notifyWalletUnsubscribed(walletAddress: string) {
     this.emit('walletUnsubscribed', walletAddress);
+  }
+
+  isServerInitialized(): boolean {
+    return !!this.server;
   }
 
   disconnect() {

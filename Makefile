@@ -35,7 +35,7 @@ dev: check-env
 	@echo "🚀 Services started:"
 	@echo "  Frontend:  http://localhost:3000"
 	@echo "  Backend:   http://localhost:3001/health"
-	@echo "  WebSocket: ws://localhost:8081"
+	@echo "  WebSocket: ws://localhost:3001"
 	@echo ""
 
 up: dev
@@ -107,11 +107,10 @@ build-prod:
 # === HEALTH CHECK ===
 health:
 	@echo "Checking services..."
-	@curl -sf http://localhost:3000 > /dev/null && echo "✅ Frontend" || echo "❌ Frontend"
-	@curl -sf http://localhost:3001/health > /dev/null && echo "✅ Backend" || echo "❌ Backend"
-	@curl -sf http://localhost:8081 > /dev/null && echo "✅ WebSocket" || echo "❌ WebSocket"
-	@docker exec solfolio-postgres pg_isready > /dev/null 2>&1 && echo "✅ PostgreSQL" || echo "❌ PostgreSQL"
-	@docker exec solfolio-redis redis-cli ping > /dev/null 2>&1 && echo "✅ Redis" || echo "❌ Redis"
+	@curl -sf --connect-timeout 2 --max-time 3 http://localhost:3000 > /dev/null && echo "✅ Frontend" || echo "❌ Frontend"
+	@curl -sf --connect-timeout 2 --max-time 3 http://localhost:3001/health > /dev/null && echo "✅ Backend (includes WebSocket)" || echo "❌ Backend"
+	@timeout 2 docker exec solfolio-postgres pg_isready > /dev/null 2>&1 && echo "✅ PostgreSQL" || echo "❌ PostgreSQL"
+	@timeout 2 docker exec solfolio-redis redis-cli ping > /dev/null 2>&1 && echo "✅ Redis" || echo "❌ Redis"
 
 # === UTILITIES ===
 shell-fe:
