@@ -39,6 +39,29 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 - Protocol-specific SDKs for Marinade, Kamino, Orca, Marginfi
 - Jupiter Price API for token pricing
 
+## E2E Testing with Claude
+
+### Using the E2E Test Automator Agent
+When you need to create or update E2E tests, use the specialized e2e-test-automator agent:
+
+```
+"Create E2E tests for the wallet connection feature"
+"Write tests for the portfolio viewing flow"
+"Add test cases for token sorting and filtering"
+```
+
+The agent will:
+- Follow test cases defined in `docs/regression-tests.md`
+- Implement wallet testing strategies from `docs/e2e-testing-strategy.md`
+- Use playwright-mcp tools for browser automation
+- Create tests in `frontend/e2e/` directory
+- Mock wallet connections and API responses for deterministic results
+
+### E2E Testing Documentation
+- **Test Strategy**: `docs/e2e-testing-strategy.md` - Wallet testing approaches and best practices
+- **Test Cases**: `docs/regression-tests.md` - Complete test scenarios (TC-001 to TC-015)
+- **Existing Tests**: `frontend/e2e/wallet-connection.spec.ts` - Current test implementation
+
 ## Development Commands
 
 ### Quick Start with Make
