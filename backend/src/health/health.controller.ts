@@ -8,6 +8,7 @@ import {
 } from '@nestjs/terminus';
 import { BlockchainHealthIndicator } from '../blockchain/blockchain.health';
 import { RedisHealthIndicator } from '../redis/redis.health';
+import { WebsocketHealthIndicator } from '../websocket/websocket.health';
 
 @Controller('health')
 export class HealthController {
@@ -18,6 +19,7 @@ export class HealthController {
     private disk: DiskHealthIndicator,
     @Optional() private blockchain?: BlockchainHealthIndicator,
     @Optional() private redis?: RedisHealthIndicator,
+    @Optional() private websocket?: WebsocketHealthIndicator,
   ) {}
 
   @Get()
@@ -39,6 +41,13 @@ export class HealthController {
     // Add Redis health check if available
     if (this.redis) {
       checks.push(() => this.redis!.isHealthy('redis'));
+    }
+
+    // Add WebSocket health check if available
+    if (this.websocket) {
+      checks.push(() =>
+        Promise.resolve(this.websocket!.isHealthy('websocket')),
+      );
     }
 
     return this.health.check(checks);
