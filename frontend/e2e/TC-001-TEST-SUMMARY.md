@@ -1,122 +1,280 @@
-# TC-001: Connect Wallet via Modal - Test Implementation Summary
+# TC-001: Connect Wallet via Modal - E2E Test Summary
 
 ## Overview
-Comprehensive E2E test suite for TC-001 from `docs/regression-tests.md` has been successfully implemented. This test suite covers the complete wallet connection flow including modal interactions, wallet selection, and UI responsiveness.
+This document summarizes the E2E test implementation for **TC-001: Connect Wallet via Modal** from the SolFolio regression test suite.
+
+## Test Implementation
+- **Test File**: `frontend/e2e/tc-001-connect-wallet.spec.ts`
+- **Test Cases**: 3 comprehensive tests
+- **Execution Time**: ~3.6 seconds
+- **Browser**: Chromium (can be extended to Firefox, Safari)
 
 ## Test Coverage
 
-### ✅ Passing Tests (11/13)
-1. **Display Connect Wallet button when not connected** - Verifies button visibility
-2. **Open wallet modal with smooth animation** - Checks modal animation/transition
-3. **Display all supported wallets in modal** - Verifies Phantom, Solflare, Ledger, Torus
-4. **Have visible close button (X) in modal** - Checks close button presence
-5. **Close modal when clicking outside** - Tests overlay click behavior
-6. **Connect to Phantom wallet** - Tests wallet selection (mock connection)
-7. **Handle wallet not installed scenario** - Tests behavior with no wallets
-8. **Handle ESC key to close modal** - Tests keyboard navigation
-9. **Maintain focus trap within modal** - Tests accessibility
-10. **Be responsive on mobile viewport** - Tests mobile responsiveness
-11. **Complete user journey** - Full end-to-end flow test
+### ✅ Test 1: Complete Wallet Modal Interactions and Display
+Covers the main user flow for opening and interacting with the wallet connection modal:
+- Verify Connect Wallet button is visible when not connected
+- Click button to open wallet modal
+- Verify modal appears with smooth animation (opacity: 1)
+- Verify all 4 supported wallets are displayed:
+  - Phantom
+  - Solflare
+  - Ledger
+  - Torus
+- Verify close button (X) is visible
+- Verify wallet options are clickable
 
-### ⏭️ Skipped Tests (2/13)
-1. **Display WalletInfo component after connection**
-   - Requires full wallet adapter integration
-   - Component depends on @solana/wallet-adapter-react context
-   
-2. **Persist wallet selection in localStorage**
-   - Requires full wallet adapter integration
-   - App's useWalletPersistence hook manages localStorage based on actual connection state
+### ✅ Test 2: Modal Interaction Behaviors
+Tests all ways to close the modal:
+- Click outside modal (on overlay) → modal closes
+- Click X button → modal closes
+- Press ESC key → modal closes
 
-## File Structure
-```
-frontend/e2e/
-├── fixtures/
-│   └── test-wallets.ts          # Test wallet constants and mock data
-├── helpers/
-│   └── wallet-helpers.ts        # Wallet mock utilities and helpers
-└── tc-001-connect-wallet.spec.ts # Main TC-001 test implementation
-```
+### ✅ Test 3: Mobile Viewport Responsiveness
+Tests wallet connection on mobile (375x667 - iPhone SE):
+- Connect button remains accessible
+- Modal fits mobile screen
+- All wallet options visible
+- No horizontal overflow
 
-## Key Features Implemented
+## Running the Tests
 
-### Test Helpers (`wallet-helpers.ts`)
-- `mockPhantomWallet()` - Injects mock Phantom wallet
-- `injectConnectedWallet()` - Sets up connected wallet state
-- `waitForWalletModal()` - Waits for modal visibility
-- `getWalletAddress()` - Gets displayed wallet address
-- `isWalletConnected()` - Checks connection status
-- `getWalletModalState()` - Gets comprehensive modal state
+### 🎬 Visual Mode (See Browser Actions)
 
-### Test Fixtures (`test-wallets.ts`)
-- Predefined test wallets (EMPTY, BASIC, TOKENS, DEFI, WHALE)
-- Mock wallet data generation
-- Address formatting utilities
-- Validation helpers
-
-## Test Execution
-
-### Running the Tests
+#### Option 1: UI Mode (Recommended for Debugging)
 ```bash
-# Run all TC-001 tests
+cd frontend
+pnpm test:e2e:ui tc-001-connect-wallet.spec.ts
+```
+**Features:**
+- Visual test runner with timeline
+- See each action as it happens
+- Time travel debugging
+- Watch mode for development
+- Inspect DOM at each step
+- View network requests and console logs
+
+#### Option 2: Headed Mode (See Live Browser)
+```bash
+cd frontend
+# Run with visible browser
+pnpm playwright test tc-001-connect-wallet.spec.ts --headed
+
+# Run with visible browser AND slow motion (easier to see actions)
+pnpm playwright test tc-001-connect-wallet.spec.ts --headed --slow-mo=1000
+
+# Extreme slow motion (1 second between each action)
+pnpm playwright test tc-001-connect-wallet.spec.ts --headed --slow-mo=2000
+```
+
+#### Option 3: Debug Mode (Step-by-Step Interactive)
+```bash
+cd frontend
+# Opens Playwright Inspector for step-by-step debugging
+pnpm playwright test tc-001-connect-wallet.spec.ts --debug
+```
+**Features:**
+- ⏸️ Pause at any point
+- ⏭️ Step through actions one by one
+- 🔍 Inspect page state
+- 📝 Live edit selectors
+- 🎯 Pick selectors from page
+- Press "Continue" to go to next action
+
+#### Option 4: Trace Viewer (Post-Execution Analysis)
+```bash
+# Run test and record trace
+pnpm playwright test tc-001-connect-wallet.spec.ts --trace on
+
+# Open trace viewer to analyze
+pnpm playwright show-trace
+```
+**Features:**
+- Timeline of all actions
+- Screenshots before/after each action
+- Network activity
+- Console logs
+- Full DOM snapshots
+
+### 🤖 Automated Mode (CI/CD)
+
+#### Headless Mode (Default)
+```bash
+cd frontend
+# Run in headless mode (no visible browser)
 pnpm test:e2e tc-001-connect-wallet.spec.ts
 
-# Run with UI for debugging
-pnpm test:e2e:ui tc-001-connect-wallet.spec.ts
-
-# Run specific test
-pnpm test:e2e tc-001-connect-wallet.spec.ts -g "complete user journey"
+# Or run all TC-001 tests
+pnpm test:e2e --grep "TC-001"
 ```
 
-### Test Results
-- **11 tests passing** ✅
-- **2 tests skipped** (require full wallet adapter)
-- **Total execution time**: ~10-15 seconds
-- **Browser**: Chromium (Playwright default)
+#### Generate HTML Report
+```bash
+# Run tests and generate report
+pnpm playwright test tc-001-connect-wallet.spec.ts --reporter=html
 
-## Screenshots Generated
-- `tc-001-wallet-modal-open.png` - Modal with all wallets visible
-- `tc-001-wallet-connected.png` - Connected state (when successful)
-- `tc-001-mobile-wallet-modal.png` - Mobile responsive view
-- `tc-001-complete-journey.png` - Full journey completion
+# Open the report
+pnpm playwright show-report
+```
 
-## Requirements Met
+### 🛠️ Development Commands
 
-### From `docs/regression-tests.md`:
-✅ Navigate to homepage  
-✅ Click "Connect Wallet" button  
-✅ Verify wallet selection modal appears  
-✅ Verify modal displays all wallets  
-✅ Click on wallet option  
-✅ Handle wallet extension response (mocked)  
-✅ Verify smooth animation  
-✅ Verify close button visible  
-✅ Test clicking outside closes modal  
-✅ Test ESC key closes modal  
+#### Watch Mode (Auto-run on File Changes)
+```bash
+# Watch specific test file
+pnpm playwright test tc-001-connect-wallet.spec.ts --watch
+```
 
-### Partial Implementation:
-⚠️ Display abbreviated address after connection (works with mock, needs full adapter)  
-⚠️ WalletInfo component display (requires wallet adapter context)  
-⚠️ localStorage persistence (managed by app's wallet persistence hook)
+#### Run Specific Test
+```bash
+# Run only one test by name
+pnpm playwright test -g "should complete wallet modal interactions"
+```
 
-## Technical Notes
+#### Different Browsers
+```bash
+# Firefox
+pnpm playwright test tc-001-connect-wallet.spec.ts --project=firefox
 
-### Mock Wallet Limitations
-The current implementation uses mock wallets for testing, which allows us to test:
-- UI interactions and modal behavior
-- Wallet selection flow
-- Error states and edge cases
+# Safari (WebKit)
+pnpm playwright test tc-001-connect-wallet.spec.ts --project=webkit
 
-But doesn't fully test:
-- Actual wallet adapter integration
-- Real wallet extension communication
-- Blockchain transaction signing
+# All browsers
+pnpm playwright test tc-001-connect-wallet.spec.ts --project=chromium --project=firefox --project=webkit
+```
 
-### Future Improvements
-1. **Full Wallet Adapter Testing**: Set up complete wallet adapter mocking
-2. **Integration Tests**: Add tests that include the full wallet context
-3. **Visual Regression**: Add screenshot comparison tests
-4. **Cross-browser Testing**: Extend to Firefox and WebKit
-5. **Real Wallet Testing**: Add optional tests with real wallet extensions
+## Speed Control Options
 
-## Conclusion
-TC-001 test implementation successfully covers all critical user interactions for the wallet connection flow. The tests are deterministic, maintainable, and follow best practices for E2E testing. The two skipped tests require deeper integration with the Solana wallet adapter and should be addressed in future iterations when the wallet adapter mocking is fully implemented.
+### Slow Motion Settings
+Control the speed of test execution to better observe actions:
+
+```bash
+# Moderate speed (500ms delay between actions)
+SLOWMO=500 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
+
+# Slow speed (1 second between actions) 
+SLOWMO=1000 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
+
+# Very slow (2 seconds between actions)
+SLOWMO=2000 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
+
+# Custom speed in test file (add to test):
+test.use({ 
+  // Slow down all actions by 1 second
+  actionTimeout: 30000,
+  navigationTimeout: 30000,
+  launchOptions: {
+    slowMo: 1000,
+  }
+});
+```
+
+## Test Helpers & Fixtures
+
+### Helper Functions (`e2e/helpers/wallet-helpers.ts`)
+- `mockPhantomWallet()` - Injects mock Phantom wallet into browser
+- `waitForWalletModal()` - Waits for modal visibility state
+- `getWalletAddress()` - Gets connected wallet address from UI
+- `isWalletConnected()` - Checks if wallet is connected
+
+### Test Wallets (`e2e/fixtures/test-wallets.ts`)
+```typescript
+TEST_WALLET_EMPTY  = '11111111111111111111111111111111empty'
+TEST_WALLET_BASIC  = '22222222222222222222222222222basic'
+TEST_WALLET_TOKENS = '33333333333333333333333333333token'
+TEST_WALLET_DEFI   = '44444444444444444444444444444defi4'
+TEST_WALLET_WHALE  = '55555555555555555555555555555whale'
+```
+
+## Debugging Tips
+
+### 1. Screenshot on Failure
+Tests automatically capture screenshots on failure. Find them in:
+```
+frontend/test-results/tc-001-connect-wallet-*/test-failed-*.png
+```
+
+### 2. Video Recording
+Enable video recording for all tests:
+```bash
+pnpm playwright test tc-001-connect-wallet.spec.ts --video=on
+```
+Videos saved in: `frontend/test-results/`
+
+### 3. Console Logs
+View browser console logs during test:
+```javascript
+// Add to test
+page.on('console', msg => console.log('BROWSER:', msg.text()))
+```
+
+### 4. Network Monitoring
+```javascript
+// Add to test to log API calls
+page.on('request', request => console.log('>>', request.method(), request.url()))
+page.on('response', response => console.log('<<', response.status(), response.url()))
+```
+
+### 5. Pause at Specific Point
+```javascript
+// Add in test where you want to pause
+await page.pause();  // Opens Playwright Inspector
+```
+
+## Test Results
+
+### Current Status
+- ✅ **3/3 tests passing**
+- ⏱️ **Execution time**: ~3.6 seconds
+- 🌐 **Browser**: Chromium
+- 📱 **Mobile**: Tested on 375x667 viewport
+
+### What's Tested
+1. **Wallet modal display and animations**
+2. **All 4 wallet providers visible**
+3. **Modal close interactions (X, overlay, ESC)**
+4. **Mobile responsiveness**
+5. **Button states and visibility**
+
+### What's Not Tested (Requires Full Integration)
+- Actual wallet connection flow
+- Wallet address display after connection
+- WalletInfo component display
+- LocalStorage persistence
+- Wallet switching
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Test runs too fast to see actions**
+   - Use `--headed --slow-mo=1000` flag
+   - Or use debug mode with `--debug`
+
+2. **Can't see browser window**
+   - Ensure using `--headed` flag
+   - Check if running in Docker/CI (use xvfb)
+
+3. **Tests fail locally but pass in CI**
+   - Clear test cache: `rm -rf test-results/`
+   - Check viewport size matches CI
+   - Ensure same browser version
+
+4. **Modal not appearing**
+   - Check if dev server is running
+   - Verify baseURL in playwright.config.ts
+   - Check for JavaScript errors in console
+
+## Next Steps
+
+To implement full wallet connection testing:
+1. Integrate Phantom test mode (see `docs/e2e-testing-strategy.md`)
+2. Add real wallet extension automation
+3. Implement remaining test cases (TC-002 to TC-004)
+4. Add cross-browser testing
+5. Set up CI/CD pipeline integration
+
+## Related Documentation
+- Test Case Definition: `docs/regression-tests.md` (lines 38-66)
+- E2E Strategy: `docs/e2e-testing-strategy.md`
+- Playwright Config: `frontend/playwright.config.ts`
