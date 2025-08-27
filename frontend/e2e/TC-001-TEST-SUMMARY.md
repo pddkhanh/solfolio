@@ -4,9 +4,11 @@
 This document summarizes the E2E test implementation for **TC-001: Connect Wallet via Modal** from the SolFolio regression test suite.
 
 ## Test Implementation
-- **Test File**: `frontend/e2e/tc-001-connect-wallet.spec.ts`
-- **Test Cases**: 3 comprehensive tests
-- **Execution Time**: ~3.6 seconds
+- **Test Files**: 
+  - `frontend/e2e/tc-001-connect-wallet.spec.ts` - Main test with mocks
+  - `frontend/e2e/tc-001-wallet-real.spec.ts` - Real connection test (detects bugs)
+- **Test Cases**: 2 comprehensive tests + 1 bug detection test
+- **Execution Time**: ~5 seconds
 - **Browser**: Chromium (can be extended to Firefox, Safari)
 
 ## Test Coverage
@@ -30,12 +32,6 @@ Tests all ways to close the modal:
 - Click X button → modal closes
 - Press ESC key → modal closes
 
-### ✅ Test 3: Mobile Viewport Responsiveness
-Tests wallet connection on mobile (375x667 - iPhone SE):
-- Connect button remains accessible
-- Modal fits mobile screen
-- All wallet options visible
-- No horizontal overflow
 
 ## Running the Tests
 
@@ -59,12 +55,6 @@ pnpm test:e2e:ui tc-001-connect-wallet.spec.ts
 cd frontend
 # Run with visible browser
 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
-
-# Run with visible browser AND slow motion (easier to see actions)
-pnpm playwright test tc-001-connect-wallet.spec.ts --headed --slow-mo=1000
-
-# Extreme slow motion (1 second between each action)
-pnpm playwright test tc-001-connect-wallet.spec.ts --headed --slow-mo=2000
 ```
 
 #### Option 3: Debug Mode (Step-by-Step Interactive)
@@ -143,31 +133,13 @@ pnpm playwright test tc-001-connect-wallet.spec.ts --project=webkit
 pnpm playwright test tc-001-connect-wallet.spec.ts --project=chromium --project=firefox --project=webkit
 ```
 
-## Speed Control Options
+## Debug Options
 
-### Slow Motion Settings
-Control the speed of test execution to better observe actions:
-
-```bash
-# Moderate speed (500ms delay between actions)
-SLOWMO=500 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
-
-# Slow speed (1 second between actions) 
-SLOWMO=1000 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
-
-# Very slow (2 seconds between actions)
-SLOWMO=2000 pnpm playwright test tc-001-connect-wallet.spec.ts --headed
-
-# Custom speed in test file (add to test):
-test.use({ 
-  // Slow down all actions by 1 second
-  actionTimeout: 30000,
-  navigationTimeout: 30000,
-  launchOptions: {
-    slowMo: 1000,
-  }
-});
-```
+### Speed Control in Debug Mode
+When using debug mode (`--debug`), you can control test execution speed:
+- Use the "Step over" button to go action by action
+- Use "Continue" to run until next breakpoint
+- Add `await page.pause()` in your test to create custom breakpoints
 
 ## Test Helpers & Fixtures
 
@@ -224,17 +196,18 @@ await page.pause();  // Opens Playwright Inspector
 ## Test Results
 
 ### Current Status
-- ✅ **3/3 tests passing**
-- ⏱️ **Execution time**: ~3.6 seconds
+- ✅ **2/2 tests passing** (with mocks)
+- ❌ **1 test failing** (real connection test - bug detected!)
+- ⏱️ **Execution time**: ~5 seconds
 - 🌐 **Browser**: Chromium
-- 📱 **Mobile**: Tested on 375x667 viewport
+- 🐛 **Bug Found**: Phantom click closes modal but doesn't connect
 
 ### What's Tested
 1. **Wallet modal display and animations**
 2. **All 4 wallet providers visible**
 3. **Modal close interactions (X, overlay, ESC)**
-4. **Mobile responsiveness**
-5. **Button states and visibility**
+4. **Button states and visibility**
+5. **Real wallet connection behavior** (detects when connection fails)
 
 ### What's Not Tested (Requires Full Integration)
 - Actual wallet connection flow

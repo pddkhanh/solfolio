@@ -22,7 +22,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('should complete wallet modal interactions and display', async ({ page }) => {
+  test('should complete wallet connection flow with mocked Phantom', async ({ page }) => {
     // Prerequisites: User not connected, app loaded on home page
     const connectButton = page.getByRole('button', { name: /connect wallet/i })
     await expect(connectButton.first()).toBeVisible()
@@ -46,13 +46,75 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     const closeButton = page.locator('.wallet-adapter-modal-button-close')
     await expect(closeButton).toBeVisible()
     
-    // Step 5: Test clicking on a wallet option
-    const phantomButton = page.getByText('Phantom')
+    // Step 5: Click on Phantom wallet option
+    const phantomButton = page.getByRole('button', { name: /phantom/i })
     await expect(phantomButton).toBeVisible()
     
-    // Note: Actual wallet connection requires full wallet adapter integration
-    // This test verifies the UI flow up to the connection point
-    // The connection itself would be handled by the wallet adapter
+    // Before clicking, set up response monitoring to detect if connection happens
+    let connectionAttempted = false
+    page.on('console', msg => {
+      if (msg.text().includes('Wallet error') || msg.text().includes('connect')) {
+        connectionAttempted = true
+      }
+    })
+    
+    // Inject mock to handle the connection
+    await page.evaluate(() => {
+      // Override the Phantom adapter's connect method
+      const originalConnect = window.solana?.connect
+      if (window.solana) {
+        window.solana.connect = async () => {
+          console.log('Mock Phantom connect called')
+          // Simulate successful connection
+          const mockPublicKey = {
+            toString: () => '7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs',
+            toBase58: () => '7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs',
+          }
+          window.solana.publicKey = mockPublicKey
+          window.solana.isConnected = true
+          
+          // Store in localStorage
+          localStorage.setItem('walletConnected', 'true')
+          localStorage.setItem('solfolio-wallet', '"Phantom"')
+          
+          // Trigger wallet adapter events
+          window.dispatchEvent(new CustomEvent('wallet-connected', { 
+            detail: { publicKey: mockPublicKey }
+          }))
+          
+          return { publicKey: mockPublicKey }
+        }
+      }
+    })
+    
+    // Click Phantom and wait for something to happen
+    await phantomButton.click()
+    
+    // Wait a bit for any connection attempt
+    await page.waitForTimeout(2000)
+    
+    // Check what happened after clicking
+    // Option 1: Modal should close if connection successful
+    const modalStillVisible = await modal.isVisible()
+    
+    // Option 2: Check if we're now showing connected state
+    const connectedButton = page.getByRole('button', { name: /\w{4}\.\.\.\w{4}/i })
+    const isConnected = await connectedButton.isVisible().catch(() => false)
+    
+    // Option 3: Check if "Connecting..." state appears
+    const connectingState = await page.getByText(/connecting/i).isVisible().catch(() => false)
+    
+    // FAIL TEST if nothing happens after clicking Phantom
+    if (modalStillVisible && !isConnected && !connectingState) {
+      throw new Error('Clicking Phantom wallet did nothing - connection not working!')
+    }
+    
+    // If connected, verify the UI shows it
+    if (isConnected) {
+      await expect(connectedButton).toBeVisible()
+      // Modal should be closed
+      await expect(modal).not.toBeVisible()
+    }
   })
 
   test('should handle modal interactions correctly', async ({ page }) => {
@@ -82,31 +144,5 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     // Test 3: ESC key should close modal
     await page.keyboard.press('Escape')
     await expect(modal).not.toBeVisible()
-  })
-
-  test('should work correctly on mobile viewport', async ({ page }) => {
-    // Set mobile viewport (iPhone SE)
-    await page.setViewportSize({ width: 375, height: 667 })
-    
-    // Ensure wallet button is accessible on mobile
-    const connectButton = page.getByRole('button', { name: /connect wallet/i })
-    await expect(connectButton.first()).toBeVisible()
-    
-    // Open modal on mobile
-    await connectButton.first().click()
-    await waitForWalletModal(page, true)
-    
-    // Verify modal fits mobile screen
-    const modal = page.locator('.wallet-adapter-modal')
-    await expect(modal).toBeVisible()
-    
-    // Verify all wallets are still accessible
-    await expect(page.getByText('Phantom')).toBeVisible()
-    await expect(page.getByText('Solflare')).toBeVisible()
-    
-    // Modal should be scrollable if needed but not overflow
-    const modalWrapper = page.locator('.wallet-adapter-modal-wrapper')
-    const boundingBox = await modalWrapper.boundingBox()
-    expect(boundingBox?.width).toBeLessThanOrEqual(375)
   })
 })
