@@ -148,11 +148,12 @@ export async function injectConnectedWallet(page: Page, walletData: { address: s
 }
 
 /**
- * Wait for wallet modal to appear
+ * Wait for wallet modal to appear or disappear
  */
-export async function waitForWalletModal(page: Page) {
-  // Wait for the wallet adapter modal to appear
-  await page.waitForSelector('.wallet-adapter-modal', { state: 'visible', timeout: 5000 })
+export async function waitForWalletModal(page: Page, shouldBeVisible: boolean = true) {
+  // Wait for the wallet adapter modal to appear or disappear
+  const state = shouldBeVisible ? 'visible' : 'hidden'
+  await page.waitForSelector('.wallet-adapter-modal', { state, timeout: 5000 })
 }
 
 /**
@@ -168,13 +169,33 @@ export async function waitForModalToClose(page: Page) {
  */
 export async function getWalletAddress(page: Page): Promise<string | null> {
   // Look for the wallet button with abbreviated address pattern
-  const addressElement = await page.locator('[data-testid="wallet-address"], button:has-text(/\w{4}\.\.\.\w{4}/)').first()
+  // First try the data-testid, then look for button with abbreviated pattern
+  try {
+    const addressElement = await page.locator('[data-testid="wallet-address"]').first()
+    if (await addressElement.isVisible()) {
+      return await addressElement.textContent()
+    }
+  } catch {
+    // Fallback to looking for button with pattern
+  }
   
-  if (await addressElement.isVisible()) {
-    return await addressElement.textContent()
+  // Look for button containing pattern like "1234...5678"
+  const buttons = await page.locator('button').all()
+  for (const button of buttons) {
+    const text = await button.textContent()
+    if (text && /^\w{4}\.\.\.\w{4}$/.test(text.trim())) {
+      return text.trim()
+    }
   }
   
   return null
+}
+
+/**
+ * Get the connected wallet address (alias for getWalletAddress)
+ */
+export async function getConnectedWalletAddress(page: Page): Promise<string | null> {
+  return getWalletAddress(page)
 }
 
 /**
@@ -182,10 +203,16 @@ export async function getWalletAddress(page: Page): Promise<string | null> {
  */
 export async function isWalletConnected(page: Page): Promise<boolean> {
   // Check for wallet address or disconnect button
-  const addressVisible = await page.locator('[data-testid="wallet-address"], button:has-text(/\w{4}\.\.\.\w{4}/)').isVisible().catch(() => false)
+  try {
+    const addressVisible = await page.locator('[data-testid="wallet-address"]').isVisible()
+    if (addressVisible) return true
+  } catch {
+    // Continue checking
+  }
+  
   const disconnectVisible = await page.locator('button:has-text("Disconnect")').isVisible().catch(() => false)
   
-  return addressVisible || disconnectVisible
+  return disconnectVisible
 }
 
 /**

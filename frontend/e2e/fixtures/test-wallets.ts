@@ -14,6 +14,13 @@ export interface TestWallet {
   privateKey?: string // Only for test networks, NEVER use real keys
 }
 
+// Export individual wallet constants for easier access
+export const TEST_WALLET_EMPTY = '11111111111111111111111111111empty'
+export const TEST_WALLET_BASIC = '22222222222222222222222222222basic'
+export const TEST_WALLET_TOKENS = '33333333333333333333333333333token'
+export const TEST_WALLET_DEFI = '44444444444444444444444444444defi4'
+export const TEST_WALLET_WHALE = '55555555555555555555555555555whale'
+
 /**
  * Test wallet constants matching the testing strategy document
  */
