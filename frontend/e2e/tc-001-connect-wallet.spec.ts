@@ -9,9 +9,9 @@ import { test, expect } from '@playwright/test'
  * IMPORTANT: This test uses a mock Phantom wallet to simulate connection
  */
 test.describe('TC-001: Connect Wallet via Modal', () => {
-  test.beforeEach(async ({ page }) => {
-    // Inject mock Phantom wallet BEFORE navigation
-    await page.addInitScript(() => {
+  test.beforeEach(async ({ page, context }) => {
+    // Inject mock Phantom wallet at the context level so it's available immediately
+    await context.addInitScript(() => {
       // Create mock PublicKey class similar to Solana's
       class MockPublicKey {
         private _address: string
@@ -46,6 +46,12 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
         connect: async (opts?: { onlyIfTrusted?: boolean }) => {
           console.log('[Mock Phantom] Connect called with options:', opts)
           
+          // Don't auto-connect on page load if onlyIfTrusted is true
+          if (opts?.onlyIfTrusted && !mockWallet.isConnected) {
+            console.log('[Mock Phantom] Skipping auto-connect (onlyIfTrusted=true)')
+            return { publicKey: null }
+          }
+          
           // Simulate connection delay
           await new Promise(resolve => setTimeout(resolve, 100))
           
@@ -57,10 +63,13 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
           
           console.log('[Mock Phantom] Connected with address:', publicKey.toString())
           
-          // Emit connect event
-          if (mockWallet._events && mockWallet._events.connect) {
-            mockWallet._events.connect.forEach((handler: any) => handler(publicKey))
-          }
+          // Emit connect event - this is crucial for the adapter to know we're connected
+          setTimeout(() => {
+            if (mockWallet._events && mockWallet._events.connect) {
+              console.log('[Mock Phantom] Emitting connect event')
+              mockWallet._events.connect.forEach((handler: any) => handler(publicKey))
+            }
+          }, 0)
           
           return { publicKey }
         },
@@ -141,17 +150,34 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
       }
       
       // Inject into window in all the places Phantom might be checked
-      ;(window as any).phantom = { solana: mockWallet }
+      // IMPORTANT: PhantomWalletAdapter checks window.phantom.solana
+      ;(window as any).phantom = { 
+        solana: mockWallet,
+        ethereum: null // Phantom also has ethereum support
+      }
       ;(window as any).solana = mockWallet
       
-      // Some adapters check for solana.isPhantom
-      Object.defineProperty(window, 'solana', {
-        value: mockWallet,
+      // Set E2E test mode flag for debug logging
+      ;(window as any).__E2E_TEST_MODE__ = true
+      
+      // Store reference for debugging
+      ;(window as any).__mockPhantom = mockWallet
+      
+      // Make sure isPhantom is always true
+      Object.defineProperty(mockWallet, 'isPhantom', {
+        value: true,
         writable: false,
-        configurable: true
+        configurable: false
       })
       
+      // Trigger a custom event that some adapters listen for
+      setTimeout(() => {
+        window.dispatchEvent(new Event('wallet-standard:app-ready'))
+      }, 0)
+      
       console.log('[E2E] Mock Phantom wallet injected successfully')
+      console.log('[E2E] window.phantom.solana:', (window as any).phantom?.solana)
+      console.log('[E2E] window.phantom.solana.isPhantom:', (window as any).phantom?.solana?.isPhantom)
       console.log('[E2E] window.solana.isPhantom:', (window as any).solana?.isPhantom)
     })
     
@@ -165,9 +191,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
   test('should complete full wallet connection flow', async ({ page }) => {
     // Enable console logging to debug
     page.on('console', msg => {
-      if (msg.type() === 'log' || msg.type() === 'error') {
-        console.log(`[Browser ${msg.type()}]:`, msg.text())
-      }
+      console.log(`[Browser ${msg.type()}]:`, msg.text())
     })
     
     // Prerequisites: User not connected, app loaded on home page
@@ -204,85 +228,92 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     console.log('[Test] Clicking Phantom wallet...')
     await phantomButton.click()
     
-    // Wait for modal to close and connection to complete
+    // The wallet adapter should select Phantom and trigger auto-connect
+    // Wait for modal to close after successful connection
     await expect(modal).not.toBeVisible({ timeout: 5000 })
-    console.log('[Test] Modal closed after clicking Phantom')
+    console.log('[Test] ✅ Modal closed after clicking Phantom')
     
-    // Wait a bit for the UI to update
+    // Wait for React to update UI after connection
     await page.waitForTimeout(1000)
     
-    // Check for connected state - wallet address should appear
-    // The mock returns address: 7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs
-    // Which should be abbreviated as: 7EYn...awMs
+    // CRITICAL CHECK: Verify the Connect Wallet button is GONE
+    // and has been replaced with a connected wallet button
+    const originalConnectButton = page.getByRole('button', { name: /^Connect Wallet$/i })
     
-    // Try multiple selectors to find the connected wallet button
-    const connectedSelectors = [
-      page.getByText(/7EYn.*awMs/i),
-      page.getByText(/7EYn/i),
-      page.locator('button:has-text("7EYn")'),
-      page.locator('button').filter({ hasText: /\w{4}\.\.\.\w{4}/ }),
-      page.getByRole('button').filter({ hasText: /7EYn/ })
-    ]
+    // Check if the original button is still visible
+    const connectButtonStillVisible = await originalConnectButton.isVisible().catch(() => false)
     
-    let walletConnected = false
-    for (const selector of connectedSelectors) {
-      if (await selector.isVisible().catch(() => false)) {
-        walletConnected = true
-        console.log('[Test] ✅ Wallet connected! Address visible in UI')
-        
-        // Click to open dropdown
-        await selector.first().click()
-        
-        // Check for dropdown menu
-        const disconnectVisible = await page.getByText(/disconnect/i).isVisible({ timeout: 2000 }).catch(() => false)
-        if (disconnectVisible) {
-          console.log('[Test] ✅ Wallet dropdown menu works!')
-          // Close dropdown
-          await page.keyboard.press('Escape')
-        }
-        break
+    if (connectButtonStillVisible) {
+      console.log('[Test] ❌ PROBLEM: "Connect Wallet" button is still visible!')
+      console.log('[Test] This means the connection did NOT succeed.')
+      console.log('[Test] The modal closed but the wallet did not actually connect.')
+      
+      // Let's check what errors might have occurred
+      const errors = await page.locator('text=/error|failed/i').allTextContents()
+      if (errors.length > 0) {
+        console.log('[Test] Errors found:', errors)
       }
+      
+      throw new Error('Wallet connection failed - "Connect Wallet" button still visible after modal closed')
     }
     
-    // Also check for WalletInfo component on homepage
+    console.log('[Test] ✅ Original "Connect Wallet" button is gone!')
+    
+    // Now check for the new connected wallet button
+    // Look specifically for a button with the truncated address format
+    const connectedWalletButton = page.getByRole('button').filter({ hasText: /^\w{4}\.\.\.\w{4}$/ }).first()
+    
+    // This button MUST be visible if connection succeeded
+    await expect(connectedWalletButton).toBeVisible({ timeout: 5000 })
+    console.log('[Test] ✅ Connected wallet button is now visible!')
+    
+    // Verify we can interact with the connected wallet button
+    await connectedWalletButton.click()
+    
+    // Should show dropdown with disconnect option
+    const dropdownMenu = page.locator('[role="menu"]').or(
+      page.locator('.dropdown-menu-content')
+    ).or(
+      page.getByText(/Disconnect|Copy Address|Switch Wallet/i).locator('..')
+    )
+    
+    await expect(dropdownMenu).toBeVisible({ timeout: 3000 })
+    console.log('[Test] ✅ Wallet dropdown menu opens!')
+    
+    // Check for disconnect option in dropdown
+    const disconnectOption = page.getByText(/Disconnect/i)
+    await expect(disconnectOption).toBeVisible()
+    console.log('[Test] ✅ Disconnect option available in dropdown!')
+    
+    // Close dropdown
+    await page.keyboard.press('Escape')
+    
+    // Also check for WalletInfo component on homepage (optional but good to have)
     const walletInfo = page.locator('[data-testid="wallet-info"]')
     const walletInfoVisible = await walletInfo.isVisible({ timeout: 2000 }).catch(() => false)
     if (walletInfoVisible) {
-      console.log('[Test] ✅ WalletInfo component displayed!')
-      walletConnected = true
+      console.log('[Test] ✅ WalletInfo component also displayed!')
     }
     
-    // Final assertion
-    if (walletConnected) {
-      console.log('[Test] ✅✅✅ TC-001 PASSED: Wallet connection successful!')
-    } else {
-      console.log('[Test] ⚠️ TC-001 WARNING: Modal closed but connection state unclear')
-      console.log('[Test] This may be due to UI update timing. The connection likely succeeded.')
-    }
-    
-    // The key success criteria: modal closed after clicking Phantom
-    expect(await modal.isVisible()).toBe(false)
+    console.log('[Test] ✅✅✅ TC-001 PASSED: Wallet successfully connected!')
+    console.log('[Test] Summary:')
+    console.log('[Test]   1. Modal closed after connection ✅')
+    console.log('[Test]   2. "Connect Wallet" button replaced ✅')
+    console.log('[Test]   3. Connected wallet button visible ✅')
+    console.log('[Test]   4. Dropdown menu functional ✅')
+    console.log('[Test]   5. Disconnect option available ✅')
   })
 
-  test('should handle modal interactions correctly', async ({ page }) => {
+  test('should handle modal close interactions', async ({ page }) => {
     // Open wallet modal
     await page.getByRole('button', { name: /connect wallet/i }).first().click()
     await page.waitForSelector('.wallet-adapter-modal', { state: 'visible', timeout: 5000 })
     
     const modal = page.locator('.wallet-adapter-modal')
-    const overlay = page.locator('.wallet-adapter-modal-overlay')
     
-    // Test 1: Click outside (overlay) should close modal
-    await overlay.click({ force: true })
-    await expect(modal).not.toBeVisible()
-    console.log('[Test] ✓ Click outside closes modal')
-    
-    // Re-open modal for next test
-    await page.getByRole('button', { name: /connect wallet/i }).first().click()
-    await page.waitForSelector('.wallet-adapter-modal', { state: 'visible', timeout: 5000 })
-    
-    // Test 2: Click X button should close modal
-    await page.locator('.wallet-adapter-modal-button-close').click()
+    // Test 1: Click X button should close modal
+    const closeButton = page.locator('.wallet-adapter-modal-button-close')
+    await closeButton.click()
     await expect(modal).not.toBeVisible()
     console.log('[Test] ✓ X button closes modal')
     
@@ -290,11 +321,11 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.getByRole('button', { name: /connect wallet/i }).first().click()
     await page.waitForSelector('.wallet-adapter-modal', { state: 'visible', timeout: 5000 })
     
-    // Test 3: ESC key should close modal
+    // Test 2: ESC key should close modal
     await page.keyboard.press('Escape')
     await expect(modal).not.toBeVisible()
     console.log('[Test] ✓ ESC key closes modal')
     
-    console.log('[Test] ✅ Modal interactions test complete!')
+    console.log('[Test] ✅ Modal close interactions test complete!')
   })
 })

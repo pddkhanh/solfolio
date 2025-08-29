@@ -62,6 +62,13 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
   // Handle wallet errors
   const onError = useCallback((error: WalletError) => {
     console.error('Wallet error:', error)
+    if ((window as any).__E2E_TEST_MODE__) {
+      console.error('[WalletProvider] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      })
+    }
   }, [])
 
   // Persist wallet selection
