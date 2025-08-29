@@ -9,8 +9,9 @@ Implement E2E test for test case $ARGUMENTS from docs/regression-tests.md
 ## Validation (MUST PASS before PR!)
 ```bash
 cd frontend
-pnpm test:e2e --grep "$ARGUMENTS"  # Test must pass
+pnpm run typecheck
 pnpm run lint                       # No lint errors allowed
+pnpm test:e2e --grep "$ARGUMENTS"  # Test must pass
 ```
 
 ## After validation passes:

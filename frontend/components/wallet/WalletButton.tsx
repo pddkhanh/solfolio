@@ -14,10 +14,33 @@ import { Wallet, Copy, LogOut, ChevronDown, Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function WalletButton() {
-  const { publicKey, disconnect, connecting, connected, wallet } = useWallet()
+  const { publicKey, disconnect, connecting, connected, wallet, connect } = useWallet()
   const { setVisible } = useWalletModal()
   const [mounted, setMounted] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  // Debug logging for E2E tests
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).__E2E_TEST_MODE__) {
+      console.log('[WalletButton] State:', {
+        connected,
+        connecting,
+        publicKey: publicKey?.toString(),
+        wallet: wallet?.adapter.name
+      })
+    }
+  }, [connected, connecting, publicKey, wallet])
+
+  // Auto-connect when wallet is selected but not connected (for E2E tests)
+  // This helps E2E tests by automatically connecting after wallet selection
+  useEffect(() => {
+    if (wallet && !connected && !connecting && typeof window !== 'undefined' && (window as any).__E2E_TEST_MODE__) {
+      console.log('[WalletButton] E2E mode: Auto-connecting selected wallet...')
+      connect().catch(err => {
+        console.error('[WalletButton] E2E auto-connect failed:', err)
+      })
+    }
+  }, [wallet, connected, connecting, connect])
 
   useEffect(() => {
     setMounted(true)

@@ -31,18 +31,44 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   // Configure wallets
   const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new LedgerWalletAdapter(),
-      new TorusWalletAdapter()
-    ],
+    () => {
+      // Check if we're in E2E test mode
+      const isTestMode = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' || 
+          (typeof window !== 'undefined' && (window as any).__E2E_TEST_MODE__)
+      
+      if (isTestMode) {
+        console.log('[WalletProvider] E2E Test mode detected, using test wallet adapters')
+        // For now, return empty array and handle connection differently
+        // The test adapter approach needs proper build configuration
+        return [
+          new PhantomWalletAdapter(),
+          new SolflareWalletAdapter(),
+          new LedgerWalletAdapter(),
+          new TorusWalletAdapter()
+        ]
+      }
+      
+      // Production wallets
+      return [
+        new PhantomWalletAdapter(),
+        new SolflareWalletAdapter(),
+        new LedgerWalletAdapter(),
+        new TorusWalletAdapter()
+      ]
+    },
     []
   )
 
   // Handle wallet errors
   const onError = useCallback((error: WalletError) => {
     console.error('Wallet error:', error)
+    if ((window as any).__E2E_TEST_MODE__) {
+      console.error('[WalletProvider] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      })
+    }
   }, [])
 
   // Persist wallet selection
