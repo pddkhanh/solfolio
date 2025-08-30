@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test'
+import { testLogger } from './test-logger'
 
 /**
  * Mock wallet configuration for E2E tests
@@ -79,7 +80,7 @@ export async function injectMockWallet(page: Page, config: MockWalletConfig = {}
       failNextConnect: injectedConfig.failConnect,
       
       connect: async function(options?: { onlyIfTrusted?: boolean }) {
-        console.log('[E2E Mock Wallet] Connect called with options:', options)
+        // Suppress verbose logging in CI
         
         // Handle onlyIfTrusted - for auto-reconnection
         if (options?.onlyIfTrusted) {
@@ -88,14 +89,13 @@ export async function injectMockWallet(page: Page, config: MockWalletConfig = {}
           const storedAddress = localStorage.getItem('walletAddress')
           
           if (storedWallet === injectedConfig.walletName && storedAddress) {
-            console.log('[E2E Mock Wallet] Auto-reconnecting with trusted connection')
+            // Auto-reconnecting with trusted connection
             this.publicKey = new MockPublicKey(storedAddress)
             this.connected = true
             return { publicKey: this.publicKey }
           }
           
           // If not trusted, return without connecting
-          console.log('[E2E Mock Wallet] Not trusted, skipping auto-connect')
           return null
         }
         
@@ -120,12 +120,12 @@ export async function injectMockWallet(page: Page, config: MockWalletConfig = {}
         localStorage.setItem('walletAddress', injectedConfig.address)
         localStorage.setItem('walletConnected', 'true')
         
-        console.log('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+        // Connected successfully
         return { publicKey: this.publicKey }
       },
       
       disconnect: async function() {
-        console.log('[E2E Mock Wallet] Disconnect called')
+        // Disconnect called
         this.publicKey = null
         this.connected = false
         this.connecting = false
@@ -185,8 +185,6 @@ export async function injectMockWallet(page: Page, config: MockWalletConfig = {}
     
     // Always expose for test manipulation
     ;(window as any).mockWallet = mockWallet
-    
-    console.log(`[E2E] Mock ${injectedConfig.walletName} wallet injected successfully`)
   }, { address, walletName, failConnect, autoApprove })
 }
 

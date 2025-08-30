@@ -4,8 +4,12 @@ import path from 'path'
 
 /**
  * Load test environment variables
+ * quiet: true suppresses verbose logging from dotenv
  */
-dotenv.config({ path: path.resolve(__dirname, '.env.test') })
+dotenv.config({ 
+  path: path.resolve(__dirname, '.env.test'),
+  quiet: true 
+} as any)
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -21,7 +25,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI ? 'dot' : 'list',
+  reporter: process.env.CI 
+    ? [['dot'], ['html', { open: 'never' }]]
+    : [['list'], ['html', { open: 'on-failure' }]],
   /* Test timeout - E2E tests can be slower but not too slow */
   timeout: 30 * 1000, // 30 seconds per test
   /* Global timeout for the whole test run */
@@ -35,9 +41,11 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
+    /* Video recording */
+    video: process.env.CI ? 'retain-on-failure' : 'off',
     /* Action timeout - clicking, typing, etc */
     actionTimeout: 10 * 1000, // 10 seconds
     /* Navigation timeout */
@@ -80,5 +88,7 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    stdout: process.env.CI ? 'pipe' : 'ignore',
+    stderr: process.env.CI ? 'pipe' : 'ignore',
   },
 })

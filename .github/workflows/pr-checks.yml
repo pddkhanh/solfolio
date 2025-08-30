@@ -262,7 +262,8 @@ jobs:
         working-directory: ./frontend
         env:
           NEXT_PUBLIC_E2E_TEST_MODE: true
-        run: pnpm run test:e2e
+          CI: true
+        run: pnpm run test:e2e:ci
         
       - name: Upload test results
         if: failure()
