@@ -222,9 +222,9 @@ describe('HistoricalValueChart', () => {
       render(<HistoricalValueChart />);
 
       await waitFor(() => {
-        // Look for positive trend indicators
-        const trendElements = screen.getByText(/\+/);
-        expect(trendElements).toBeInTheDocument();
+        // Look for positive trend indicators - there should be at least one
+        const trendElements = screen.getAllByText(/\+/);
+        expect(trendElements.length).toBeGreaterThan(0);
       });
     });
 
