@@ -25,6 +25,11 @@ const PortfolioPieChart = dynamic(
   { ssr: false }
 );
 
+const ProtocolBreakdown = dynamic(
+  () => import('@/components/portfolio/ProtocolBreakdown').then(mod => ({ default: mod.ProtocolBreakdown })),
+  { ssr: false }
+);
+
 export default function PortfolioPage() {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -61,9 +66,8 @@ export default function PortfolioPage() {
           <div className="w-full">
             <PortfolioPieChart />
           </div>
-          <div className="space-y-4">
-            {/* This space is reserved for additional analytics components */}
-            {/* Future: Protocol breakdown chart, historical value chart, etc. */}
+          <div className="w-full">
+            <ProtocolBreakdown />
           </div>
         </div>
 
