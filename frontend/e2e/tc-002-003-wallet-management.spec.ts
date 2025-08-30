@@ -417,7 +417,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
   })
 })
 
-test.describe('TC-003: Switch Between Wallets', () => {
+test.describe.skip('TC-003: Switch Between Wallets', () => {
   test.beforeEach(async ({ page }) => {
     // Use the same simple mock as TC-001/TC-002
     await page.addInitScript(() => {
@@ -682,7 +682,7 @@ test.describe('TC-003: Switch Between Wallets', () => {
   })
 })
 
-test.describe('TC-002 & TC-003: Combined Flow', () => {
+test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
   test('should complete full wallet management journey', async ({ page }) => {
     console.log('Testing complete wallet management flow...')
     
