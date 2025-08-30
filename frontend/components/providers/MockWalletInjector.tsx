@@ -5,12 +5,13 @@ import { injectMockWallet } from '@/lib/mockWallet'
 
 export default function MockWalletInjector() {
   useEffect(() => {
-    // Check if we should inject mock wallet
-    const shouldMock = process.env.NEXT_PUBLIC_MOCK_WALLET === 'true' ||
-      process.env.NODE_ENV === 'development'
+    // Only inject mock wallet for E2E tests
+    // E2E tests should set NEXT_PUBLIC_E2E_TEST_MODE=true
+    const isE2ETest = process.env.NEXT_PUBLIC_E2E_TEST_MODE === 'true' ||
+      (typeof window !== 'undefined' && (window as any).__E2E_TEST_MODE__)
     
-    if (shouldMock) {
-      console.log('[MockWalletInjector] Injecting mock wallet for development')
+    if (isE2ETest) {
+      console.log('[MockWalletInjector] Injecting mock wallet for E2E testing')
       injectMockWallet()
     }
   }, [])
