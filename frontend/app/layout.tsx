@@ -8,6 +8,7 @@ import WalletPersistenceProvider from '@/components/providers/WalletPersistenceP
 import WebSocketProvider from '@/contexts/WebSocketProvider'
 import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
+import MockWalletInjector from '@/components/providers/MockWalletInjector'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <MockWalletInjector />
         <WalletErrorBoundary>
           <WalletContextProvider>
             <WalletPersistenceProvider>
