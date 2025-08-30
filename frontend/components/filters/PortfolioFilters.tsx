@@ -79,7 +79,7 @@ export function PortfolioFilters({
           type="text"
           placeholder="Search tokens, protocols, or positions..."
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value)}
           className="pl-10 pr-10"
         />
         {searchQuery && (
