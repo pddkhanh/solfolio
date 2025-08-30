@@ -1,8 +1,7 @@
 'use client'
 
-import React, { FC, ReactNode, useMemo, useCallback } from 'react'
-import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import React, { FC, ReactNode, useMemo, useCallback, useEffect, createContext, useContext, useState } from 'react'
+import { ConnectionProvider, WalletProvider, useWallet } from '@solana/wallet-adapter-react'
 import { 
   PhantomWalletAdapter, 
   SolflareWalletAdapter,
@@ -15,11 +14,27 @@ import { WalletError } from '@solana/wallet-adapter-base'
 // Import wallet adapter CSS
 import '@solana/wallet-adapter-react-ui/styles.css'
 
+// Create a custom modal context to replace WalletModalProvider
+interface WalletModalContextState {
+  visible: boolean
+  setVisible: (visible: boolean) => void
+}
+
+const WalletModalContext = createContext<WalletModalContextState>({
+  visible: false,
+  setVisible: () => {}
+})
+
+export const useWalletModal = () => {
+  return useContext(WalletModalContext)
+}
+
 interface WalletContextProviderProps {
   children: ReactNode
 }
 
 export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children }) => {
+  const [modalVisible, setModalVisible] = useState(false)
   // Configure RPC endpoint - use Helius in production, devnet for development
   const endpoint = useMemo(() => {
     if (process.env.NEXT_PUBLIC_HELIUS_RPC_URL) {
@@ -61,7 +76,36 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
 
   // Handle wallet errors
   const onError = useCallback((error: WalletError) => {
-    console.error('Wallet error:', error)
+    console.error('[WalletContextProvider] Wallet error caught:', error)
+    console.error('[WalletContextProvider] Error type:', error.name)
+    console.error('[WalletContextProvider] Error message:', error.message)
+    console.error('[WalletContextProvider] Error stack:', error.stack)
+    
+    // Parse error message for user-friendly display
+    let userMessage = 'Failed to connect wallet'
+    
+    if (error.message.includes('User rejected')) {
+      userMessage = 'Connection cancelled by user'
+    } else if (error.message.includes('not found') || error.message.includes('not installed')) {
+      userMessage = 'Wallet not found. Please ensure your wallet extension is installed and enabled'
+    } else if (error.message.includes('timeout')) {
+      userMessage = 'Connection timed out. Please try again'
+    } else if (error.message.includes('already processing')) {
+      userMessage = 'Connection already in progress...'
+    } else {
+      // Generic error message with details
+      userMessage = `Wallet connection failed: ${error.message}`
+    }
+    
+    console.error(`[Wallet Error] ${userMessage}`)
+    
+    // Display error to user using alert for now (simple solution without dependencies)
+    if (typeof window !== 'undefined') {
+      // Store error message in sessionStorage for the WalletButton to display
+      window.sessionStorage.setItem('wallet_error', userMessage)
+      window.dispatchEvent(new Event('wallet_error'))
+    }
+    
     if ((window as any).__E2E_TEST_MODE__) {
       console.error('[WalletProvider] Error details:', {
         name: error.name,
@@ -89,9 +133,9 @@ export const WalletContextProvider: FC<WalletContextProviderProps> = ({ children
         onError={onError}
         localStorageKey="solfolio-wallet"
       >
-        <WalletModalProvider>
+        <WalletModalContext.Provider value={{ visible: modalVisible, setVisible: setModalVisible }}>
           {children}
-        </WalletModalProvider>
+        </WalletModalContext.Provider>
       </WalletProvider>
     </ConnectionProvider>
   )
