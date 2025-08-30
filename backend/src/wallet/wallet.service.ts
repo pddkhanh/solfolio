@@ -7,6 +7,7 @@ import { RateLimiterService } from '../blockchain/rate-limiter.service';
 import { RpcBatchService } from '../blockchain/rpc-batch.service';
 import { TokenMetadataService } from './token-metadata.service';
 import { PriceService } from '../price/price.service';
+import { PriceHistoryService } from '../price/price-history.service';
 
 export interface TokenBalance {
   mint: string;
@@ -40,6 +41,12 @@ export interface WalletBalances {
   nfts: any[]; // For future NFT support
   totalAccounts: number;
   totalValueUSD: number;
+  totalChange24h?: number;
+  totalChangePercent24h?: number;
+  totalChange7d?: number;
+  totalChangePercent7d?: number;
+  totalChange30d?: number;
+  totalChangePercent30d?: number;
   lastUpdated: string;
   fetchedAt?: Date;
 }
@@ -55,6 +62,7 @@ export class WalletService {
     private readonly rpcBatchService: RpcBatchService,
     private readonly tokenMetadataService: TokenMetadataService,
     private readonly priceService: PriceService,
+    private readonly priceHistoryService: PriceHistoryService,
   ) {}
 
   async getWalletBalances(walletAddress: string): Promise<WalletBalances> {
@@ -95,6 +103,31 @@ export class WalletService {
         nativeBalance.uiAmount * solPrice,
       );
 
+      // Calculate portfolio changes over time
+      const allTokens = [
+        { mint: SOL_MINT, amount: parseInt(nativeBalance.amount), decimals: 9 },
+        ...tokenBalances.map(t => ({
+          mint: t.mint,
+          amount: parseInt(t.balance || t.amount || '0'),
+          decimals: t.decimals,
+        })),
+      ];
+
+      let portfolioChanges;
+      try {
+        portfolioChanges = await this.priceHistoryService.calculatePortfolioChanges(allTokens);
+      } catch (error) {
+        this.logger.warn(`Failed to calculate portfolio changes: ${error}`);
+        portfolioChanges = {
+          totalChange24h: 0,
+          totalChangePercent24h: 0,
+          totalChange7d: 0,
+          totalChangePercent7d: 0,
+          totalChange30d: 0,
+          totalChangePercent30d: 0,
+        };
+      }
+
       return {
         wallet: walletAddress,
         nativeSol: nativeBalance,
@@ -102,6 +135,12 @@ export class WalletService {
         nfts: [], // NFT support to be added later
         totalAccounts: tokenBalances.length,
         totalValueUSD,
+        totalChange24h: portfolioChanges.totalChange24h,
+        totalChangePercent24h: portfolioChanges.totalChangePercent24h,
+        totalChange7d: portfolioChanges.totalChange7d,
+        totalChangePercent7d: portfolioChanges.totalChangePercent7d,
+        totalChange30d: portfolioChanges.totalChange30d,
+        totalChangePercent30d: portfolioChanges.totalChangePercent30d,
         lastUpdated: new Date().toISOString(),
         fetchedAt: new Date(),
       };

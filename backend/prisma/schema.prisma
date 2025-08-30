@@ -181,3 +181,17 @@ model Transaction {
   @@index([walletAddress, blockTime(sort: Desc)])
   @@index([protocol, blockTime(sort: Desc)])
 }
+
+model PriceHistory {
+  id          String   @id @default(uuid())
+  tokenMint   String
+  symbol      String
+  price       Decimal  @db.Decimal(20, 10)
+  timestamp   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([tokenMint, timestamp(sort: Desc)])
+  @@index([symbol, timestamp(sort: Desc)])
+  @@index([timestamp])
+  @@unique([tokenMint, timestamp])
+}
