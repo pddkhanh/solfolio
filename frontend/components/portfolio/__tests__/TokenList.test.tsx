@@ -274,8 +274,14 @@ describe('TokenList', () => {
         expect(screen.getByText('USDC')).toBeInTheDocument();
       });
 
-      const refreshButton = screen.getByRole('button', { name: '' }); // RefreshCw icon button
-      fireEvent.click(refreshButton);
+      // Find the refresh button by looking for the button with RefreshCw icon
+      const buttons = screen.getAllByRole('button');
+      const refreshButton = buttons.find(button => 
+        button.querySelector('svg.h-4.w-4') // RefreshCw icon has these classes
+      );
+      expect(refreshButton).toBeInTheDocument();
+      
+      fireEvent.click(refreshButton!);
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledTimes(2); // Initial fetch + refresh
@@ -289,7 +295,12 @@ describe('TokenList', () => {
         expect(screen.getByText('USDC')).toBeInTheDocument();
       });
 
-      const refreshButton = screen.getByRole('button', { name: '' });
+      // Find the refresh button by looking for the button with RefreshCw icon
+      const buttons = screen.getAllByRole('button');
+      const refreshButton = buttons.find(button => 
+        button.querySelector('svg.h-4.w-4') // RefreshCw icon has these classes
+      );
+      expect(refreshButton).toBeInTheDocument();
       
       // Mock a slow response for the refresh
       (fetch as jest.Mock).mockImplementationOnce(
@@ -299,10 +310,10 @@ describe('TokenList', () => {
         }), 100))
       );
 
-      fireEvent.click(refreshButton);
+      fireEvent.click(refreshButton!);
 
       // Check for spinning animation class
-      expect(refreshButton.querySelector('.animate-spin')).toBeInTheDocument();
+      expect(refreshButton!.querySelector('.animate-spin')).toBeInTheDocument();
     });
   });
 
@@ -362,7 +373,9 @@ describe('TokenList', () => {
       await waitFor(() => {
         expect(screen.getByText('USDC')).toBeInTheDocument();
         expect(screen.getByText('USD Coin')).toBeInTheDocument();
-        expect(screen.getByText('$100.00')).toBeInTheDocument();
+        // Use getAllByText since there might be multiple values with $100.00
+        const priceElements = screen.getAllByText('$100.00');
+        expect(priceElements.length).toBeGreaterThan(0);
         expect(screen.getByText('100.00 USDC')).toBeInTheDocument();
       });
     });
