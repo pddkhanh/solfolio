@@ -61,7 +61,7 @@ export function PortfolioOverview() {
 
   if (!connected) {
     return (
-      <Card>
+      <Card data-testid="portfolio-overview-card">
         <CardHeader>
           <CardTitle>Portfolio Overview</CardTitle>
         </CardHeader>
@@ -76,7 +76,7 @@ export function PortfolioOverview() {
 
   if (loading) {
     return (
-      <Card>
+      <Card data-testid="portfolio-overview-card" data-loading="true">
         <CardHeader>
           <CardTitle>Portfolio Overview</CardTitle>
         </CardHeader>
@@ -96,12 +96,12 @@ export function PortfolioOverview() {
 
   if (error) {
     return (
-      <Card>
+      <Card data-testid="portfolio-overview-card" data-error="true">
         <CardHeader>
           <CardTitle>Portfolio Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-destructive text-center py-8">{error}</p>
+          <p className="text-destructive text-center py-8" data-testid="error-message">{error}</p>
         </CardContent>
       </Card>
     );
@@ -114,7 +114,7 @@ export function PortfolioOverview() {
   const isPositiveChange = (stats.change24h || 0) >= 0;
 
   return (
-    <Card>
+    <Card data-testid="portfolio-overview-card">
       <CardHeader>
         <CardTitle>Portfolio Overview</CardTitle>
       </CardHeader>
@@ -127,7 +127,7 @@ export function PortfolioOverview() {
               <span>Total Value</span>
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold">
+              <span className="text-2xl font-bold" data-testid="total-value">
                 {formatUSD(stats.totalValue)}
               </span>
               {stats.change24h !== undefined && stats.change24h !== 0 && (
@@ -170,7 +170,7 @@ export function PortfolioOverview() {
               <Coins className="h-4 w-4" />
               <span>Total Tokens</span>
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold" data-testid="total-tokens">
               {stats.totalTokens}
             </div>
           </div>
