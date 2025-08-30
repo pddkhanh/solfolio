@@ -37,8 +37,8 @@ export default defineConfig({
   maxFailures: process.env.CI ? 5 : undefined,
   
   // Override webServer for CI
-  webServer: {
+  webServer: baseConfig.webServer ? {
     ...baseConfig.webServer,
     reuseExistingServer: true, // Allow reusing existing server in CI
-  },
+  } : undefined,
 })
