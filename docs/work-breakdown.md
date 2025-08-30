@@ -207,10 +207,10 @@
 - [x] **TASK-111** Add 24h/7d/30d change indicators (1.5h) ✅
 
 ### 6.2 Filtering and Sorting
-- [ ] **TASK-112** Add token/position filters (1.5h)
-- [ ] **TASK-113** Implement sort by value/APY/protocol (1h)
-- [ ] **TASK-114** Add search functionality (1h)
-- [ ] **TASK-115** Create hide small balances toggle (1h)
+- [x] **TASK-112** Add token/position filters (1.5h) ✅
+- [x] **TASK-113** Implement sort by value/APY/protocol (1h) ✅
+- [x] **TASK-114** Add search functionality (1h) ✅
+- [x] **TASK-115** Create hide small balances toggle (1h) ✅
 
 ### 6.3 Export and Sharing
 - [ ] **TASK-116** Implement CSV export (1.5h)
