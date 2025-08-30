@@ -15,6 +15,7 @@ coverage/
 **/playwright-report/
 **/playwright/.cache/
 **/.last-run.json
+.playwright-mcp/
 
 # Next.js
 .next/
