@@ -100,13 +100,25 @@ export class PositionsService {
           const totalValue = aggregatedPositions.totalValue;
 
           // Process each protocol
-          for (const [protocolType, positions] of aggregatedPositions.byProtocol.entries()) {
+          for (const [
+            protocolType,
+            positions,
+          ] of aggregatedPositions.byProtocol.entries()) {
             if (positions.length === 0) continue;
 
-            const protocolValue = positions.reduce((sum, pos) => sum + pos.usdValue, 0);
-            const protocolApy = this.calculateWeightedApy(positions, protocolValue);
-            const protocolRewards = positions.reduce((sum, pos) => sum + pos.rewards, 0);
-            
+            const protocolValue = positions.reduce(
+              (sum, pos) => sum + pos.usdValue,
+              0,
+            );
+            const protocolApy = this.calculateWeightedApy(
+              positions,
+              protocolValue,
+            );
+            const protocolRewards = positions.reduce(
+              (sum, pos) => sum + pos.rewards,
+              0,
+            );
+
             protocolBreakdown.push({
               protocol: positions[0].protocolName,
               type: protocolType,
@@ -114,7 +126,8 @@ export class PositionsService {
               positions: positions.length,
               apy: protocolApy,
               rewards: protocolRewards,
-              percentage: totalValue > 0 ? (protocolValue / totalValue) * 100 : 0,
+              percentage:
+                totalValue > 0 ? (protocolValue / totalValue) * 100 : 0,
             });
           }
 
@@ -122,9 +135,10 @@ export class PositionsService {
           protocolBreakdown.sort((a, b) => b.totalValue - a.totalValue);
 
           // Calculate token holdings (non-protocol positions)
-          const walletBalances = await this.walletService.getWalletBalances(walletAddress);
+          const walletBalances =
+            await this.walletService.getWalletBalances(walletAddress);
           const tokensValue = walletBalances.totalValueUSD || 0;
-          
+
           if (tokensValue > 0) {
             protocolBreakdown.push({
               protocol: 'Wallet Tokens',
@@ -133,7 +147,10 @@ export class PositionsService {
               positions: walletBalances.totalAccounts || 0,
               apy: 0,
               rewards: 0,
-              percentage: totalValue > 0 ? (tokensValue / (totalValue + tokensValue)) * 100 : 100,
+              percentage:
+                totalValue > 0
+                  ? (tokensValue / (totalValue + tokensValue)) * 100
+                  : 100,
             });
           }
 
@@ -403,10 +420,7 @@ export class PositionsService {
   /**
    * Calculate weighted APY for a set of positions
    */
-  private calculateWeightedApy(
-    positions: any[],
-    totalValue: number,
-  ): number {
+  private calculateWeightedApy(positions: any[], totalValue: number): number {
     if (totalValue === 0) return 0;
 
     return positions.reduce((sum, pos) => {
