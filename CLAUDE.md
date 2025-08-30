@@ -39,9 +39,28 @@ SolFolio is a Solana DeFi portfolio tracker application currently in the plannin
 - Protocol-specific SDKs for Marinade, Kamino, Orca, Marginfi
 - Jupiter Price API for token pricing
 
-## E2E Testing with Claude
+## Specialized Claude Agents
 
-### Using the E2E Test Automator Agent
+### UI Developer Agent
+When working on UI/UX improvements, components, or visual aspects, use the specialized ui-developer agent:
+
+```
+"Implement the portfolio overview card with animations"
+"Add page transitions between routes"
+"Make the token list mobile-friendly"
+"Create loading skeletons for all components"
+"Implement the dark/light theme toggle"
+```
+
+The agent will:
+- Follow design specifications in `docs/ui-ux-design-spec.md`
+- Implement tasks from `docs/ui-implementation-tasks.md`
+- Use animation patterns from `docs/animation-guide.md`
+- Create beautiful, performant UI components with Framer Motion
+- Ensure responsive design and accessibility
+- Implement Solana-inspired gradient designs
+
+### E2E Test Automator Agent
 When you need to create or update E2E tests, use the specialized e2e-test-automator agent:
 
 ```
@@ -57,7 +76,13 @@ The agent will:
 - Create tests in `frontend/e2e/` directory
 - Mock wallet connections and API responses for deterministic results
 
-### E2E Testing Documentation
+### Documentation References
+#### UI/UX Development
+- **Design Specification**: `docs/ui-ux-design-spec.md` - Complete UI/UX design system
+- **Implementation Tasks**: `docs/ui-implementation-tasks.md` - Detailed UI task breakdown (24 tasks)
+- **Animation Guide**: `docs/animation-guide.md` - Framer Motion patterns and examples
+
+#### E2E Testing
 - **Test Strategy**: `docs/e2e-testing-strategy.md` - Wallet testing approaches and best practices
 - **Test Cases**: `docs/regression-tests.md` - Complete test scenarios (TC-001 to TC-015)
 - **Existing Tests**: `frontend/e2e/wallet-connection.spec.ts` - Current test implementation
