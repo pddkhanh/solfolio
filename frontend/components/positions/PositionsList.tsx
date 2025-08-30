@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PositionCard } from './PositionCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, TrendingUp, DollarSign, Percent } from 'lucide-react';
+import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
 
 interface Position {
   protocol: string;
@@ -47,6 +48,11 @@ export function PositionsList() {
   const [refreshing, setRefreshing] = useState(false);
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('value');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [hideSmallBalances, setHideSmallBalances] = useState(false);
+  const [selectedProtocol, setSelectedProtocol] = useState('all');
 
   const fetchPositions = async (refresh = false) => {
     if (!publicKey) return;
@@ -102,6 +108,88 @@ export function PositionsList() {
       maximumFractionDigits: 2,
     }).format(value);
   };
+
+  // Get unique protocols from positions
+  const availableProtocols = useMemo(() => {
+    if (!portfolio) return [];
+    const protocols = new Set(portfolio.positions.map(p => p.protocolName));
+    return Array.from(protocols).sort();
+  }, [portfolio]);
+
+  // Filter and sort positions
+  const filteredPositions = useMemo(() => {
+    if (!portfolio) return [];
+    
+    let positions = [...portfolio.positions];
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      positions = positions.filter((position) => {
+        const protocol = (position.protocolName || '').toLowerCase();
+        const type = (position.positionType || '').toLowerCase();
+        const symbol = (position.tokenSymbol || '').toLowerCase();
+        const name = (position.tokenName || '').toLowerCase();
+        return (
+          protocol.includes(query) ||
+          type.includes(query) ||
+          symbol.includes(query) ||
+          name.includes(query)
+        );
+      });
+    }
+
+    // Filter by type
+    if (filterType !== 'all' && filterType !== 'tokens') {
+      positions = positions.filter((position) => {
+        const type = position.positionType.toLowerCase();
+        switch (filterType) {
+          case 'staking':
+            return type.includes('stak');
+          case 'lending':
+            return type.includes('lend');
+          case 'liquidity':
+            return type.includes('liquid') || type.includes('lp');
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Filter by protocol
+    if (selectedProtocol !== 'all') {
+      positions = positions.filter(p => p.protocolName === selectedProtocol);
+    }
+
+    // Filter small balances
+    if (hideSmallBalances) {
+      positions = positions.filter(p => p.usdValue >= 1);
+    }
+
+    // Sort positions
+    switch (sortBy) {
+      case 'value':
+        return positions.sort((a, b) => b.usdValue - a.usdValue);
+      case 'amount':
+        return positions.sort((a, b) => b.amount - a.amount);
+      case 'name':
+        return positions.sort((a, b) => {
+          const nameA = a.tokenSymbol || '';
+          const nameB = b.tokenSymbol || '';
+          return nameA.localeCompare(nameB);
+        });
+      case 'apy':
+        return positions.sort((a, b) => (b.apy || 0) - (a.apy || 0));
+      case 'protocol':
+        return positions.sort((a, b) => {
+          const protocolA = a.protocolName || '';
+          const protocolB = b.protocolName || '';
+          return protocolA.localeCompare(protocolB);
+        });
+      default:
+        return positions;
+    }
+  }, [portfolio, searchQuery, filterType, selectedProtocol, hideSmallBalances, sortBy]);
 
   if (!publicKey) {
     return (
@@ -221,8 +309,8 @@ export function PositionsList() {
       </div>
 
       {/* Section Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Staking Positions</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">DeFi Positions</h2>
         <button
           onClick={() => fetchPositions(true)}
           disabled={refreshing}
@@ -233,11 +321,37 @@ export function PositionsList() {
         </button>
       </div>
 
+      {/* Filters */}
+      <PortfolioFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        filterType={filterType}
+        onFilterTypeChange={setFilterType}
+        hideSmallBalances={hideSmallBalances}
+        onHideSmallBalancesChange={setHideSmallBalances}
+        showProtocolFilter={true}
+        protocols={availableProtocols}
+        selectedProtocol={selectedProtocol}
+        onProtocolChange={setSelectedProtocol}
+        showApySort={true}
+        className="mb-6"
+      />
+
       {/* Position Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {portfolio.positions.map((position, index) => (
-          <PositionCard key={index} position={position} />
-        ))}
+        {filteredPositions.length === 0 ? (
+          <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+            {searchQuery || filterType !== 'all' || hideSmallBalances || selectedProtocol !== 'all'
+              ? 'No positions match your filters'
+              : 'No positions found. Start by staking SOL or providing liquidity on supported protocols!'}
+          </div>
+        ) : (
+          filteredPositions.map((position, index) => (
+            <PositionCard key={index} position={position} />
+          ))
+        )}
       </div>
 
       {/* Breakdown by Type */}
