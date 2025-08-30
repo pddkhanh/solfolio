@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatUSD, formatNumber } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, Wallet, Coins } from 'lucide-react';
 import { MultiPeriodChange } from './ChangeIndicator';
+import { getMockPortfolioStats, isMockMode } from '@/lib/mock-data';
 
 interface PortfolioStats {
   totalValue: number;
@@ -40,16 +41,41 @@ export function PortfolioOverview() {
     setError(null);
 
     try {
+      // Use mock data only if explicitly enabled via environment variable
+      if (process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+        const mockStats = getMockPortfolioStats();
+        setStats(mockStats);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/wallet/balances/${publicKey.toString()}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch portfolio data');
+        // Handle different error codes
+        if (response.status === 404) {
+          // 404 might mean wallet has no data, treat as empty
+          setStats({
+            totalValue: 0,
+            totalTokens: 0,
+            change24h: 0,
+            changePercent24h: 0,
+            change7d: 0,
+            changePercent7d: 0,
+            change30d: 0,
+            changePercent30d: 0,
+          });
+          return;
+        }
+        throw new Error(`Failed to fetch portfolio data: ${response.statusText}`);
       }
 
       const data = await response.json();
       
+      // Handle empty response gracefully
       setStats({
         totalValue: data.totalValueUSD || 0,
         totalTokens: data.totalAccounts || 0,
@@ -62,7 +88,13 @@ export function PortfolioOverview() {
       });
     } catch (err) {
       console.error('Error fetching portfolio stats:', err);
-      setError('Failed to load portfolio data');
+      
+      // Check if it's a network error vs other errors
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Unable to connect to portfolio service. Please check your connection.');
+      } else {
+        setError('Failed to load portfolio data. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
@@ -118,6 +150,26 @@ export function PortfolioOverview() {
 
   if (!stats) {
     return null;
+  }
+
+  // Show empty state if wallet has no holdings
+  if (stats.totalValue === 0 && stats.totalTokens === 0) {
+    return (
+      <Card data-testid="portfolio-overview-card" data-empty="true">
+        <CardHeader>
+          <CardTitle>Portfolio Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-2">No tokens or positions found</p>
+            <p className="text-sm text-muted-foreground">
+              Your portfolio will appear here once you have tokens or DeFi positions
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   const isPositiveChange = (stats.change24h || 0) >= 0;

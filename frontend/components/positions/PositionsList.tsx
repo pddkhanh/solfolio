@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, TrendingUp, DollarSign, Percent } from 'lucide-react';
 import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
+import { MOCK_POSITIONS, isMockMode } from '@/lib/mock-data';
 
 interface Position {
   protocol: string;
@@ -65,12 +66,70 @@ export function PositionsList() {
       }
       setError(null);
 
+      // Use mock data if explicitly enabled
+      if (isMockMode()) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const mockPortfolio: PortfolioSummary = {
+          walletAddress: publicKey.toString(),
+          totalValue: MOCK_POSITIONS.reduce((sum, p) => sum + p.value, 0),
+          totalPositions: MOCK_POSITIONS.length,
+          positions: MOCK_POSITIONS.map(p => ({
+            protocol: p.protocol.toLowerCase(),
+            protocolName: p.protocol,
+            positionType: p.type,
+            tokenSymbol: p.tokens[0]?.symbol,
+            amount: p.tokens[0]?.amount || 0,
+            usdValue: p.value,
+            apy: p.apy,
+            rewards: p.rewards
+          })),
+          breakdown: {
+            tokens: 0,
+            staking: 815.26,
+            lending: 500,
+            liquidity: 1200,
+            other: 0
+          },
+          performance: {
+            totalApy: 8.2,
+            dailyRewards: 0.75,
+            monthlyRewards: 22.5
+          }
+        };
+        setPortfolio(mockPortfolio);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       const response = await fetch(
         `/api/positions/${publicKey.toString()}/summary${refresh ? '?refresh=true' : ''}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch positions');
+        // Handle 404 as no positions
+        if (response.status === 404) {
+          setPortfolio({
+            walletAddress: publicKey.toString(),
+            totalValue: 0,
+            totalPositions: 0,
+            positions: [],
+            breakdown: {
+              tokens: 0,
+              staking: 0,
+              lending: 0,
+              liquidity: 0,
+              other: 0
+            },
+            performance: {
+              totalApy: 0,
+              dailyRewards: 0,
+              monthlyRewards: 0
+            }
+          });
+          return;
+        }
+        throw new Error(`Failed to fetch positions: ${response.statusText}`);
       }
 
       const result = await response.json();
@@ -82,7 +141,13 @@ export function PositionsList() {
       }
     } catch (err) {
       console.error('Error fetching positions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch positions');
+      
+      // Better error messages
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Unable to connect to portfolio service');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to fetch positions');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
