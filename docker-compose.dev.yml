@@ -50,8 +50,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: backend/Dockerfile.dev
     container_name: solfolio-backend
     environment:
       NODE_ENV: development
@@ -72,8 +72,9 @@ services:
       - "3001:3001"  # HTTP + WebSocket port
       - "50051:50051"  # gRPC port
     volumes:
-      - ./backend:/app
+      - ./backend:/app/backend
       - ./proto:/proto
+      - /app/backend/node_modules
     depends_on:
       postgres:
         condition: service_healthy

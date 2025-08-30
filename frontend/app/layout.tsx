@@ -7,6 +7,7 @@ import { WalletContextProvider } from '@/contexts/WalletContextProvider'
 import WalletPersistenceProvider from '@/components/providers/WalletPersistenceProvider'
 import WebSocketProvider from '@/contexts/WebSocketProvider'
 import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
+import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,20 +24,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <WalletContextProvider>
-          <WalletPersistenceProvider>
-            <WebSocketProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <Header />
-                <PositionChangeNotifications />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-            </WebSocketProvider>
-          </WalletPersistenceProvider>
-        </WalletContextProvider>
+        <WalletErrorBoundary>
+          <WalletContextProvider>
+            <WalletPersistenceProvider>
+              <WebSocketProvider>
+                <div className="relative flex min-h-screen flex-col">
+                  <Header />
+                  <PositionChangeNotifications />
+                  <main className="flex-1">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+              </WebSocketProvider>
+            </WalletPersistenceProvider>
+          </WalletContextProvider>
+        </WalletErrorBoundary>
       </body>
     </html>
   )
