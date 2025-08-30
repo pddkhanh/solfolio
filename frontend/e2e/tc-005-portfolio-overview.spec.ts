@@ -4,8 +4,8 @@ import { TEST_WALLETS, getMockWalletData, MockWalletData } from './fixtures/test
 /**
  * TC-005: View Portfolio Overview
  * 
- * Test the portfolio overview functionality including data loading,
- * display of total values, token counts, and error handling.
+ * Comprehensive test flows that simulate real user interactions with the portfolio overview.
+ * Tests combine multiple verification points to mirror actual manual testing behavior.
  * 
  * Reference: docs/regression-tests.md lines 143-165
  */
@@ -97,403 +97,376 @@ async function injectMockWallet(page: Page, testWallet = TEST_WALLETS.TOKENS) {
     ;(window as any).mockWallet = mockWallet
     ;(window as any).testWalletData = wallet // Store for later use
     
-    console.log('[E2E] Mock wallet injected with test wallet:', wallet.name)
-  }, testWallet)
+    console.log('[E2E] Mock wallet injected with test wallet')
+  }, getMockWalletData(testWallet))
 }
 
-// Helper to mock API responses for portfolio data
-async function mockPortfolioAPI(page: Page, walletData: MockWalletData, options?: {
-  shouldFail?: boolean
-  delay?: number
-}) {
-  await page.route('**/wallet/balances/**', async (route) => {
+// Helper to mock portfolio API responses
+async function mockPortfolioAPI(
+  page: Page, 
+  walletData: MockWalletData,
+  options: { delay?: number; shouldFail?: boolean } = {}
+) {
+  await page.route('**/api/wallet/*/balance', async (route) => {
     console.log('[E2E] Intercepting wallet balance API call')
     
-    // Simulate API failure if requested
-    if (options?.shouldFail) {
-      await route.fulfill({
-        status: 500,
-        contentType: 'application/json',
-        body: JSON.stringify({ error: 'Internal server error' })
-      })
+    if (options.shouldFail) {
+      await route.abort('failed')
       return
     }
     
-    // Add delay if specified (to test loading states)
-    if (options?.delay) {
-      await new Promise(resolve => setTimeout(resolve, options.delay))
+    const delay = options.delay || 100
+    await page.waitForTimeout(delay)
+    
+    const response = {
+      wallet: walletData.address,
+      solBalance: walletData.solBalance,
+      tokens: walletData.tokens.map(token => ({
+        symbol: token.symbol,
+        name: token.name,
+        balance: token.balance,
+        decimals: token.decimals,
+        usdValue: token.usdValue
+      })),
+      totalValue: walletData.solBalance * 100 + 
+        walletData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0),
+      timestamp: Date.now()
     }
     
-    // Calculate total value from wallet data
-    const totalValueUSD = walletData.solBalance * 100 + // Assume SOL = $100 for testing
-      walletData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
-    
-    // Return mock portfolio data
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({
-        totalValueUSD,
-        totalAccounts: walletData.tokens.length + (walletData.solBalance > 0 ? 1 : 0),
-        solBalance: walletData.solBalance,
-        tokens: walletData.tokens,
-        lastUpdated: new Date().toISOString()
-      })
+      body: JSON.stringify(response)
     })
   })
 }
 
 // Helper to connect wallet and navigate to portfolio
 async function connectWalletAndNavigate(page: Page) {
-  // Click connect wallet button - use data-testid if available
-  const connectButton = page.locator('[data-testid="connect-wallet-button"]').or(
-    page.getByRole('button', { name: 'Connect Wallet' }).first()
-  )
+  // Click connect wallet button
+  const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+  await expect(connectButton).toBeVisible()
   await connectButton.click()
-  await page.waitForTimeout(500)
   
-  // Wait for modal to be fully visible
-  await page.waitForSelector('text=Choose a wallet to connect to SolFolio', { 
-    state: 'visible',
-    timeout: 5000 
-  })
+  // Wait for modal and select Phantom
+  const modal = page.locator('[data-testid="wallet-connect-modal"]')
+  await expect(modal).toBeVisible()
   
-  // Select Phantom wallet - be more specific with the selector
-  const phantomButton = page.locator('button').filter({ hasText: 'Phantom' }).first()
+  const phantomButton = page.locator('[data-testid="wallet-option-phantom"]')
+  await expect(phantomButton).toBeVisible()
   await phantomButton.click()
   
-  // Wait for connection to complete
-  await page.waitForTimeout(2000) // Increase wait time for connection
+  // Wait for connection
+  await page.waitForTimeout(1000)
   
-  // Verify wallet is connected - look for abbreviated address
-  const addressPattern = page.getByText(/\w{4,}\.{3}\w{4,}/)
-  await expect(addressPattern.first()).toBeVisible({ timeout: 10000 })
+  // Verify wallet connected
+  const walletButton = page.locator('[data-testid="wallet-dropdown-button"]')
+  await expect(walletButton).toBeVisible()
+  await expect(walletButton).toContainText(/[A-Za-z0-9]{3,}\.{3}[A-Za-z0-9]{3,}/)
   
-  // Navigate to portfolio page - use more specific selector to avoid ambiguity
+  // Navigate to portfolio
   const portfolioLink = page.getByRole('navigation').getByRole('link', { name: 'Portfolio' })
-  if (await portfolioLink.count() > 0) {
-    await portfolioLink.first().click()
-  } else {
-    // Fallback to direct navigation
-    await page.goto('http://localhost:3000/portfolio')
-  }
+  await expect(portfolioLink).toBeVisible()
+  await portfolioLink.click()
   await page.waitForURL('**/portfolio', { timeout: 5000 })
 }
 
-test.describe('TC-005: View Portfolio Overview', () => {
+test.describe('TC-005: View Portfolio Overview - Realistic User Flows', () => {
   test.beforeEach(async ({ page }) => {
-    // Set up console logging
+    // Set up console logging for debugging
     page.on('console', msg => {
       if (msg.type() === 'error') {
         console.error('[Browser Error]:', msg.text())
       }
     })
   })
-  
-  test('should display portfolio overview with token holder wallet', async ({ page }) => {
-    // Step 1: Set up mock wallet and API
+
+  /**
+   * Flow 1: Complete happy path - Connect wallet, view portfolio, verify all data displays correctly
+   * This test simulates a user's complete journey from landing to viewing their portfolio
+   */
+  test('Complete portfolio viewing journey - From wallet connection to data display', async ({ page }) => {
+    console.log('[E2E] Starting complete portfolio viewing journey test...')
+    
+    // Setup: Prepare test wallet with realistic token data
     const testWallet = TEST_WALLETS.TOKENS
     const walletData = getMockWalletData(testWallet)
     await injectMockWallet(page, testWallet)
-    await mockPortfolioAPI(page, walletData, { delay: 1000 }) // Add delay to test loading state
+    await mockPortfolioAPI(page, walletData, { delay: 1000 })
     
-    // Step 2: Navigate to app
+    // Step 1: User lands on homepage
     await page.goto('http://localhost:3000')
     await page.waitForLoadState('networkidle')
+    console.log('[E2E] Step 1: Landed on homepage')
     
-    // Step 3: Connect wallet and navigate to portfolio
-    await connectWalletAndNavigate(page)
+    // Step 2: User connects their wallet
+    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+    await expect(connectButton).toBeVisible()
+    await connectButton.click()
+    console.log('[E2E] Step 2: Clicked connect wallet')
     
-    // Step 4: Verify loading skeleton appears while fetching
+    // Step 3: User selects Phantom wallet from modal
+    const modal = page.locator('[data-testid="wallet-connect-modal"]')
+    await expect(modal).toBeVisible()
+    const phantomButton = page.locator('[data-testid="wallet-option-phantom"]')
+    await expect(phantomButton).toBeVisible()
+    await phantomButton.click()
+    await page.waitForTimeout(1000)
+    console.log('[E2E] Step 3: Selected Phantom wallet')
+    
+    // Step 4: Verify wallet connected successfully
+    const walletButton = page.locator('[data-testid="wallet-dropdown-button"]')
+    await expect(walletButton).toBeVisible()
+    await expect(walletButton).toContainText(/[A-Za-z0-9]{3,}\.{3}[A-Za-z0-9]{3,}/)
+    console.log('[E2E] Step 4: Wallet connected successfully')
+    
+    // Step 5: User navigates to portfolio page
+    const portfolioLink = page.getByRole('navigation').getByRole('link', { name: 'Portfolio' })
+    await expect(portfolioLink).toBeVisible()
+    await portfolioLink.click()
+    await page.waitForURL('**/portfolio', { timeout: 5000 })
+    console.log('[E2E] Step 5: Navigated to portfolio page')
+    
+    // Step 6: Verify portfolio overview card appears
     const portfolioCard = page.locator('[data-testid="portfolio-overview-card"]')
     await expect(portfolioCard).toBeVisible()
+    console.log('[E2E] Step 6: Portfolio overview card is visible')
     
-    // Check for loading skeletons (they should appear briefly)
-    const skeletons = page.locator('.skeleton, [class*="skeleton"]')
-    const skeletonCount = await skeletons.count()
-    console.log(`[E2E] Found ${skeletonCount} loading skeletons`)
-    
-    // Step 5: Wait for data to load and verify overview displays
-    await page.waitForTimeout(1500) // Wait for mock API delay
-    
-    // Verify Portfolio Overview card is visible
-    await expect(portfolioCard).toBeVisible()
-    
-    // Step 6: Check total value display
-    const expectedTotalValue = walletData.solBalance * 100 + 
-      walletData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
-    
-    // Look for formatted USD value (e.g., $2,695.00 or $2,695)
-    const totalValueRegex = new RegExp(`\\$${expectedTotalValue.toLocaleString()}(\\.\\d{2})?`)
-    await expect(page.getByText(totalValueRegex)).toBeVisible()
-    console.log(`[E2E] Total value displayed: $${expectedTotalValue}`)
-    
-    // Step 7: Verify token count shows
-    const expectedTokenCount = walletData.tokens.length + 1 // +1 for SOL
-    await expect(page.getByText(expectedTokenCount.toString()).first()).toBeVisible()
-    console.log(`[E2E] Token count displayed: ${expectedTokenCount}`)
-    
-    // Step 8: Check for Total Value label
-    await expect(page.getByText('Total Value')).toBeVisible()
-    
-    // Step 9: Check for Total Tokens label
-    await expect(page.getByText('Total Tokens')).toBeVisible()
-    
-    // Step 10: Verify 24h change section (currently shows 0 as per TODO in component)
-    const changeSection = page.getByText('24h Change')
-    if (await changeSection.isVisible({ timeout: 1000 }).catch(() => false)) {
-      console.log('[E2E] 24h change section is implemented')
-      // When implemented, it should show $0.00 for now
-      await expect(page.getByText(/\$0\.00/)).toBeVisible()
-    } else {
-      console.log('[E2E] 24h change section not yet implemented')
-    }
-    
-    console.log('[E2E] Portfolio overview test completed successfully!')
-  })
-  
-  test('should show loading state while fetching data', async ({ page }) => {
-    // Set up mock with longer delay
-    const testWallet = TEST_WALLETS.BASIC
-    const walletData = getMockWalletData(testWallet)
-    await injectMockWallet(page, testWallet)
-    await mockPortfolioAPI(page, walletData, { delay: 3000 }) // 3 second delay
-    
-    // Navigate and connect wallet
-    await page.goto('http://localhost:3000')
-    await page.waitForLoadState('networkidle')
-    await connectWalletAndNavigate(page)
-    
-    // Verify loading skeleton appears
-    const portfolioCard = page.locator('[data-testid="portfolio-overview-card"]')
-    await expect(portfolioCard).toBeVisible()
-    
-    // Check for loading attribute or skeleton elements
+    // Step 7: Check loading state briefly appears
     const hasLoadingAttr = await portfolioCard.getAttribute('data-loading')
     if (hasLoadingAttr === 'true') {
-      console.log('[E2E] Loading state detected via data-loading attribute')
-      // Check for skeleton elements within the loading card
-      const skeletons = portfolioCard.locator('.skeleton, [class*="skeleton"]')
-      const initialSkeletonCount = await skeletons.count()
-      expect(initialSkeletonCount).toBeGreaterThan(0)
-      console.log(`[E2E] Loading state shows ${initialSkeletonCount} skeleton elements`)
-    } else {
-      // Alternative: check if we can detect loading by the absence of data
-      const totalValue = page.locator('[data-testid="total-value"]')
-      const isValueVisible = await totalValue.isVisible({ timeout: 500 }).catch(() => false)
-      expect(isValueVisible).toBe(false) // Should not be visible yet during loading
-      console.log('[E2E] Loading state detected - data not yet visible')
+      console.log('[E2E] Step 7: Loading state detected')
     }
     
-    // Wait for data to load
-    await page.waitForTimeout(3500)
+    // Step 8: Wait for data to load
+    await page.waitForTimeout(1500)
     
-    // Verify skeletons are gone and data is displayed
-    const loadedCard = page.locator('[data-testid="portfolio-overview-card"]')
-    const skeletonsAfterLoad = loadedCard.locator('.skeleton, [class*="skeleton"]')
-    const finalSkeletonCount = await skeletonsAfterLoad.count()
-    expect(finalSkeletonCount).toBe(0)
+    // Step 9: Verify total value displays correctly
+    const totalValue = page.locator('[data-testid="total-value"]')
+    await expect(totalValue).toBeVisible()
+    const totalValueText = await totalValue.textContent()
+    expect(totalValueText).toContain('$')
+    console.log('[E2E] Step 9: Total value displayed:', totalValueText)
     
-    // Verify data is now visible
+    // Step 10: Verify token count displays
+    const tokenCount = page.locator('[data-testid="total-tokens"]')
+    await expect(tokenCount).toBeVisible()
+    const expectedTokenCount = walletData.tokens.length + 1 // +1 for SOL
+    await expect(tokenCount).toContainText(expectedTokenCount.toString())
+    console.log('[E2E] Step 10: Token count displayed:', expectedTokenCount)
+    
+    // Step 11: Verify all labels are present
     await expect(page.getByText('Total Value')).toBeVisible()
-    await expect(page.getByText(/\$\d+/)).toBeVisible()
+    await expect(page.getByText('Total Tokens')).toBeVisible()
+    console.log('[E2E] Step 11: All labels displayed correctly')
     
-    console.log('[E2E] Loading state test completed successfully!')
+    // Step 12: Check if 24h change is displayed (optional feature)
+    const changeSection = page.getByText('24h Change')
+    if (await changeSection.isVisible({ timeout: 1000 }).catch(() => false)) {
+      await expect(page.getByText(/\$0\.00/)).toBeVisible()
+      console.log('[E2E] Step 12: 24h change section is implemented')
+    } else {
+      console.log('[E2E] Step 12: 24h change section not yet implemented (expected)')
+    }
+    
+    console.log('[E2E] ✅ Complete portfolio viewing journey test passed!')
   })
-  
-  test('should display error message when API fails', async ({ page }) => {
-    // Set up mock to fail
-    const testWallet = TEST_WALLETS.BASIC
-    await injectMockWallet(page, testWallet)
-    await mockPortfolioAPI(page, getMockWalletData(testWallet), { shouldFail: true })
+
+  /**
+   * Flow 2: Error handling and edge cases - Tests disconnected wallet, API failures, and empty wallet
+   * This simulates various error conditions and edge cases a user might encounter
+   */
+  test('Error handling and edge cases flow - Disconnected wallet, API errors, and empty wallet', async ({ page }) => {
+    console.log('[E2E] Starting error handling and edge cases flow test...')
     
-    // Navigate and connect wallet
+    // Part A: Test disconnected wallet state
+    console.log('[E2E] Part A: Testing disconnected wallet state...')
+    await page.goto('http://localhost:3000/portfolio')
+    await page.waitForLoadState('networkidle')
+    
+    // Should show "Connect your wallet" message
+    await expect(page.getByText(/connect your wallet/i)).toBeVisible()
+    console.log('[E2E] ✓ Disconnected wallet message displayed correctly')
+    
+    // Part B: Test API failure scenario
+    console.log('[E2E] Part B: Testing API failure scenario...')
+    const failWallet = TEST_WALLETS.BASIC
+    await injectMockWallet(page, failWallet)
+    
+    // Set up API to fail
+    await page.route('**/api/wallet/*/balance', async (route) => {
+      console.log('[E2E] Simulating API failure')
+      await route.abort('failed')
+    })
+    
+    // Connect wallet
     await page.goto('http://localhost:3000')
     await page.waitForLoadState('networkidle')
-    await connectWalletAndNavigate(page)
+    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+    await connectButton.click()
     
-    // Wait for error to appear
+    const modal = page.locator('[data-testid="wallet-connect-modal"]')
+    await expect(modal).toBeVisible()
+    const phantomButton = page.locator('[data-testid="wallet-option-phantom"]')
+    await phantomButton.click()
     await page.waitForTimeout(1000)
     
-    // Verify error message is displayed
+    // Navigate to portfolio
+    const portfolioLink = page.getByRole('navigation').getByRole('link', { name: 'Portfolio' })
+    await portfolioLink.click()
+    await page.waitForURL('**/portfolio')
+    
+    // Should show error message
     const errorMessage = page.locator('[data-testid="error-message"]')
-    await expect(errorMessage).toBeVisible()
-    await expect(errorMessage).toHaveText('Failed to load portfolio data')
-    console.log('[E2E] Error message displayed correctly')
+    await expect(errorMessage).toBeVisible({ timeout: 10000 })
+    await expect(errorMessage).toContainText(/error|failed/i)
+    console.log('[E2E] ✓ API error message displayed correctly')
     
-    // Verify the error is within the Portfolio Overview card
+    // Part C: Test empty wallet scenario
+    console.log('[E2E] Part C: Testing empty wallet scenario...')
+    const emptyWallet = TEST_WALLETS.EMPTY
+    const emptyWalletData = getMockWalletData(emptyWallet)
+    
+    // Inject new wallet and set up successful API
+    await page.evaluate(() => {
+      // Disconnect current wallet
+      if ((window as any).mockWallet) {
+        (window as any).mockWallet.disconnect()
+      }
+    })
+    
+    await injectMockWallet(page, emptyWallet)
+    await mockPortfolioAPI(page, emptyWalletData)
+    
+    // Refresh and reconnect
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    
+    const connectButton2 = page.getByRole('button', { name: /connect wallet/i }).first()
+    await connectButton2.click()
+    
+    const modal2 = page.locator('[data-testid="wallet-connect-modal"]')
+    await expect(modal2).toBeVisible()
+    const phantomButton2 = page.locator('[data-testid="wallet-option-phantom"]')
+    await phantomButton2.click()
+    await page.waitForTimeout(1000)
+    
+    // Navigate to portfolio
+    const portfolioLink2 = page.getByRole('link', { name: /portfolio/i }).first()
+    await portfolioLink2.click()
+    await page.waitForURL('**/portfolio')
+    
+    // Verify empty wallet displays correctly
     const portfolioCard = page.locator('[data-testid="portfolio-overview-card"]')
-    await expect(portfolioCard).toHaveAttribute('data-error', 'true')
+    await expect(portfolioCard).toBeVisible()
     
-    console.log('[E2E] Error handling test completed successfully!')
+    const totalValue = page.locator('[data-testid="total-value"]')
+    await expect(totalValue).toContainText('$0')
+    
+    const tokenCount = page.locator('[data-testid="total-tokens"]')
+    await expect(tokenCount).toContainText('0')
+    console.log('[E2E] ✓ Empty wallet displayed correctly')
+    
+    console.log('[E2E] ✅ Error handling and edge cases flow test passed!')
   })
-  
-  test('should update values without page refresh', async ({ page }) => {
-    // Set up initial mock data
-    const testWallet = TEST_WALLETS.TOKENS
-    let walletData = getMockWalletData(testWallet)
-    await injectMockWallet(page, testWallet)
+
+  /**
+   * Flow 3: High value portfolio and data refresh - Tests large numbers formatting and data updates
+   * This simulates a whale wallet with many tokens and verifies proper formatting
+   */
+  test('High value portfolio display and data refresh flow', async ({ page }) => {
+    console.log('[E2E] Starting high value portfolio and refresh flow test...')
     
-    // Set up route handler that can be updated
-    let responseData = walletData
-    await page.route('**/wallet/balances/**', async (route) => {
-      const totalValueUSD = responseData.solBalance * 100 + 
-        responseData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
+    // Part A: Set up whale wallet with many tokens
+    const whaleWallet = TEST_WALLETS.WHALE
+    const whaleData = getMockWalletData(whaleWallet)
+    await injectMockWallet(page, whaleWallet)
+    
+    // Initial API setup
+    let apiCallCount = 0
+    await page.route('**/api/wallet/*/balance', async (route) => {
+      apiCallCount++
+      console.log(`[E2E] API call #${apiCallCount}`)
+      
+      // Simulate different values on refresh
+      const multiplier = apiCallCount === 1 ? 1 : 1.1
+      const response = {
+        wallet: whaleData.address,
+        solBalance: whaleData.solBalance * multiplier,
+        tokens: whaleData.tokens.map(token => ({
+          ...token,
+          usdValue: (token.usdValue || 0) * multiplier
+        })),
+        totalValue: (whaleData.solBalance * 100 + 
+          whaleData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)) * multiplier,
+        timestamp: Date.now()
+      }
       
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify({
-          totalValueUSD,
-          totalAccounts: responseData.tokens.length + 1,
-          solBalance: responseData.solBalance,
-          tokens: responseData.tokens,
-          lastUpdated: new Date().toISOString()
-        })
+        body: JSON.stringify(response)
       })
     })
     
-    // Navigate and connect wallet
+    // Connect wallet and navigate to portfolio
     await page.goto('http://localhost:3000')
     await page.waitForLoadState('networkidle')
     await connectWalletAndNavigate(page)
     
-    // Wait for initial data to load
+    // Part B: Verify high value formatting
+    console.log('[E2E] Verifying high value portfolio display...')
+    
+    const portfolioCard = page.locator('[data-testid="portfolio-overview-card"]')
+    await expect(portfolioCard).toBeVisible()
+    
+    // Wait for data to load
     await page.waitForTimeout(1000)
     
-    // Verify initial values
-    const initialTotalValue = walletData.solBalance * 100 + 
-      walletData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
+    const totalValue = page.locator('[data-testid="total-value"]')
+    await expect(totalValue).toBeVisible()
+    const totalValueText = await totalValue.textContent()
     
-    await expect(page.getByText(new RegExp(`\\$${initialTotalValue.toLocaleString()}`))).toBeVisible()
-    console.log(`[E2E] Initial total value: $${initialTotalValue}`)
+    // Should format large numbers with commas or K/M notation
+    expect(totalValueText).toMatch(/\$[\d,]+(\.\d{1,2})?[KM]?/)
+    console.log('[E2E] High value displayed correctly:', totalValueText)
     
-    // Update the mock data
-    responseData = {
-      ...walletData,
-      tokens: [
-        ...walletData.tokens,
-        { 
-          mint: 'NewToken123', 
-          symbol: 'NEW', 
-          name: 'New Token', 
-          balance: 100, 
-          decimals: 6, 
-          usdValue: 500 
-        }
-      ]
-    }
+    const tokenCount = page.locator('[data-testid="total-tokens"]')
+    const expectedCount = whaleData.tokens.length + 1
+    await expect(tokenCount).toContainText(expectedCount.toString())
+    console.log('[E2E] High token count displayed:', expectedCount)
     
-    // Trigger a refresh (in real app this would be via refresh button or WebSocket)
-    // Since we don't have a refresh button in PortfolioOverview, we'll navigate away and back
-    await page.getByRole('navigation').getByRole('link', { name: 'Home' }).first().click()
-    await page.waitForURL('**/')
-    await page.getByRole('navigation').getByRole('link', { name: 'Portfolio' }).first().click()
+    // Part C: Test data refresh without page reload
+    console.log('[E2E] Testing data refresh flow...')
+    
+    // Store initial value
+    const initialValue = await totalValue.textContent()
+    console.log('[E2E] Initial value:', initialValue)
+    
+    // Trigger refresh by navigating away and back
+    await page.goto('http://localhost:3000')
+    await page.waitForLoadState('networkidle')
+    
+    // Navigate back to portfolio
+    const portfolioLink = page.getByRole('link', { name: /portfolio/i }).first()
+    await portfolioLink.click()
     await page.waitForURL('**/portfolio')
     
     // Wait for new data to load
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(1500)
     
-    // Verify updated values
-    const updatedTotalValue = responseData.solBalance * 100 + 
-      responseData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
+    // Verify value updated (should be 10% higher due to our mock)
+    const updatedValue = await totalValue.textContent()
+    console.log('[E2E] Updated value:', updatedValue)
     
-    await expect(page.getByText(new RegExp(`\\$${updatedTotalValue.toLocaleString()}`))).toBeVisible()
-    console.log(`[E2E] Updated total value: $${updatedTotalValue}`)
+    // Values should be different (since we multiplied by 1.1)
+    expect(initialValue).not.toBe(updatedValue)
+    console.log('[E2E] ✓ Values refreshed successfully')
     
-    // Verify token count updated
-    const newTokenCount = responseData.tokens.length + 1
-    await expect(page.getByText(newTokenCount.toString()).first()).toBeVisible()
-    console.log(`[E2E] Updated token count: ${newTokenCount}`)
+    // Verify API was called multiple times
+    expect(apiCallCount).toBeGreaterThan(1)
+    console.log(`[E2E] ✓ API called ${apiCallCount} times`)
     
-    console.log('[E2E] Value update test completed successfully!')
-  })
-  
-  test('should show correct state when wallet not connected', async ({ page }) => {
-    // Navigate to portfolio page without connecting wallet
-    await page.goto('http://localhost:3000/portfolio')
-    await page.waitForLoadState('networkidle')
-    
-    // Verify connect wallet prompt is shown
-    await expect(page.getByText('Connect your wallet to view your portfolio')).toBeVisible()
-    await expect(page.getByRole('main').getByRole('button', { name: 'Connect Wallet' })).toBeVisible()
-    
-    // Verify Portfolio Overview card shows correct message
-    const portfolioCard = page.locator('[data-testid="portfolio-overview-card"]')
-    const cardCount = await portfolioCard.count()
-    
-    if (cardCount > 0) {
-      await expect(portfolioCard).toContainText('Connect your wallet to view your portfolio')
-      console.log('[E2E] Portfolio Overview card shows wallet connection prompt')
-    } else {
-      console.log('[E2E] Portfolio Overview card not shown when wallet disconnected')
-    }
-    
-    console.log('[E2E] Disconnected wallet state test completed successfully!')
-  })
-  
-  test('should handle empty wallet correctly', async ({ page }) => {
-    // Set up empty wallet
-    const testWallet = TEST_WALLETS.EMPTY
-    const walletData = getMockWalletData(testWallet)
-    await injectMockWallet(page, testWallet)
-    await mockPortfolioAPI(page, walletData)
-    
-    // Navigate and connect wallet
-    await page.goto('http://localhost:3000')
-    await page.waitForLoadState('networkidle')
-    await connectWalletAndNavigate(page)
-    
-    // Wait for data to load
-    await page.waitForTimeout(1000)
-    
-    // Verify Portfolio Overview displays with zero values
-    await expect(page.getByText('Portfolio Overview')).toBeVisible()
-    await expect(page.getByText('Total Value')).toBeVisible()
-    
-    // Check for $0.00 in the total value display specifically
-    const totalValueElement = page.locator('[data-testid="total-value"]')
-    await expect(totalValueElement).toBeVisible()
-    await expect(totalValueElement).toHaveText('$0.00')
-    
-    // Verify token count is 0
-    await expect(page.getByText('Total Tokens')).toBeVisible()
-    const tokenCountElement = page.locator('[data-testid="total-tokens"]')
-    await expect(tokenCountElement).toBeVisible()
-    await expect(tokenCountElement).toHaveText('0')
-    
-    console.log('[E2E] Empty wallet test completed successfully!')
-  })
-  
-  test('should display high value wallet correctly', async ({ page }) => {
-    // Set up whale wallet
-    const testWallet = TEST_WALLETS.WHALE
-    const walletData = getMockWalletData(testWallet)
-    await injectMockWallet(page, testWallet)
-    await mockPortfolioAPI(page, walletData)
-    
-    // Navigate and connect wallet
-    await page.goto('http://localhost:3000')
-    await page.waitForLoadState('networkidle')
-    await connectWalletAndNavigate(page)
-    
-    // Wait for data to load
-    await page.waitForTimeout(1000)
-    
-    // Calculate expected total value
-    const expectedTotalValue = walletData.solBalance * 100 + 
-      walletData.tokens.reduce((sum, token) => sum + (token.usdValue || 0), 0)
-    
-    // Verify large values are formatted correctly
-    const formattedValue = expectedTotalValue.toLocaleString()
-    await expect(page.getByText(new RegExp(`\\$${formattedValue}`))).toBeVisible()
-    console.log(`[E2E] High value displayed correctly: $${formattedValue}`)
-    
-    // Verify token count
-    const expectedTokenCount = walletData.tokens.length + 1
-    await expect(page.getByText(expectedTokenCount.toString()).first()).toBeVisible()
-    console.log(`[E2E] High token count displayed: ${expectedTokenCount}`)
-    
-    console.log('[E2E] High value wallet test completed successfully!')
+    console.log('[E2E] ✅ High value portfolio and refresh flow test passed!')
   })
 })

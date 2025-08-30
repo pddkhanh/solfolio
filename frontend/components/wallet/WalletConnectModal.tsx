@@ -91,7 +91,8 @@ export default function WalletConnectModal() {
   return (
     <Dialog open={visible} onOpenChange={setVisible}>
       <DialogContent 
-        className="sm:max-w-md w-[95vw] max-w-[450px] p-0 gap-0" 
+        className="sm:max-w-md w-[95vw] max-w-[450px] p-0 gap-0"
+        data-testid="wallet-connect-modal" 
         onPointerDownOutside={(e) => {
           // Prevent closing while connecting
           if (isConnecting || connecting) {
