@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 import { 
   injectMockWallet, 
   TEST_WALLETS
@@ -36,7 +37,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
   
   test('should persist wallet connection across page refresh', async ({ page }) => {
     // Step 1: Connect wallet successfully
-    console.log('Step 1: Connecting wallet...')
+    testLogger.step('Step 1: Connecting wallet...')
     
     // Verify initial state - no wallet connected
     await expect(page.getByRole('button', { name: 'Connect Wallet' }).first()).toBeVisible()
@@ -55,7 +56,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     await page.waitForTimeout(1500)
     
     // Step 2: Note the connected wallet address
-    console.log('Step 2: Verifying wallet connection...')
+    testLogger.step('Step 2: Verifying wallet connection...')
     
     // Verify wallet is connected - check for any formatted address in header (format: xxxx...xxxx)
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
@@ -72,10 +73,10 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Get the displayed address for comparison after refresh
     const addressElement = await page.getByText(/\w{4,}\.{3}\w{4,}/).first()
     const displayedAddress = await addressElement.textContent()
-    console.log('Initial connected address:', displayedAddress)
+    testLogger.step('Initial connected address:', displayedAddress)
     
     // Step 3: Refresh the page (F5 or browser refresh)
-    console.log('Step 3: Refreshing page...')
+    testLogger.step('Step 3: Refreshing page...')
     
     // Re-inject mock wallet before reload to ensure it's available
     await injectMockWallet(page, {
@@ -90,7 +91,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     await page.waitForTimeout(2000) // Give wallet adapter time to auto-reconnect
     
     // Step 4: Verify wallet remains connected
-    console.log('Step 4: Verifying wallet remains connected after refresh...')
+    testLogger.step('Step 4: Verifying wallet remains connected after refresh...')
     
     // Check that wallet address is still displayed (any formatted address)
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
@@ -101,13 +102,13 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Get the displayed address after refresh
     const addressAfterRefresh = await page.getByText(/\w{4,}\.{3}\w{4,}/).first()
     const displayedAddressAfterRefresh = await addressAfterRefresh.textContent()
-    console.log('Address after refresh:', displayedAddressAfterRefresh)
+    testLogger.step('Address after refresh:', displayedAddressAfterRefresh)
     
     // Verify a wallet address is still displayed (may be different due to wallet adapter behavior)
     expect(displayedAddressAfterRefresh).toMatch(/\w{4,}\.{3}\w{4,}/)
     
     // Step 5: Check localStorage has persistence key
-    console.log('Step 5: Checking localStorage persistence...')
+    testLogger.step('Step 5: Checking localStorage persistence...')
     
     // Verify connection persisted in localStorage (same check as TC-001)
     const walletStillConnected = await page.evaluate(() => {
@@ -115,20 +116,20 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     })
     expect(walletStillConnected).toBeTruthy()
     
-    console.log('LocalStorage shows wallet connected:', walletStillConnected)
+    testLogger.step('LocalStorage shows wallet connected:', walletStillConnected)
     
     // Additional verification: Portfolio data loads automatically
-    console.log('Verifying portfolio data loads automatically...')
+    testLogger.step('Verifying portfolio data loads automatically...')
     
     // Check that wallet info section exists with address
     const walletInfo = page.locator('text=Address').locator('..')
     await expect(walletInfo).toBeVisible()
     
-    console.log('✓ Wallet connection persisted successfully across refresh!')
+    testLogger.step('✓ Wallet connection persisted successfully across refresh!')
   })
   
   test('should restore correct wallet after multiple refreshes', async ({ page }) => {
-    console.log('Testing multiple refresh cycles...')
+    testLogger.step('Testing multiple refresh cycles...')
     
     // Connect wallet initially
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
@@ -141,7 +142,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     
     // Perform multiple refresh cycles
     for (let i = 1; i <= 3; i++) {
-      console.log(`Refresh cycle ${i}...`)
+      testLogger.step(`Refresh cycle ${i}...`)
       
       // Re-inject mock wallet before reload
       await injectMockWallet(page, {
@@ -163,11 +164,11 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
       expect(hasWalletConnected).toBeTruthy()
     }
     
-    console.log('✓ Wallet persisted across multiple refreshes!')
+    testLogger.step('✓ Wallet persisted across multiple refreshes!')
   })
   
   test('should clear wallet connection when explicitly disconnected', async ({ page }) => {
-    console.log('Testing explicit disconnect clears persistence...')
+    testLogger.step('Testing explicit disconnect clears persistence...')
     
     // Connect wallet
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
@@ -212,15 +213,15 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
         // Should show Connect Wallet button
         await expect(page.getByRole('button', { name: 'Connect Wallet' }).first()).toBeVisible()
         
-        console.log('✓ Wallet persistence cleared after disconnect!')
+        testLogger.step('✓ Wallet persistence cleared after disconnect!')
       } else {
-        console.log('Note: Disconnect button not implemented in dropdown yet')
+        testLogger.step('Note: Disconnect button not implemented in dropdown yet')
       }
     }
   })
   
   test('should handle localStorage edge cases gracefully', async ({ page }) => {
-    console.log('Testing localStorage edge cases...')
+    testLogger.step('Testing localStorage edge cases...')
     
     // Test 1: Pre-set localStorage without actual connection
     await page.evaluate(() => {
@@ -242,7 +243,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Should auto-reconnect based on localStorage
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
     
-    console.log('✓ Auto-reconnected from localStorage!')
+    testLogger.step('✓ Auto-reconnected from localStorage!')
     
     // Test 2: Clear localStorage while connected
     await page.evaluate(() => {
@@ -262,6 +263,6 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Should show Connect Wallet button since localStorage was cleared
     await expect(page.getByRole('button', { name: 'Connect Wallet' }).first()).toBeVisible()
     
-    console.log('✓ Handled cleared localStorage gracefully!')
+    testLogger.step('✓ Handled cleared localStorage gracefully!')
   })
 })

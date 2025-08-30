@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 import { TEST_WALLETS, abbreviateAddress } from './fixtures/test-wallets'
 
 /**
@@ -68,7 +69,7 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
       walletType: type,
       
       connect: async function() {
-        console.log(`[E2E Mock ${type}] Connect called`)
+        testLogger.step(`[E2E Mock ${type}] Connect called`)
         
         this.connecting = true
         
@@ -80,7 +81,7 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
         this.connected = true
         this.connecting = false
         
-        console.log(`[E2E Mock ${type}] Connected with address:`, this.publicKey.toString())
+        testLogger.step(`[E2E Mock ${type}] Connected with address:`, this.publicKey.toString())
         
         // Store connection state
         localStorage.setItem('walletConnected', 'true')
@@ -90,7 +91,7 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
       },
       
       disconnect: async function() {
-        console.log(`[E2E Mock ${type}] Disconnect called`)
+        testLogger.step(`[E2E Mock ${type}] Disconnect called`)
         
         this.disconnecting = true
         
@@ -106,7 +107,7 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
         localStorage.removeItem('walletConnected')
         localStorage.removeItem('walletType')
         
-        console.log(`[E2E Mock ${type}] Disconnected`)
+        testLogger.step(`[E2E Mock ${type}] Disconnected`)
       },
       
       signTransaction: async (tx: any) => tx,
@@ -136,14 +137,14 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
     ;(window as any).mockPhantom = phantomWallet // Expose phantom for switching
     ;(window as any).mockSolflare = solflareWallet // Expose solflare for switching
     
-    console.log(`[E2E] Mock wallets injected successfully, initial: ${config.walletType}`)
+    testLogger.step(`[E2E] Mock wallets injected successfully, initial: ${config.walletType}`)
   }, { walletType })
 }
 */
 
 // Helper to connect wallet
 async function connectWallet(page: Page, walletName: string = 'Phantom') {
-  console.log(`Connecting to ${walletName} wallet...`)
+  testLogger.step(`Connecting to ${walletName} wallet...`)
   
   // Click Connect Wallet button
   await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
@@ -164,7 +165,7 @@ async function connectWallet(page: Page, walletName: string = 'Phantom') {
     const wallet = (window as any).mockWallet || (window as any).solana
     return wallet?.publicKey?.toString() || 'No wallet found'
   })
-  console.log(`${walletName} wallet connected with address: ${connectedAddress}`)
+  testLogger.step(`${walletName} wallet connected with address: ${connectedAddress}`)
 }
 
 // Helper to verify wallet disconnected state
@@ -259,7 +260,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
         connecting: false,
         
         connect: async function() {
-          console.log('[E2E Mock Wallet] Connect called')
+          testLogger.step('[E2E Mock Wallet] Connect called')
           
           this.connecting = true
           
@@ -271,7 +272,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
           this.connected = true
           this.connecting = false
           
-          console.log('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+          testLogger.step('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
           
           // Store connection state
           localStorage.setItem('walletConnected', 'true')
@@ -280,7 +281,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
         },
         
         disconnect: async function() {
-          console.log('[E2E Mock Wallet] Disconnect called')
+          testLogger.step('[E2E Mock Wallet] Disconnect called')
           
           // Simulate network delay
           await new Promise(resolve => setTimeout(resolve, 300))
@@ -292,7 +293,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
           // Clear connection state
           localStorage.removeItem('walletConnected')
           
-          console.log('[E2E Mock Wallet] Disconnected')
+          testLogger.step('[E2E Mock Wallet] Disconnected')
         },
         
         signTransaction: async (tx: any) => tx,
@@ -312,7 +313,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
       ;(window as any).solana = mockWallet
       ;(window as any).mockWallet = mockWallet // Expose for test manipulation
       
-      console.log('[E2E] Mock wallet injected successfully')
+      testLogger.step('[E2E] Mock wallet injected successfully')
     })
     
     // Navigate to homepage
@@ -327,16 +328,16 @@ test.describe('TC-002: Disconnect Wallet', () => {
   })
   
   test('should disconnect wallet through dropdown menu', async ({ page }) => {
-    console.log('Testing wallet disconnect flow...')
+    testLogger.step('Testing wallet disconnect flow...')
     
     // Step 1: Click on connected wallet button in header to open dropdown
-    console.log('Opening wallet dropdown...')
+    testLogger.step('Opening wallet dropdown...')
     const walletButton = page.getByTestId('wallet-dropdown-button')
     await expect(walletButton).toBeVisible()
     await walletButton.click()
     
     // Step 2: Verify dropdown menu appears with expected options
-    console.log('Verifying dropdown menu options...')
+    testLogger.step('Verifying dropdown menu options...')
     await expect(page.getByText('Connected Wallet')).toBeVisible()
     // Look for Phantom in dropdown content specifically
     const dropdownContent = page.locator('[role="menu"]')
@@ -349,7 +350,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
     await expect(dropdownContent.locator('.font-mono').filter({ hasText: /\w{4,}\.{3}\w{4,}/ })).toBeVisible()
     
     // Step 3: Click Disconnect option
-    console.log('Clicking Disconnect...')
+    testLogger.step('Clicking Disconnect...')
     await page.getByText('Disconnect').click()
     
     // Step 4: Wait for disconnection to complete
@@ -364,14 +365,14 @@ test.describe('TC-002: Disconnect Wallet', () => {
         localStorage: localStorage.getItem('walletConnected')
       }
     })
-    console.log('Wallet state after disconnect:', walletConnectedAfter)
+    testLogger.step('Wallet state after disconnect:', walletConnectedAfter)
     
     // Step 5: Verify disconnection - returns to "Connect Wallet" button
-    console.log('Verifying disconnection...')
+    testLogger.step('Verifying disconnection...')
     await verifyDisconnectedState(page)
     
     // Step 6: Verify portfolio page shows connect prompt if navigated to
-    console.log('Navigating to portfolio page...')
+    testLogger.step('Navigating to portfolio page...')
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
     
@@ -379,18 +380,18 @@ test.describe('TC-002: Disconnect Wallet', () => {
     const portfolioMain = page.getByRole('main')
     await expect(portfolioMain.getByText(/connect.*wallet.*to view/i)).toBeVisible()
     
-    console.log('TC-002: Disconnect wallet test completed successfully!')
+    testLogger.step('TC-002: Disconnect wallet test completed successfully!')
   })
   
   test('should handle copy address before disconnecting', async ({ page }) => {
-    console.log('Testing copy address functionality...')
+    testLogger.step('Testing copy address functionality...')
     
     // Open dropdown
     const walletButton = page.getByTestId('wallet-dropdown-button')
     await walletButton.click()
     
     // Click Copy Address
-    console.log('Clicking Copy Address...')
+    testLogger.step('Clicking Copy Address...')
     
     // Grant clipboard permissions for the test
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -413,7 +414,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
     // Verify disconnected
     await verifyDisconnectedState(page)
     
-    console.log('Copy address before disconnect test completed!')
+    testLogger.step('Copy address before disconnect test completed!')
   })
 })
 
@@ -464,7 +465,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
         connecting: false,
         
         connect: async function() {
-          console.log('[E2E Mock Wallet] Connect called')
+          testLogger.step('[E2E Mock Wallet] Connect called')
           
           this.connecting = true
           await new Promise(resolve => setTimeout(resolve, 500))
@@ -478,7 +479,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
           this.connected = true
           this.connecting = false
           
-          console.log('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+          testLogger.step('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
           localStorage.setItem('walletConnected', 'true')
           localStorage.setItem('walletType', currentWalletType)
           
@@ -486,7 +487,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
         },
         
         disconnect: async function() {
-          console.log('[E2E Mock Wallet] Disconnect called')
+          testLogger.step('[E2E Mock Wallet] Disconnect called')
           
           await new Promise(resolve => setTimeout(resolve, 300))
           
@@ -497,7 +498,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
           localStorage.removeItem('walletConnected')
           localStorage.removeItem('walletType')
           
-          console.log('[E2E Mock Wallet] Disconnected')
+          testLogger.step('[E2E Mock Wallet] Disconnected')
         },
         
         // Method to switch wallet type (for testing)
@@ -530,7 +531,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
       ;(window as any).solana = mockWallet
       ;(window as any).mockWallet = mockWallet
       
-      console.log('[E2E] Mock wallet injected for switching tests')
+      testLogger.step('[E2E] Mock wallet injected for switching tests')
     })
     
     // Navigate to homepage
@@ -545,24 +546,24 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
   })
   
   test('should switch from Phantom to Solflare wallet', async ({ page }) => {
-    console.log('Testing wallet switch flow...')
+    testLogger.step('Testing wallet switch flow...')
     
     // Step 1: Verify initial state - connected to Phantom
-    console.log('Verifying initial Phantom connection...')
+    testLogger.step('Verifying initial Phantom connection...')
     await verifyConnectedState(page, 'Phantom', '8BsE6Pts5DwuHqjrefTtzd9THkttVJtUMAXecg9J9xer')
     
     // Step 2: Click connected wallet button to open dropdown
-    console.log('Opening wallet dropdown...')
+    testLogger.step('Opening wallet dropdown...')
     const walletButton = page.getByTestId('wallet-dropdown-button')
     await walletButton.click()
     
     // Step 3: Select "Switch Wallet" from dropdown
-    console.log('Clicking Switch Wallet...')
+    testLogger.step('Clicking Switch Wallet...')
     await expect(page.getByText('Switch Wallet')).toBeVisible()
     await page.getByText('Switch Wallet').click()
     
     // Step 4: Verify wallet modal reopens
-    console.log('Verifying wallet modal reopened...')
+    testLogger.step('Verifying wallet modal reopened...')
     await page.waitForTimeout(500)
     await expect(page.getByText('Connect Your Wallet')).toBeVisible()
     
@@ -573,7 +574,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     await expect(page.getByText('Torus')).toBeVisible()
     
     // Step 5: Select different wallet (Solflare - Wallet B)
-    console.log('Selecting Solflare wallet...')
+    testLogger.step('Selecting Solflare wallet...')
     
     // Update the mock to use Solflare
     await page.evaluate(() => {
@@ -586,11 +587,11 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     await page.getByRole('button', { name: /Solflare/i }).click()
     
     // Step 6: Wait for new wallet connection
-    console.log('Waiting for Solflare connection...')
+    testLogger.step('Waiting for Solflare connection...')
     await page.waitForTimeout(1500)
     
     // Step 7: Verify new wallet is connected
-    console.log('Verifying Solflare connection...')
+    testLogger.step('Verifying Solflare connection...')
     
     // Verify new wallet address displays (Solflare address pattern)
     await expect(page.getByText(/So1f.*9ABC/)).toBeVisible({ timeout: 10000 })
@@ -602,20 +603,20 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     }
     
     // Step 8: Verify old wallet (Phantom) is disconnected
-    console.log('Verifying Phantom is disconnected...')
+    testLogger.step('Verifying Phantom is disconnected...')
     await expect(page.getByText('8BsE...9xer')).not.toBeVisible()
     
     // Step 9: Open dropdown to verify new wallet info
-    console.log('Verifying dropdown shows Solflare info...')
+    testLogger.step('Verifying dropdown shows Solflare info...')
     await page.getByTestId('wallet-dropdown-button').click()
     await expect(page.getByText('Solflare')).toBeVisible()
     await expect(page.locator('.font-mono').filter({ hasText: /So1f.*9ABC/ })).toBeVisible()
     
-    console.log('TC-003: Switch wallet test completed successfully!')
+    testLogger.step('TC-003: Switch wallet test completed successfully!')
   })
   
   test('should handle switch wallet cancellation', async ({ page }) => {
-    console.log('Testing switch wallet cancellation...')
+    testLogger.step('Testing switch wallet cancellation...')
     
     // Open dropdown and click Switch Wallet
     const walletButton = page.getByTestId('wallet-dropdown-button')
@@ -627,21 +628,21 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     await expect(page.getByText('Connect Your Wallet')).toBeVisible()
     
     // Cancel by pressing ESC
-    console.log('Cancelling wallet switch with ESC...')
+    testLogger.step('Cancelling wallet switch with ESC...')
     await page.keyboard.press('Escape')
     
     // Verify modal closed
     await expect(page.getByText('Connect Your Wallet')).not.toBeVisible()
     
     // Verify still connected to original wallet (Phantom)
-    console.log('Verifying still connected to Phantom...')
+    testLogger.step('Verifying still connected to Phantom...')
     await verifyConnectedState(page, 'Phantom')
     
-    console.log('Switch wallet cancellation test completed!')
+    testLogger.step('Switch wallet cancellation test completed!')
   })
   
   test('should maintain wallet state after page refresh during switch', async ({ page }) => {
-    console.log('Testing wallet persistence during switch...')
+    testLogger.step('Testing wallet persistence during switch...')
     
     // Switch to Solflare
     const walletButton = page.getByTestId('wallet-dropdown-button')
@@ -667,7 +668,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     }
     
     // Reload page
-    console.log('Reloading page...')
+    testLogger.step('Reloading page...')
     await page.reload()
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(1000)
@@ -678,13 +679,13 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     })
     expect(walletConnected).toBe('true')
     
-    console.log('Wallet persistence during switch test completed!')
+    testLogger.step('Wallet persistence during switch test completed!')
   })
 })
 
 test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
   test('should complete full wallet management journey', async ({ page }) => {
-    console.log('Testing complete wallet management flow...')
+    testLogger.step('Testing complete wallet management flow...')
     
     // Setup: Use simple mock wallet like other tests
     await page.addInitScript(() => {
@@ -758,12 +759,12 @@ test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
     await page.waitForTimeout(1000)
     
     // Phase 1: Connect initial wallet
-    console.log('Phase 1: Connecting initial wallet...')
+    testLogger.step('Phase 1: Connecting initial wallet...')
     await connectWallet(page, 'Phantom')
     await verifyConnectedState(page, 'Phantom')
     
     // Phase 2: Test dropdown interactions
-    console.log('Phase 2: Testing dropdown interactions...')
+    testLogger.step('Phase 2: Testing dropdown interactions...')
     const walletButton = page.getByTestId('wallet-dropdown-button')
     
     // Test copy address
@@ -774,7 +775,7 @@ test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
     // Dropdown might close, so just continue
     
     // Phase 3: Switch to different wallet
-    console.log('Phase 3: Switching wallets...')
+    testLogger.step('Phase 3: Switching wallets...')
     await walletButton.click()
     await page.getByText('Switch Wallet').click()
     await page.waitForTimeout(500)
@@ -792,17 +793,17 @@ test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
     await verifyConnectedState(page, 'Solflare')
     
     // Phase 4: Disconnect wallet
-    console.log('Phase 4: Disconnecting wallet...')
+    testLogger.step('Phase 4: Disconnecting wallet...')
     await walletButton.click()
     await page.getByText('Disconnect').click()
     await page.waitForTimeout(500)
     await verifyDisconnectedState(page)
     
     // Phase 5: Reconnect to verify clean state
-    console.log('Phase 5: Reconnecting to verify clean state...')
+    testLogger.step('Phase 5: Reconnecting to verify clean state...')
     await connectWallet(page, 'Phantom')
     await verifyConnectedState(page, 'Phantom')
     
-    console.log('Complete wallet management journey test completed successfully!')
+    testLogger.step('Complete wallet management journey test completed successfully!')
   })
 })

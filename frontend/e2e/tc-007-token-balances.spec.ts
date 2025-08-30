@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 
 /**
  * TC-007: Display Token Balances
@@ -35,7 +36,7 @@ test.describe('TC-007: Display Token Balances', () => {
     // Should show connect wallet message when not connected
     await expect(page.getByText(/connect your wallet to view your portfolio/i)).toBeVisible()
     
-    console.log('Portfolio page structure verified!')
+    testLogger.step('Portfolio page structure verified!')
   })
   
   test('Should display wallet connection modal when connect button is clicked', async ({ page }) => {
@@ -55,7 +56,7 @@ test.describe('TC-007: Display Token Balances', () => {
     // Verify modal has wallet selection content (specifically the modal title)
     await expect(page.getByRole('heading', { name: /connect your wallet/i })).toBeVisible()
     
-    console.log('Wallet modal opens correctly!')
+    testLogger.step('Wallet modal opens correctly!')
   })
   
   test('Should show Token Balances component structure when wallet would be connected', async ({ page }) => {
@@ -74,7 +75,7 @@ test.describe('TC-007: Display Token Balances', () => {
     expect(pageContent).toContain('Portfolio')
     expect(pageContent).toContain('Connect')
     
-    console.log('Portfolio page structure includes token components!')
+    testLogger.step('Portfolio page structure includes token components!')
   })
   
   test('Should have proper page title and navigation for token balances', async ({ page }) => {
@@ -97,7 +98,7 @@ test.describe('TC-007: Display Token Balances', () => {
     const portfolioLink = nav.getByRole('link', { name: /portfolio/i })
     await expect(portfolioLink).toBeVisible()
     
-    console.log('Navigation and routing verified!')
+    testLogger.step('Navigation and routing verified!')
   })
   
   test('Should handle wallet modal interactions correctly', async ({ page }) => {
@@ -125,7 +126,7 @@ test.describe('TC-007: Display Token Balances', () => {
     await page.locator('[data-testid="wallet-connect-modal"]').first().press('Escape')
     await expect(modal).not.toBeVisible()
     
-    console.log('Modal interactions work correctly!')
+    testLogger.step('Modal interactions work correctly!')
   })
   
   test('Should verify Token Balances section would be accessible to screen readers', async ({ page }) => {
@@ -150,7 +151,7 @@ test.describe('TC-007: Display Token Balances', () => {
     expect(buttonText).toBeTruthy()
     expect(buttonText?.toLowerCase()).toContain('connect')
     
-    console.log('Accessibility structure verified!')
+    testLogger.step('Accessibility structure verified!')
   })
   
   test('Should maintain proper responsive design on mobile viewport', async ({ page }) => {
@@ -177,7 +178,7 @@ test.describe('TC-007: Display Token Balances', () => {
       expect(buttonBox.height).toBeGreaterThanOrEqual(40)
     }
     
-    console.log('Mobile responsiveness verified!')
+    testLogger.step('Mobile responsiveness verified!')
   })
   
   test('Should verify error handling when API endpoints are not available', async ({ page }) => {
@@ -198,6 +199,6 @@ test.describe('TC-007: Display Token Balances', () => {
     await expect(page.getByRole('heading', { name: 'Portfolio' })).toBeVisible()
     await expect(page.getByText(/connect your wallet/i)).toBeVisible()
     
-    console.log('Error handling structure verified!')
+    testLogger.step('Error handling structure verified!')
   })
 })

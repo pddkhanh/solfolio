@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 import { injectMockWallet, TEST_WALLETS, waitForWalletConnection } from './helpers/wallet'
 import { 
   generateMockTokens, 
@@ -47,7 +48,7 @@ async function navigateToPortfolioWithWallet(page: Page) {
   await page.waitForTimeout(1000)
   
   // Connect wallet
-  console.log('Connecting wallet...')
+  testLogger.step('Connecting wallet...')
   await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
   await page.waitForTimeout(500)
   
@@ -61,7 +62,7 @@ async function navigateToPortfolioWithWallet(page: Page) {
   await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
   
   // Navigate to portfolio page
-  console.log('Navigating to portfolio...')
+  testLogger.step('Navigating to portfolio...')
   await page.goto('http://localhost:3000/portfolio')
   await page.waitForTimeout(2000)
   
@@ -91,7 +92,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     await page.waitForTimeout(1000)
     
     // Connect wallet
-    console.log('Testing wallet connection...')
+    testLogger.step('Testing wallet connection...')
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /Phantom/ }).click()
@@ -107,7 +108,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     // Verify we're on portfolio page
     await expect(page).toHaveURL(/.*portfolio/)
     
-    console.log('Test infrastructure verified - ready for feature implementation!')
+    testLogger.step('Test infrastructure verified - ready for feature implementation!')
   })
   
   test.skip('Should display sort dropdown with three options and sort tokens correctly', async ({ page }) => {
@@ -116,14 +117,14 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     await navigateToPortfolioWithWallet(page)
     
     // Step 1: Ensure sort dropdown exists
-    console.log('Step 1: Setting up sort dropdown...')
+    testLogger.step('Step 1: Setting up sort dropdown...')
     await ensureSortDropdown(page)
     
     // Verify dropdown is visible
     await expect(page.locator('[data-testid="sort-dropdown"]')).toBeVisible({ timeout: 5000 })
     
     // Step 2: Verify dropdown has three options
-    console.log('Step 2: Verifying dropdown options...')
+    testLogger.step('Step 2: Verifying dropdown options...')
     
     // Check if it's a select element or button dropdown
     const isSelect = await page.locator('select[data-testid="sort-dropdown"]').isVisible().catch(() => false)
@@ -151,7 +152,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     }
     
     // Step 3: Test sorting by Value
-    console.log('Step 3: Testing sort by Value...')
+    testLogger.step('Step 3: Testing sort by Value...')
     await selectSortOption(page, 'value')
     
     const valueOrder = await getTokenOrder(page)
@@ -164,10 +165,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Verify general value ordering
     expect(verifySortOrder(valueOrder, expectedValueSorted, 0.7)).toBeTruthy()
-    console.log('Value sorting verified!')
+    testLogger.step('Value sorting verified!')
     
     // Step 4: Test sorting by Amount
-    console.log('Step 4: Testing sort by Amount...')
+    testLogger.step('Step 4: Testing sort by Amount...')
     await selectSortOption(page, 'amount')
     
     const amountOrder = await getTokenOrder(page)
@@ -176,10 +177,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     // Verify BONK is near top (has highest amount)
     expect(amountOrder.slice(0, 2).includes('BONK')).toBeTruthy()
     expect(verifySortOrder(amountOrder, expectedAmountSorted, 0.7)).toBeTruthy()
-    console.log('Amount sorting verified!')
+    testLogger.step('Amount sorting verified!')
     
     // Step 5: Test sorting by Name
-    console.log('Step 5: Testing sort by Name...')
+    testLogger.step('Step 5: Testing sort by Name...')
     await selectSortOption(page, 'name')
     
     const nameOrder = await getTokenOrder(page)
@@ -187,10 +188,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Verify alphabetical ordering
     expect(verifySortOrder(nameOrder, expectedNameSorted, 0.7)).toBeTruthy()
-    console.log('Name sorting verified!')
+    testLogger.step('Name sorting verified!')
     
     // Step 6: Verify sort preference persists during session
-    console.log('Step 6: Testing sort persistence...')
+    testLogger.step('Step 6: Testing sort persistence...')
     
     // Store current sort option
     const currentSort = await getCurrentSortOption(page)
@@ -212,15 +213,15 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     // Sort preference should persist (via localStorage or session)
     // Note: If persistence is not implemented, this might fail - that's expected
     if (persistedSort) {
-      console.log(`Sort persisted as: ${persistedSort}`)
+      testLogger.step(`Sort persisted as: ${persistedSort}`)
     }
     
     // Verify tokens are still displayed
     const persistedOrder = await getTokenOrder(page)
     expect(persistedOrder.length).toBeGreaterThan(0)
     
-    console.log('Sort persistence verified!')
-    console.log('Test completed successfully!')
+    testLogger.step('Sort persistence verified!')
+    testLogger.step('Test completed successfully!')
   })
   
   test.skip('Should handle sorting with empty wallet gracefully', async ({ page }) => {
@@ -268,7 +269,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
       expect(isDisabled).toBeTruthy()
     }
     
-    console.log('Empty wallet sorting handled correctly!')
+    testLogger.step('Empty wallet sorting handled correctly!')
   })
   
   test.skip('Should maintain SOL at top when sorting by value', async ({ page }) => {
@@ -288,14 +289,14 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     // Verify SOL is at the top if present
     if (tokens.includes('SOL')) {
       expect(tokens[0]).toBe('SOL')
-      console.log('SOL correctly maintained at top position!')
+      testLogger.step('SOL correctly maintained at top position!')
     }
     
     // Verify other high-value tokens follow
     const topTokens = tokens.slice(0, 4)
     expect(topTokens.some(t => ['USDC', 'USDT'].includes(t))).toBeTruthy()
     
-    console.log('Value sorting with SOL priority verified!')
+    testLogger.step('Value sorting with SOL priority verified!')
   })
   
   test.skip('Should instantly sort without page reload', async ({ page }) => {
@@ -308,7 +309,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Get initial token order
     const initialOrder = await getTokenOrder(page)
-    console.log('Initial order:', initialOrder)
+    testLogger.step('Initial order:', initialOrder)
     
     // Monitor network requests for page reloads
     let reloadDetected = false
@@ -323,7 +324,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Get new order
     const newOrder = await getTokenOrder(page)
-    console.log('New order after sorting:', newOrder)
+    testLogger.step('New order after sorting:', newOrder)
     
     // Verify order changed without page reload
     expect(reloadDetected).toBeFalsy()
@@ -333,6 +334,6 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     const expectedAmountSorted = sortTokens(MOCK_TOKEN_DATA.tokens, 'amount').map(t => t.symbol)
     expect(verifySortOrder(newOrder, expectedAmountSorted, 0.7)).toBeTruthy()
     
-    console.log('Instant sorting without reload verified!')
+    testLogger.step('Instant sorting without reload verified!')
   })
 })

@@ -40,5 +40,7 @@ export default defineConfig({
   webServer: baseConfig.webServer ? {
     ...baseConfig.webServer,
     reuseExistingServer: true, // Allow reusing existing server in CI
+    stdout: 'ignore', // Always suppress server output in CI
+    stderr: 'ignore', // Always suppress server errors in CI
   } : undefined,
 })

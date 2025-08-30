@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 import { injectMockWallet, TEST_WALLETS } from './helpers/wallet'
 
 /**
@@ -231,13 +232,13 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Step 1: Locating position statistics cards...')
+    testLogger.step('Step 1: Locating position statistics cards...')
     
     // Verify statistics section is visible
     const statsSection = page.locator('[data-testid="portfolio-stats"], .portfolio-stats, .stats-cards').first()
     
     // Step 2: Verify "Total Staked Value" card
-    console.log('Step 2: Verifying Total Staked Value card...')
+    testLogger.step('Step 2: Verifying Total Staked Value card...')
     await expect(page.getByText('Total Staked Value')).toBeVisible({ timeout: 10000 })
     
     // The total staked value should be the sum of staking positions only (not total portfolio value)
@@ -245,23 +246,23 @@ test.describe('TC-012: Display Position Metrics', () => {
     await expect(page.getByText('$12,750.50').first()).toBeVisible()
     
     // Step 3: Verify "Average APY" card
-    console.log('Step 3: Verifying Average APY card...')
+    testLogger.step('Step 3: Verifying Average APY card...')
     await expect(page.getByText('Average APY')).toBeVisible()
     await expect(page.getByText('8.45%')).toBeVisible()
     
     // Step 4: Verify "Monthly Rewards" card
-    console.log('Step 4: Verifying Monthly Rewards card...')
+    testLogger.step('Step 4: Verifying Monthly Rewards card...')
     await expect(page.getByText('Monthly Rewards')).toBeVisible()
     await expect(page.getByText('$109.50')).toBeVisible()
     
     // Verify daily rewards if displayed
     const dailyRewardsText = page.getByText(/\$3\.65.*day/i)
     if (await dailyRewardsText.isVisible().catch(() => false)) {
-      console.log('Daily rewards also displayed: $3.65/day')
+      testLogger.step('Daily rewards also displayed: $3.65/day')
       await expect(dailyRewardsText).toBeVisible()
     }
     
-    console.log('All metric cards verified successfully!')
+    testLogger.step('All metric cards verified successfully!')
   })
 
   test('Should display portfolio breakdown section with correct percentages', async ({ page }) => {
@@ -274,19 +275,19 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for positions to load
     await page.waitForTimeout(2000)
     
-    console.log('Step 5: Checking portfolio breakdown section...')
+    testLogger.step('Step 5: Checking portfolio breakdown section...')
     
     // Verify breakdown section exists
     await expect(page.getByText('Portfolio Breakdown')).toBeVisible({ timeout: 10000 })
     
     // Verify category labels
-    console.log('Verifying breakdown categories...')
+    testLogger.step('Verifying breakdown categories...')
     await expect(page.getByText('Staking').first()).toBeVisible()
     await expect(page.getByText('Lending').first()).toBeVisible()
     await expect(page.getByText('Liquidity').first()).toBeVisible()
     
     // Verify USD values per category
-    console.log('Verifying USD values per category...')
+    testLogger.step('Verifying USD values per category...')
     
     // Staking: $12,750.50
     await expect(page.getByText('$12,750.50').first()).toBeVisible()
@@ -309,7 +310,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     for (const pct of percentageTexts) {
       const element = page.getByText(pct).first()
       if (await element.isVisible().catch(() => false)) {
-        console.log(`Found percentage: ${pct}`)
+        testLogger.step(`Found percentage: ${pct}`)
         foundPercentages++
       }
     }
@@ -317,7 +318,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // We should find at least some percentages displayed
     expect(foundPercentages).toBeGreaterThan(0)
     
-    console.log('Portfolio breakdown section verified successfully!')
+    testLogger.step('Portfolio breakdown section verified successfully!')
   })
 
   test('Should display visual progress bars for breakdown categories', async ({ page }) => {
@@ -330,7 +331,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for positions to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying visual progress bars or breakdown visualization...')
+    testLogger.step('Verifying visual progress bars or breakdown visualization...')
     
     // Look for progress bar elements
     // These could be implemented as:
@@ -342,7 +343,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     const progressBarCount = await progressBars.count()
     
     if (progressBarCount > 0) {
-      console.log(`Found ${progressBarCount} progress bars`)
+      testLogger.step(`Found ${progressBarCount} progress bars`)
       
       // Verify at least 3 progress bars (one for each category)
       expect(progressBarCount).toBeGreaterThanOrEqual(3)
@@ -354,14 +355,14 @@ test.describe('TC-012: Display Position Metrics', () => {
       const firstBar = progressBars.first()
       const ariaValue = await firstBar.getAttribute('aria-valuenow')
       if (ariaValue) {
-        console.log(`First progress bar value: ${ariaValue}`)
+        testLogger.step(`First progress bar value: ${ariaValue}`)
         // Staking should be around 81%
         expect(parseFloat(ariaValue)).toBeGreaterThan(75)
       }
     } else {
       // The breakdown might be displayed without visual bars in the current implementation
       // Just verify that the breakdown section with values is present
-      console.log('Visual progress bars not found, verifying breakdown values are displayed...')
+      testLogger.step('Visual progress bars not found, verifying breakdown values are displayed...')
       
       // Verify breakdown section exists
       await expect(page.getByText('Portfolio Breakdown')).toBeVisible()
@@ -370,10 +371,10 @@ test.describe('TC-012: Display Position Metrics', () => {
       await expect(page.getByText('Staking').first()).toBeVisible()
       await expect(page.getByText('$12,750.50').first()).toBeVisible()
       
-      console.log('Breakdown values are displayed (visual bars may be added in future implementation)')
+      testLogger.step('Breakdown values are displayed (visual bars may be added in future implementation)')
     }
     
-    console.log('Visual breakdown verification completed!')
+    testLogger.step('Visual breakdown verification completed!')
   })
 
   test('Should handle empty state with zero metrics', async ({ page }) => {
@@ -386,7 +387,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for empty state to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying empty state metrics...')
+    testLogger.step('Verifying empty state metrics...')
     
     // Check if metric cards show zero values or are hidden
     const totalStakedElement = page.getByText('Total Staked Value')
@@ -407,7 +408,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Verify empty state message is shown
     await expect(page.getByText(/no positions found|start by staking/i)).toBeVisible()
     
-    console.log('Empty state metrics verified!')
+    testLogger.step('Empty state metrics verified!')
   })
 
   test('Should display metrics correctly for single position type', async ({ page }) => {
@@ -420,7 +421,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying metrics for single position type (100% staking)...')
+    testLogger.step('Verifying metrics for single position type (100% staking)...')
     
     // Verify Total Staked Value
     await expect(page.getByText('Total Staked Value')).toBeVisible()
@@ -442,11 +443,11 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Check if 100% is displayed
     const fullPercentage = page.getByText('100%').first()
     if (await fullPercentage.isVisible().catch(() => false)) {
-      console.log('100% staking percentage displayed')
+      testLogger.step('100% staking percentage displayed')
       await expect(fullPercentage).toBeVisible()
     }
     
-    console.log('Single position type metrics verified!')
+    testLogger.step('Single position type metrics verified!')
   })
 
   test('Should update metrics when positions refresh', async ({ page }) => {
@@ -459,7 +460,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for initial metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying initial metrics...')
+    testLogger.step('Verifying initial metrics...')
     await expect(page.getByText('$12,750.50').first()).toBeVisible()
     await expect(page.getByText('8.45%')).toBeVisible()
     
@@ -484,7 +485,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     await mockPositionsAPI(page, updatedMockData)
     
     // Click refresh button
-    console.log('Clicking refresh button...')
+    testLogger.step('Clicking refresh button...')
     const refreshButton = page.getByRole('button', { name: /refresh/i })
     await expect(refreshButton).toBeVisible()
     await refreshButton.click()
@@ -492,12 +493,12 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for updated metrics
     await page.waitForTimeout(2000)
     
-    console.log('Verifying updated metrics...')
+    testLogger.step('Verifying updated metrics...')
     await expect(page.getByText('$15,000.00').first()).toBeVisible()
     await expect(page.getByText('9.50%').or(page.getByText('9.5%'))).toBeVisible()
     await expect(page.getByText('$125.00').first()).toBeVisible()
     
-    console.log('Metrics update verified!')
+    testLogger.step('Metrics update verified!')
   })
 
   test('Should display metrics correctly on mobile viewport', async ({ page }) => {
@@ -527,12 +528,12 @@ test.describe('TC-012: Display Position Metrics', () => {
         await phantomOption.click()
       } else {
         // Skip wallet connection on mobile if modal doesn't work as expected
-        console.log('Wallet modal behavior different on mobile, testing layout only')
+        testLogger.step('Wallet modal behavior different on mobile, testing layout only')
       }
     }
     await page.waitForTimeout(2000)
     
-    console.log('Verifying metrics on mobile viewport...')
+    testLogger.step('Verifying metrics on mobile viewport...')
     
     // Metric cards might be stacked vertically on mobile
     // Verify they are still visible and properly formatted
@@ -581,7 +582,7 @@ test.describe('TC-012: Display Position Metrics', () => {
       await expect(page.getByText('$12,750.50').first()).toBeVisible()
     }
     
-    console.log('Mobile viewport metrics verified!')
+    testLogger.step('Mobile viewport metrics verified!')
   })
 
   test('Should have proper accessibility attributes for metric cards', async ({ page }) => {
@@ -594,7 +595,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying accessibility attributes...')
+    testLogger.step('Verifying accessibility attributes...')
     
     // Check for proper heading hierarchy
     const mainHeading = page.getByRole('heading', { name: /portfolio|my portfolio/i })
@@ -609,7 +610,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     const cardCount = await metricCards.count()
     
     if (cardCount > 0) {
-      console.log(`Found ${cardCount} metric cards with semantic markup`)
+      testLogger.step(`Found ${cardCount} metric cards with semantic markup`)
       
       // Check first card for accessibility attributes
       const firstCard = metricCards.first()
@@ -617,7 +618,7 @@ test.describe('TC-012: Display Position Metrics', () => {
       const ariaDescribedBy = await firstCard.getAttribute('aria-describedby')
       
       if (ariaLabel || ariaDescribedBy) {
-        console.log('Metric cards have proper ARIA attributes')
+        testLogger.step('Metric cards have proper ARIA attributes')
       }
     }
     
@@ -632,11 +633,11 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Verify breakdown section has proper structure
     const breakdownSection = page.locator('section:has-text("Portfolio Breakdown"), [aria-label*="breakdown"]').first()
     if (await breakdownSection.isVisible().catch(() => false)) {
-      console.log('Breakdown section has semantic structure')
+      testLogger.step('Breakdown section has semantic structure')
       await expect(breakdownSection).toBeVisible()
     }
     
-    console.log('Accessibility verification completed!')
+    testLogger.step('Accessibility verification completed!')
   })
 
   test('Should calculate and display correct average APY across different position types', async ({ page }) => {
@@ -649,7 +650,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying APY calculation across position types...')
+    testLogger.step('Verifying APY calculation across position types...')
     
     // The average APY should be weighted by USD value
     // Based on our mock data:
@@ -664,13 +665,13 @@ test.describe('TC-012: Display Position Metrics', () => {
     await expect(page.getByText('8.45%')).toBeVisible()
     
     // Verify individual position APYs are also displayed
-    console.log('Verifying individual position APYs...')
+    testLogger.step('Verifying individual position APYs...')
     await expect(page.getByText('7.20%').or(page.getByText('7.2%')).first()).toBeVisible()
     await expect(page.getByText('9.80%').or(page.getByText('9.8%')).first()).toBeVisible()
     await expect(page.getByText('6.80%').or(page.getByText('6.8%')).first()).toBeVisible()
     await expect(page.getByText('15.20%').or(page.getByText('15.2%')).first()).toBeVisible()
     
-    console.log('APY calculations verified!')
+    testLogger.step('APY calculations verified!')
   })
 
   test('Should display rewards estimates in different time frames if available', async ({ page }) => {
@@ -683,7 +684,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     // Wait for metrics to load
     await page.waitForTimeout(2000)
     
-    console.log('Verifying rewards in different time frames...')
+    testLogger.step('Verifying rewards in different time frames...')
     
     // Check for monthly rewards (primary display)
     await expect(page.getByText('Monthly Rewards')).toBeVisible()
@@ -693,7 +694,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     const dailyRewardsPattern = /\$3\.65.*day|Daily:.*\$3\.65/i
     const dailyElement = page.getByText(dailyRewardsPattern).first()
     if (await dailyElement.isVisible().catch(() => false)) {
-      console.log('Daily rewards displayed: $3.65/day')
+      testLogger.step('Daily rewards displayed: $3.65/day')
       await expect(dailyElement).toBeVisible()
     }
     
@@ -701,7 +702,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     const yearlyRewardsPattern = /\$1,314\.00.*year|Annual:.*\$1,314/i
     const yearlyElement = page.getByText(yearlyRewardsPattern).first()
     if (await yearlyElement.isVisible().catch(() => false)) {
-      console.log('Yearly rewards displayed: $1,314.00/year')
+      testLogger.step('Yearly rewards displayed: $1,314.00/year')
       await expect(yearlyElement).toBeVisible()
     }
     
@@ -718,7 +719,7 @@ test.describe('TC-012: Display Position Metrics', () => {
     for (const pattern of rewardPatterns) {
       const count = await pattern.count()
       if (count > 0) {
-        console.log(`Found ${count} reward values with pattern`)
+        testLogger.step(`Found ${count} reward values with pattern`)
         foundRewardValues = true
         break
       }
@@ -728,9 +729,9 @@ test.describe('TC-012: Display Position Metrics', () => {
     if (!foundRewardValues) {
       // Just verify the main monthly rewards value is displayed
       await expect(page.getByText('$109.50')).toBeVisible()
-      console.log('Monthly rewards value confirmed')
+      testLogger.step('Monthly rewards value confirmed')
     }
     
-    console.log('Rewards time frame display verified!')
+    testLogger.step('Rewards time frame display verified!')
   })
 })

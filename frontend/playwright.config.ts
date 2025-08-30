@@ -88,7 +88,7 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    stdout: process.env.CI ? 'pipe' : 'ignore',
-    stderr: process.env.CI ? 'pipe' : 'ignore',
+    stdout: 'ignore', // Suppress Next.js dev server output
+    stderr: 'ignore', // Suppress Next.js dev server errors
   },
 })

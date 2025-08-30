@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 import { injectMockWallet, TEST_WALLETS } from './helpers/wallet'
 
 /**
@@ -178,7 +179,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(2000)
 
     // Step 1: Verify portfolio statistics cards are displayed
-    console.log('Verifying portfolio statistics...')
+    testLogger.step('Verifying portfolio statistics...')
     
     // Check Total Staked Value card - use first() to handle multiple matches
     await expect(page.getByText('Total Staked Value')).toBeVisible({ timeout: 10000 })
@@ -193,7 +194,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await expect(page.getByText('$109.50')).toBeVisible()
 
     // Step 2: Scroll to DeFi Positions section
-    console.log('Scrolling to DeFi Positions section...')
+    testLogger.step('Scrolling to DeFi Positions section...')
     
     // Look for either heading that might be present - use first() to handle multiple matches
     const defiPositionsHeading = page.getByText('DeFi Positions').first()
@@ -209,7 +210,7 @@ test.describe('TC-011: View Staking Positions', () => {
     }
 
     // Step 3: Verify position cards display - use more specific selectors
-    console.log('Verifying position cards...')
+    testLogger.step('Verifying position cards...')
     
     // Wait for the positions to load and check that we have position cards
     await expect(page.getByText('Marinade Finance').first()).toBeVisible({ timeout: 10000 })
@@ -230,19 +231,19 @@ test.describe('TC-011: View Staking Positions', () => {
     await expect(page.getByText('$1,000.00').first()).toBeVisible()
 
     // Step 4: Verify position type badges
-    console.log('Verifying position types...')
+    testLogger.step('Verifying position types...')
     await expect(page.getByText('Staking').first()).toBeVisible()
     await expect(page.getByText('Lending').first()).toBeVisible()
     await expect(page.getByText('Liquidity Pool').first()).toBeVisible()
 
     // Step 5: Verify APY values are displayed
-    console.log('Verifying APY values...')
+    testLogger.step('Verifying APY values...')
     await expect(page.getByText('7.20%').first()).toBeVisible()
     await expect(page.getByText('9.80%').first()).toBeVisible()
     await expect(page.getByText('6.80%').first()).toBeVisible()
     await expect(page.getByText('15.20%').first()).toBeVisible()
 
-    console.log('DeFi positions display test completed successfully!')
+    testLogger.step('DeFi positions display test completed successfully!')
   })
 
   test('Should display empty state message when wallet has no positions', async ({ page }) => {
@@ -261,10 +262,10 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(2000)
 
     // Verify empty state message
-    console.log('Verifying empty state message...')
+    testLogger.step('Verifying empty state message...')
     await expect(page.getByText('No positions found. Start by staking SOL or providing liquidity on supported protocols!')).toBeVisible({ timeout: 10000 })
 
-    console.log('Empty state test completed successfully!')
+    testLogger.step('Empty state test completed successfully!')
   })
 
   test('Should handle refresh functionality for positions', async ({ page }) => {
@@ -294,7 +295,7 @@ test.describe('TC-011: View Staking Positions', () => {
     })
 
     // Test refresh button
-    console.log('Testing refresh functionality...')
+    testLogger.step('Testing refresh functionality...')
     const refreshButton = page.getByRole('button', { name: /refresh/i })
     await expect(refreshButton).toBeVisible()
     
@@ -305,7 +306,7 @@ test.describe('TC-011: View Staking Positions', () => {
     // Verify positions are still displayed after refresh
     await expect(page.getByText('Marinade Finance').first()).toBeVisible()
     
-    console.log('Refresh functionality test completed successfully!')
+    testLogger.step('Refresh functionality test completed successfully!')
   })
 
   test('Should handle API errors gracefully', async ({ page }) => {
@@ -323,10 +324,10 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(2000)
 
     // Verify error handling
-    console.log('Verifying error handling...')
+    testLogger.step('Verifying error handling...')
     await expect(page.getByText(/error/i)).toBeVisible({ timeout: 10000 })
 
-    console.log('Error handling test completed successfully!')
+    testLogger.step('Error handling test completed successfully!')
   })
 
   test('Should display positions correctly on mobile viewport', async ({ page }) => {
@@ -338,7 +339,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     // Verify mobile layout without requiring wallet connection
-    console.log('Verifying mobile layout structure...')
+    testLogger.step('Verifying mobile layout structure...')
     
     // Check that the page renders properly on mobile
     await expect(page.getByRole('heading', { name: /portfolio/i })).toBeVisible()
@@ -371,7 +372,7 @@ test.describe('TC-011: View Staking Positions', () => {
     // Verify home page is responsive
     await expect(page.getByText(/solfolio/i).first()).toBeVisible()
 
-    console.log('Mobile responsiveness test completed successfully!')
+    testLogger.step('Mobile responsiveness test completed successfully!')
   })
 
   test('Should provide proper accessibility for screen readers', async ({ page }) => {
@@ -389,7 +390,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(2000)
 
     // Verify accessibility structure
-    console.log('Verifying accessibility structure...')
+    testLogger.step('Verifying accessibility structure...')
     
     // Check main content area
     const main = page.getByRole('main')
@@ -415,7 +416,7 @@ test.describe('TC-011: View Staking Positions', () => {
     // Check that position data is accessible
     await expect(page.getByText('Marinade Finance').first()).toBeVisible()
 
-    console.log('Accessibility test completed successfully!')
+    testLogger.step('Accessibility test completed successfully!')
   })
 
   test('Should verify all required position card elements are displayed', async ({ page }) => {
@@ -433,7 +434,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(2000)
 
     // Verify each card shows required elements
-    console.log('Verifying position card elements...')
+    testLogger.step('Verifying position card elements...')
     
     // Wait for positions to load
     await expect(page.getByText('Marinade Finance').first()).toBeVisible({ timeout: 10000 })
@@ -467,7 +468,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await expect(page.getByText('6.80%').first()).toBeVisible()
     await expect(page.getByText('15.20%').first()).toBeVisible()
 
-    console.log('Position card elements verification completed successfully!')
+    testLogger.step('Position card elements verification completed successfully!')
   })
 
   test('Should verify portfolio breakdown displays correct percentages and values', async ({ page }) => {
@@ -490,7 +491,7 @@ test.describe('TC-011: View Staking Positions', () => {
     // Scroll to breakdown section
     await expect(page.getByText('Portfolio Breakdown')).toBeVisible()
     
-    console.log('Verifying portfolio breakdown...')
+    testLogger.step('Verifying portfolio breakdown...')
     
     // Check breakdown category labels are visible
     await expect(page.getByText('Staking').first()).toBeVisible()
@@ -503,6 +504,6 @@ test.describe('TC-011: View Staking Positions', () => {
     await expect(page.getByText('$2,250.35').first()).toBeVisible()
     await expect(page.getByText('$1,000.00').first()).toBeVisible()
 
-    console.log('Portfolio breakdown verification completed successfully!')
+    testLogger.step('Portfolio breakdown verification completed successfully!')
   })
 })

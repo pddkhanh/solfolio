@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { testLogger } from './helpers/test-logger'
 
 /**
  * TC-014: Navigate Between Pages
@@ -25,10 +26,10 @@ test.describe('TC-014: Navigate Between Pages', () => {
   })
 
   test('Complete navigation flow with all checks', async ({ page }) => {
-    console.log('Starting navigation test...')
+    testLogger.step('Starting navigation test...')
     
     // Step 1: Verify initial state on homepage
-    console.log('Step 1: Verifying initial homepage state...')
+    testLogger.step('Step 1: Verifying initial homepage state...')
     await expect(page).toHaveURL('http://localhost:3000/')
     await expect(page).toHaveTitle(/SolFolio/i)
     
@@ -45,7 +46,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(dashboardLink).toBeVisible()
     
     // Step 2: Navigate to Portfolio page via header link
-    console.log('Step 2: Navigating to Portfolio page...')
+    testLogger.step('Step 2: Navigating to Portfolio page...')
     // Use first() to get header link (not footer)
     const portfolioLink = page.locator('nav').first().locator('a[href="/portfolio"]').filter({ hasText: 'Portfolio' })
     await expect(portfolioLink).toBeVisible()
@@ -63,7 +64,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(page.locator('h1').filter({ hasText: /Portfolio/ })).toBeVisible({ timeout: 5000 })
     
     // Step 3: Navigate back to home using logo
-    console.log('Step 3: Navigating back to home via logo...')
+    testLogger.step('Step 3: Navigating back to home via logo...')
     await logo.click()
     
     // Wait for navigation
@@ -76,7 +77,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(page.locator('h1').filter({ hasText: 'Solana DeFi Portfolio Tracker' })).toBeVisible({ timeout: 5000 })
     
     // Step 4: Test browser back button
-    console.log('Step 4: Testing browser back button...')
+    testLogger.step('Step 4: Testing browser back button...')
     
     // First navigate to portfolio again
     await portfolioLink.click()
@@ -91,7 +92,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(page).toHaveURL('http://localhost:3000/')
     
     // Step 5: Test browser forward button
-    console.log('Step 5: Testing browser forward button...')
+    testLogger.step('Step 5: Testing browser forward button...')
     await page.goForward()
     await page.waitForLoadState('networkidle')
     
@@ -99,13 +100,13 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(page).toHaveURL('http://localhost:3000/portfolio')
     
     // Step 6: Verify active page highlighting (if implemented)
-    console.log('Step 6: Checking active page highlighting...')
+    testLogger.step('Step 6: Checking active page highlighting...')
     
     // On portfolio page, check if Portfolio link has active styling
     // This might be implemented with different classes depending on the design
     // Common patterns include: 'active', 'text-foreground', removing 'text-foreground/60'
     const portfolioLinkClasses = await portfolioLink.getAttribute('class')
-    console.log('Portfolio link classes when active:', portfolioLinkClasses)
+    testLogger.step('Portfolio link classes when active:', portfolioLinkClasses)
     
     // Navigate back to home
     await dashboardLink.click()
@@ -113,16 +114,16 @@ test.describe('TC-014: Navigate Between Pages', () => {
     
     // Check if Dashboard link has active styling
     const dashboardLinkClasses = await dashboardLink.getAttribute('class')
-    console.log('Dashboard link classes when active:', dashboardLinkClasses)
+    testLogger.step('Dashboard link classes when active:', dashboardLinkClasses)
     
     // Step 7: Test navigation to non-existent pages (404 handling)
-    console.log('Step 7: Testing 404 error handling...')
+    testLogger.step('Step 7: Testing 404 error handling...')
     
     // Try to navigate to pages that may not exist yet
     const nonExistentPages = ['/protocols', '/analytics']
     
     for (const pagePath of nonExistentPages) {
-      console.log(`Testing navigation to ${pagePath}...`)
+      testLogger.step(`Testing navigation to ${pagePath}...`)
       const link = page.locator(`a[href="${pagePath}"]`).first()
       
       if (await link.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -139,12 +140,12 @@ test.describe('TC-014: Navigate Between Pages', () => {
           const hasContent = await page.locator('h1').isVisible({ timeout: 1000 }).catch(() => false)
           
           if (is404) {
-            console.log(`${pagePath} shows 404 page (expected for non-implemented pages)`)
+            testLogger.step(`${pagePath} shows 404 page (expected for non-implemented pages)`)
           } else if (hasContent) {
-            console.log(`${pagePath} page exists and loaded successfully`)
+            testLogger.step(`${pagePath} page exists and loaded successfully`)
           }
         } catch (error) {
-          console.log(`Error navigating to ${pagePath}:`, error instanceof Error ? error.message : String(error))
+          testLogger.step(`Error navigating to ${pagePath}:`, error instanceof Error ? error.message : String(error))
         }
         
         // Navigate back using browser back or direct navigation
@@ -156,7 +157,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     }
     
     // Step 8: Verify page titles update correctly
-    console.log('Step 8: Verifying page titles...')
+    testLogger.step('Step 8: Verifying page titles...')
     
     // Navigate to home if not already there
     if (!page.url().endsWith('localhost:3000/')) {
@@ -166,7 +167,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     }
     
     const homeTitle = await page.title()
-    console.log('Home page title:', homeTitle)
+    testLogger.step('Home page title:', homeTitle)
     expect(homeTitle).toContain('SolFolio')
     
     // Navigate to portfolio
@@ -174,11 +175,11 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await page.waitForLoadState('networkidle')
     
     const portfolioTitle = await page.title()
-    console.log('Portfolio page title:', portfolioTitle)
+    testLogger.step('Portfolio page title:', portfolioTitle)
     expect(portfolioTitle).toContain('SolFolio')
     
     // Step 9: Verify smooth transitions (no jarring page loads)
-    console.log('Step 9: Testing smooth transitions...')
+    testLogger.step('Step 9: Testing smooth transitions...')
     
     // Navigate between pages and ensure no errors in console
     const consoleErrors: string[] = []
@@ -197,7 +198,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     
     // Check for any console errors
     if (consoleErrors.length > 0) {
-      console.log('Console errors detected during navigation:', consoleErrors)
+      testLogger.step('Console errors detected during navigation:', consoleErrors)
     }
     
     // Verify no critical errors (filter out expected warnings)
@@ -213,29 +214,29 @@ test.describe('TC-014: Navigate Between Pages', () => {
     
     expect(criticalErrors).toHaveLength(0)
     
-    console.log('Navigation test completed successfully!')
+    testLogger.step('Navigation test completed successfully!')
   })
 
   test('Mobile navigation menu functionality', async ({ page }) => {
-    console.log('Testing mobile navigation...')
+    testLogger.step('Testing mobile navigation...')
     
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 })
     await page.waitForTimeout(500)
     
     // Step 1: Verify mobile menu button is visible
-    console.log('Step 1: Checking mobile menu button...')
+    testLogger.step('Step 1: Checking mobile menu button...')
     // Look for the menu button in the header (md:hidden class indicates mobile menu)
     const mobileMenuButton = page.locator('header button.md\\:hidden')
     await expect(mobileMenuButton).toBeVisible()
     
     // Step 2: Open mobile menu
-    console.log('Step 2: Opening mobile menu...')
+    testLogger.step('Step 2: Opening mobile menu...')
     await mobileMenuButton.click()
     await page.waitForTimeout(300)
     
     // Step 3: Verify mobile navigation links are visible
-    console.log('Step 3: Verifying mobile navigation links...')
+    testLogger.step('Step 3: Verifying mobile navigation links...')
     // After clicking menu button, the mobile nav should be visible
     // Wait a bit for animation
     await page.waitForTimeout(500)
@@ -254,7 +255,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(mobilePortfolioLink).toBeVisible()
     
     // Step 4: Navigate to Portfolio via mobile menu
-    console.log('Step 4: Navigating to Portfolio via mobile menu...')
+    testLogger.step('Step 4: Navigating to Portfolio via mobile menu...')
     await mobilePortfolioLink.click()
     await page.waitForLoadState('networkidle')
     
@@ -265,7 +266,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await expect(mobileNav).not.toBeVisible({ timeout: 1000 })
     
     // Step 5: Test mobile menu close button
-    console.log('Step 5: Testing mobile menu close functionality...')
+    testLogger.step('Step 5: Testing mobile menu close functionality...')
     
     // Navigate back to home
     await page.goto('http://localhost:3000/')
@@ -281,45 +282,45 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await page.waitForTimeout(300)
     await expect(mobileNav).not.toBeVisible()
     
-    console.log('Mobile navigation test completed!')
+    testLogger.step('Mobile navigation test completed!')
   })
 
   test('Navigation persistence across page refresh', async ({ page }) => {
-    console.log('Testing navigation persistence...')
+    testLogger.step('Testing navigation persistence...')
     
     // Step 1: Navigate to portfolio
-    console.log('Step 1: Navigating to portfolio...')
+    testLogger.step('Step 1: Navigating to portfolio...')
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
     
     // Step 2: Refresh the page
-    console.log('Step 2: Refreshing page...')
+    testLogger.step('Step 2: Refreshing page...')
     await page.reload()
     await page.waitForLoadState('networkidle')
     
     // Step 3: Verify we're still on portfolio page
-    console.log('Step 3: Verifying URL persisted...')
+    testLogger.step('Step 3: Verifying URL persisted...')
     await expect(page).toHaveURL('http://localhost:3000/portfolio')
     
     // Step 4: Verify page content loaded correctly after refresh
-    console.log('Step 4: Verifying content loaded after refresh...')
+    testLogger.step('Step 4: Verifying content loaded after refresh...')
     await expect(page.locator('h1').filter({ hasText: /Portfolio/ })).toBeVisible({ timeout: 5000 })
     
     // Step 5: Test navigation still works after refresh
-    console.log('Step 5: Testing navigation after refresh...')
+    testLogger.step('Step 5: Testing navigation after refresh...')
     const logo = page.locator('a[href="/"]').filter({ hasText: 'SolFolio' })
     await logo.click()
     await page.waitForLoadState('networkidle')
     await expect(page).toHaveURL('http://localhost:3000/')
     
-    console.log('Navigation persistence test completed!')
+    testLogger.step('Navigation persistence test completed!')
   })
 
   test('Keyboard navigation accessibility', async ({ page }) => {
-    console.log('Testing keyboard navigation...')
+    testLogger.step('Testing keyboard navigation...')
     
     // Step 1: Tab through navigation links
-    console.log('Step 1: Testing tab navigation...')
+    testLogger.step('Step 1: Testing tab navigation...')
     
     // Start from body
     await page.locator('body').click()
@@ -342,11 +343,11 @@ test.describe('TC-014: Navigate Between Pages', () => {
           text: el?.textContent
         }
       })
-      console.log('Focused element:', focusedElement)
+      testLogger.step('Focused element:', focusedElement)
     }
     
     // Step 2: Test Enter key navigation on focused link
-    console.log('Step 2: Testing Enter key navigation...')
+    testLogger.step('Step 2: Testing Enter key navigation...')
     
     // Focus on portfolio link
     const portfolioLink = page.locator('a[href="/portfolio"]').first()
@@ -360,6 +361,6 @@ test.describe('TC-014: Navigate Between Pages', () => {
     // Verify navigation worked
     await expect(page).toHaveURL('http://localhost:3000/portfolio')
     
-    console.log('Keyboard navigation test completed!')
+    testLogger.step('Keyboard navigation test completed!')
   })
 })
