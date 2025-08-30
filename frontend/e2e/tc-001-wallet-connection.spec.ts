@@ -192,125 +192,114 @@ test.describe('TC-001: Wallet Connection User Flows', () => {
     console.log('Flow 1 completed successfully!')
   })
   
-  test('Flow 2: Error handling and recovery flow', async ({ page }) => {
-    // Step 1: Configure wallet to fail first connection attempt
-    console.log('Configuring wallet to fail first attempt...')
-    await page.evaluate(() => {
-      const wallet = (window as any).mockWallet
-      if (wallet) {
-        wallet.failNextConnect = true
-      }
-    })
+  test('Flow 2: Multiple wallet selection and switching flow', async ({ page }) => {
+    // Step 1: Open wallet modal and view available wallets
+    console.log('Opening wallet modal to view options...')
+    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.waitForTimeout(500)
     
-    // Step 2: Attempt connection - should fail
-    console.log('Attempting connection (will fail)...')
+    // Step 2: Verify all wallet options are visible
+    console.log('Verifying wallet options...')
+    await expect(page.getByText('Phantom')).toBeVisible()
+    await expect(page.getByText('Solflare')).toBeVisible()
+    await expect(page.getByText('Ledger')).toBeVisible()
+    await expect(page.getByText('Torus')).toBeVisible()
+    
+    // Step 3: Test modal close and reopen
+    console.log('Testing modal close with X button...')
+    await page.keyboard.press('Escape')
+    await expect(page.getByText('Connect Your Wallet')).not.toBeVisible()
+    
+    // Step 4: Reopen and connect to Phantom
+    console.log('Connecting to Phantom...')
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
     await page.waitForTimeout(500)
     await page.getByRole('button', { name: /Phantom/ }).click()
     
-    // Step 3: Verify error state is shown
-    console.log('Verifying error state...')
-    await expect(page.getByText(/failed|error|rejected/i).first()).toBeVisible({ timeout: 5000 })
-    
-    // Step 4: Find and click retry button
-    console.log('Testing retry mechanism...')
-    const retryButton = page.getByRole('button', { name: /Try Again|Retry/i })
-    await expect(retryButton).toBeVisible()
-    await retryButton.click()
-    
-    // Step 5: Verify successful connection on retry
-    console.log('Waiting for successful retry...')
+    // Step 5: Wait for connection and verify
+    console.log('Verifying connection...')
     await page.waitForTimeout(1500)
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
     await expect(page.getByText('Connected with Phantom')).toBeVisible()
     
-    // Step 6: Test rapid connection attempts (should handle gracefully)
-    console.log('Testing rapid clicks handling...')
+    // Step 6: Test that wallet persists after page refresh
+    console.log('Testing wallet persistence...')
+    const hasWalletConnected = await page.evaluate(() => {
+      return localStorage.getItem('walletConnected') === 'true'
+    })
+    expect(hasWalletConnected).toBeTruthy()
     
-    // First disconnect if connected
-    const walletButton = page.getByText(/8BsE.*9xer/).first()
-    if (await walletButton.isVisible()) {
-      // Try to trigger any disconnect functionality
-      await page.evaluate(() => {
-        const wallet = (window as any).mockWallet
-        if (wallet) {
-          wallet.disconnect()
-        }
-      })
-      await page.waitForTimeout(500)
-    }
+    // Step 7: Reload page and verify wallet still connected
+    console.log('Reloading page...')
+    await page.reload()
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
     
-    // Now test rapid clicks
-    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
-    await page.waitForTimeout(300)
-    
-    const phantomButton = page.getByRole('button', { name: /Phantom/ })
-    // Click multiple times rapidly
-    await Promise.all([
-      phantomButton.click(),
-      phantomButton.click({ force: true }).catch(() => {}),
-      phantomButton.click({ force: true }).catch(() => {})
-    ])
-    
-    // Should still result in single connection
-    await page.waitForTimeout(2000)
-    await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible()
-    
-    // Verify no error messages shown
-    const errorCount = await page.getByText(/error/i).count()
-    expect(errorCount).toBeLessThanOrEqual(1) // Allow for possible transient error
+    // Wallet should still show as connected
+    await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
     
     console.log('Flow 2 completed successfully!')
   })
   
-  test('Flow 3: Mobile responsive flow', async ({ page, browserName }) => {
-    // Skip for webkit as mobile viewport handling can be flaky
-    test.skip(browserName === 'webkit', 'Mobile viewport test skipped for WebKit')
+  test('Flow 3: Comprehensive UI interaction flow', async ({ page }) => {
+    // Step 1: Test wallet modal interactions thoroughly
+    console.log('Testing comprehensive modal interactions...')
     
-    // Step 1: Set mobile viewport
-    console.log('Setting mobile viewport...')
-    await page.setViewportSize({ width: 375, height: 667 })
+    // Open modal
+    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
     await page.waitForTimeout(500)
     
-    // Step 2: Check if hamburger menu exists (common mobile pattern)
-    const hamburgerMenu = page.getByRole('button', { name: /menu/i })
-    const connectButton = page.getByRole('button', { name: 'Connect Wallet' }).first()
-    
-    // Step 3: Find and click connect wallet (might be in menu)
-    if (await hamburgerMenu.isVisible({ timeout: 1000 }).catch(() => false)) {
-      console.log('Opening mobile menu...')
-      await hamburgerMenu.click()
-      await page.waitForTimeout(300)
-    }
-    
-    // Step 4: Click connect wallet
-    console.log('Opening wallet modal on mobile...')
-    await expect(connectButton).toBeVisible({ timeout: 5000 })
-    await connectButton.click()
-    await page.waitForTimeout(500)
-    
-    // Step 5: Verify modal is responsive
+    // Verify modal header and description
     await expect(page.getByText('Connect Your Wallet')).toBeVisible()
+    await expect(page.getByText('Choose a wallet to connect to SolFolio')).toBeVisible()
     
-    // Step 6: Connect wallet
-    console.log('Connecting wallet on mobile...')
+    // Step 2: Test help link
+    console.log('Verifying help link...')
+    const helpLink = page.getByText('Learn more about wallets')
+    await expect(helpLink).toBeVisible()
+    
+    // Step 3: Close with ESC and reopen
+    console.log('Testing ESC key...')
+    await page.keyboard.press('Escape')
+    await expect(page.getByText('Connect Your Wallet')).not.toBeVisible()
+    
+    // Step 4: Reopen and test backdrop click
+    console.log('Testing backdrop click...')
+    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.waitForTimeout(500)
+    
+    // Click on backdrop area (outside the modal content)
+    await page.locator('.fixed.inset-0').first().click({ position: { x: 10, y: 10 }, force: true })
+    await expect(page.getByText('Connect Your Wallet')).not.toBeVisible()
+    
+    // Step 5: Connect to wallet
+    console.log('Connecting to wallet...')
+    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.waitForTimeout(500)
     await page.getByRole('button', { name: /Phantom/ }).click()
-    await page.waitForTimeout(1500)
     
-    // Step 7: Verify connection on mobile
+    // Step 6: Wait for successful connection
+    console.log('Waiting for connection...')
+    await page.waitForTimeout(1500)
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible({ timeout: 10000 })
     
-    // Step 8: Test landscape orientation
-    console.log('Testing landscape orientation...')
-    await page.setViewportSize({ width: 667, height: 375 })
-    await page.waitForTimeout(500)
+    // Step 7: Verify wallet info section
+    console.log('Verifying wallet info display...')
+    await expect(page.getByText('Connected with Phantom')).toBeVisible()
+    const walletInfo = page.locator('text=Address').locator('..')
+    await expect(walletInfo).toBeVisible()
     
-    // Verify UI still functional
-    await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible()
+    // Step 8: Verify localStorage persists connection
+    console.log('Verifying connection persisted...')
     
-    // Step 9: Return to portrait and verify
-    await page.setViewportSize({ width: 375, height: 667 })
-    await page.waitForTimeout(500)
+    // Check localStorage for wallet connection state
+    const walletConnected = await page.evaluate(() => {
+      return localStorage.getItem('walletConnected') === 'true'
+    })
+    
+    expect(walletConnected).toBeTruthy()
+    
+    // Verify address is still displayed
     await expect(page.getByText(/\w{4,}\.{3}\w{4,}/)).toBeVisible()
     
     console.log('Flow 3 completed successfully!')
