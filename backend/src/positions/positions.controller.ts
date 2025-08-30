@@ -131,6 +131,46 @@ export class PositionsController {
   }
 
   /**
+   * Get protocol breakdown for a wallet
+   */
+  @Get(':walletAddress/protocol-breakdown')
+  async getProtocolBreakdown(@Param('walletAddress') walletAddress: string) {
+    try {
+      // Validate wallet address
+      try {
+        new PublicKey(walletAddress);
+      } catch {
+        throw new HttpException(
+          'Invalid wallet address',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const breakdown =
+        await this.positionsService.getProtocolBreakdown(walletAddress);
+
+      return {
+        success: true,
+        data: breakdown,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error fetching protocol breakdown for ${walletAddress}:`,
+        error,
+      );
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        'Failed to fetch protocol breakdown',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
    * Get total portfolio value
    */
   @Get(':walletAddress/value')
