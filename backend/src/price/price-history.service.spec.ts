@@ -22,14 +22,14 @@ describe('PriceHistoryService', () => {
             priceHistory: {
               upsert: jest.fn(),
               findFirst: jest.fn(),
-              findMany: jest.fn(),
+              findMany: jest.fn().mockResolvedValue([]),
               deleteMany: jest.fn(),
             },
             position: {
-              findMany: jest.fn(),
+              findMany: jest.fn().mockResolvedValue([]),
             },
             balance: {
-              findMany: jest.fn(),
+              findMany: jest.fn().mockResolvedValue([]),
             },
           },
         },
@@ -142,17 +142,19 @@ describe('PriceHistoryService', () => {
 
       jupiterPriceService.getTokenPrices.mockResolvedValue(currentPrices);
 
-      // Mock historical prices
+      // Mock historical prices - need to mock the correct shape
       prismaService.priceHistory.findMany
         .mockResolvedValueOnce([
           // 24h ago
           {
             tokenMint: mockTokenMint,
             price: new Decimal(90),
+            timestamp: new Date(),
           },
           {
             tokenMint: mockTokenMint2,
             price: new Decimal(0.99),
+            timestamp: new Date(),
           },
         ] as any)
         .mockResolvedValueOnce([
@@ -160,10 +162,12 @@ describe('PriceHistoryService', () => {
           {
             tokenMint: mockTokenMint,
             price: new Decimal(80),
+            timestamp: new Date(),
           },
           {
             tokenMint: mockTokenMint2,
             price: new Decimal(0.98),
+            timestamp: new Date(),
           },
         ] as any)
         .mockResolvedValueOnce([
@@ -171,10 +175,12 @@ describe('PriceHistoryService', () => {
           {
             tokenMint: mockTokenMint,
             price: new Decimal(50),
+            timestamp: new Date(),
           },
           {
             tokenMint: mockTokenMint2,
             price: new Decimal(0.95),
+            timestamp: new Date(),
           },
         ] as any);
 

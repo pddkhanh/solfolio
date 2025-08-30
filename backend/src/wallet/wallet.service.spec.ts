@@ -6,6 +6,7 @@ import { RateLimiterService } from '../blockchain/rate-limiter.service';
 import { RpcBatchService } from '../blockchain/rpc-batch.service';
 import { TokenMetadataService } from './token-metadata.service';
 import { PriceService } from '../price/price.service';
+import { PriceHistoryService } from '../price/price-history.service';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 
@@ -75,6 +76,20 @@ describe('WalletService', () => {
                 ['EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 1],
               ]),
             ),
+          },
+        },
+        {
+          provide: PriceHistoryService,
+          useValue: {
+            calculatePortfolioChanges: jest.fn().mockResolvedValue({
+              totalValue: 100,
+              totalChange24h: 10,
+              totalChangePercent24h: 11.11,
+              totalChange7d: 20,
+              totalChangePercent7d: 25,
+              totalChange30d: 30,
+              totalChangePercent30d: 42.86,
+            }),
           },
         },
       ],
