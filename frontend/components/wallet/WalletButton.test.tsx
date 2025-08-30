@@ -1,13 +1,13 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { useWalletModal } from '@solana/wallet-adapter-react-ui'
+import { useWalletModal } from '@/contexts/WalletContextProvider'
 import { PublicKey } from '@solana/web3.js'
 import WalletButton from './WalletButton'
 
 // Mock the wallet adapter hooks
 jest.mock('@solana/wallet-adapter-react')
-jest.mock('@solana/wallet-adapter-react-ui')
+jest.mock('@/contexts/WalletContextProvider')
 
 const mockUseWallet = useWallet as jest.MockedFunction<typeof useWallet>
 const mockUseWalletModal = useWalletModal as jest.MockedFunction<typeof useWalletModal>

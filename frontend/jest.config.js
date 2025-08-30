@@ -26,7 +26,7 @@ const customJestConfig = {
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/', '<rootDir>/e2e/'],
   moduleDirectories: ['node_modules', '<rootDir>/'],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@solana|@solana-mobile|@wallet-standard))',
+    'node_modules/(?!(.*\\.mjs$|@solana|@solana-mobile|@wallet-standard|@walletconnect))',
   ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',
