@@ -19,7 +19,17 @@ import { PrismaModule } from '../prisma/prisma.module';
     forwardRef(() => WebsocketModule),
   ],
   controllers: [PriceController],
-  providers: [PriceService, JupiterPriceService, PriceStreamService, PriceHistoryService],
-  exports: [PriceService, JupiterPriceService, PriceStreamService, PriceHistoryService],
+  providers: [
+    PriceService,
+    JupiterPriceService,
+    PriceStreamService,
+    PriceHistoryService,
+  ],
+  exports: [
+    PriceService,
+    JupiterPriceService,
+    PriceStreamService,
+    PriceHistoryService,
+  ],
 })
 export class PriceModule {}

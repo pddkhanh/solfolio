@@ -34,15 +34,18 @@ export class PriceHistoryService {
       // If no specific mints provided, get prices for top tokens
       const mintsToRecord = tokenMints || (await this.getTopTokenMints());
 
-      const prices = await this.jupiterPriceService.getTokenPrices(mintsToRecord);
+      const prices =
+        await this.jupiterPriceService.getTokenPrices(mintsToRecord);
       const timestamp = new Date();
 
-      const priceHistoryData = Array.from(prices.entries()).map(([mint, price]) => ({
-        tokenMint: mint,
-        symbol: mint, // Will be replaced with actual symbol from metadata
-        price: new Decimal(price),
-        timestamp,
-      }));
+      const priceHistoryData = Array.from(prices.entries()).map(
+        ([mint, price]) => ({
+          tokenMint: mint,
+          symbol: mint, // Will be replaced with actual symbol from metadata
+          price: new Decimal(price),
+          timestamp,
+        }),
+      );
 
       // Use upsert to avoid duplicates for the same timestamp
       for (const data of priceHistoryData) {
@@ -60,7 +63,9 @@ export class PriceHistoryService {
         });
       }
 
-      this.logger.log(`Recorded price snapshot for ${priceHistoryData.length} tokens`);
+      this.logger.log(
+        `Recorded price snapshot for ${priceHistoryData.length} tokens`,
+      );
     } catch (error) {
       this.logger.error('Failed to record price snapshot', error);
     }
@@ -71,12 +76,22 @@ export class PriceHistoryService {
    */
   async getTokenPriceChanges(tokenMint: string): Promise<PriceChange> {
     const now = new Date();
-    const [currentPriceData, price24hAgo, price7dAgo, price30dAgo] = await Promise.all([
-      this.jupiterPriceService.getTokenPrices([tokenMint]),
-      this.getPriceAtTime(tokenMint, new Date(now.getTime() - 24 * 60 * 60 * 1000)),
-      this.getPriceAtTime(tokenMint, new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)),
-      this.getPriceAtTime(tokenMint, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)),
-    ]);
+    const [currentPriceData, price24hAgo, price7dAgo, price30dAgo] =
+      await Promise.all([
+        this.jupiterPriceService.getTokenPrices([tokenMint]),
+        this.getPriceAtTime(
+          tokenMint,
+          new Date(now.getTime() - 24 * 60 * 60 * 1000),
+        ),
+        this.getPriceAtTime(
+          tokenMint,
+          new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+        ),
+        this.getPriceAtTime(
+          tokenMint,
+          new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+        ),
+      ]);
 
     const currentPrice = currentPriceData.get(tokenMint) || 0;
 
@@ -87,19 +102,26 @@ export class PriceHistoryService {
     if (price24hAgo) {
       result.price24hAgo = price24hAgo;
       result.change24h = currentPrice - price24hAgo;
-      result.changePercent24h = price24hAgo > 0 ? ((currentPrice - price24hAgo) / price24hAgo) * 100 : 0;
+      result.changePercent24h =
+        price24hAgo > 0
+          ? ((currentPrice - price24hAgo) / price24hAgo) * 100
+          : 0;
     }
 
     if (price7dAgo) {
       result.price7dAgo = price7dAgo;
       result.change7d = currentPrice - price7dAgo;
-      result.changePercent7d = price7dAgo > 0 ? ((currentPrice - price7dAgo) / price7dAgo) * 100 : 0;
+      result.changePercent7d =
+        price7dAgo > 0 ? ((currentPrice - price7dAgo) / price7dAgo) * 100 : 0;
     }
 
     if (price30dAgo) {
       result.price30dAgo = price30dAgo;
       result.change30d = currentPrice - price30dAgo;
-      result.changePercent30d = price30dAgo > 0 ? ((currentPrice - price30dAgo) / price30dAgo) * 100 : 0;
+      result.changePercent30d =
+        price30dAgo > 0
+          ? ((currentPrice - price30dAgo) / price30dAgo) * 100
+          : 0;
     }
 
     return result;
@@ -114,14 +136,24 @@ export class PriceHistoryService {
     const results = new Map<string, PriceChange>();
 
     // Batch fetch current prices
-    const currentPrices = await this.jupiterPriceService.getTokenPrices(tokenMints);
+    const currentPrices =
+      await this.jupiterPriceService.getTokenPrices(tokenMints);
 
     // Batch fetch historical prices
     const now = new Date();
     const [prices24hAgo, prices7dAgo, prices30dAgo] = await Promise.all([
-      this.getMultiplePricesAtTime(tokenMints, new Date(now.getTime() - 24 * 60 * 60 * 1000)),
-      this.getMultiplePricesAtTime(tokenMints, new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)),
-      this.getMultiplePricesAtTime(tokenMints, new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)),
+      this.getMultiplePricesAtTime(
+        tokenMints,
+        new Date(now.getTime() - 24 * 60 * 60 * 1000),
+      ),
+      this.getMultiplePricesAtTime(
+        tokenMints,
+        new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+      ),
+      this.getMultiplePricesAtTime(
+        tokenMints,
+        new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+      ),
     ]);
 
     for (const mint of tokenMints) {
@@ -137,19 +169,26 @@ export class PriceHistoryService {
       if (price24hAgo) {
         priceChange.price24hAgo = price24hAgo;
         priceChange.change24h = currentPrice - price24hAgo;
-        priceChange.changePercent24h = price24hAgo > 0 ? ((currentPrice - price24hAgo) / price24hAgo) * 100 : 0;
+        priceChange.changePercent24h =
+          price24hAgo > 0
+            ? ((currentPrice - price24hAgo) / price24hAgo) * 100
+            : 0;
       }
 
       if (price7dAgo) {
         priceChange.price7dAgo = price7dAgo;
         priceChange.change7d = currentPrice - price7dAgo;
-        priceChange.changePercent7d = price7dAgo > 0 ? ((currentPrice - price7dAgo) / price7dAgo) * 100 : 0;
+        priceChange.changePercent7d =
+          price7dAgo > 0 ? ((currentPrice - price7dAgo) / price7dAgo) * 100 : 0;
       }
 
       if (price30dAgo) {
         priceChange.price30dAgo = price30dAgo;
         priceChange.change30d = currentPrice - price30dAgo;
-        priceChange.changePercent30d = price30dAgo > 0 ? ((currentPrice - price30dAgo) / price30dAgo) * 100 : 0;
+        priceChange.changePercent30d =
+          price30dAgo > 0
+            ? ((currentPrice - price30dAgo) / price30dAgo) * 100
+            : 0;
       }
 
       results.set(mint, priceChange);
@@ -201,18 +240,30 @@ export class PriceHistoryService {
     return {
       totalValue,
       totalChange24h: totalValue - totalValue24hAgo,
-      totalChangePercent24h: totalValue24hAgo > 0 ? ((totalValue - totalValue24hAgo) / totalValue24hAgo) * 100 : 0,
+      totalChangePercent24h:
+        totalValue24hAgo > 0
+          ? ((totalValue - totalValue24hAgo) / totalValue24hAgo) * 100
+          : 0,
       totalChange7d: totalValue - totalValue7dAgo,
-      totalChangePercent7d: totalValue7dAgo > 0 ? ((totalValue - totalValue7dAgo) / totalValue7dAgo) * 100 : 0,
+      totalChangePercent7d:
+        totalValue7dAgo > 0
+          ? ((totalValue - totalValue7dAgo) / totalValue7dAgo) * 100
+          : 0,
       totalChange30d: totalValue - totalValue30dAgo,
-      totalChangePercent30d: totalValue30dAgo > 0 ? ((totalValue - totalValue30dAgo) / totalValue30dAgo) * 100 : 0,
+      totalChangePercent30d:
+        totalValue30dAgo > 0
+          ? ((totalValue - totalValue30dAgo) / totalValue30dAgo) * 100
+          : 0,
     };
   }
 
   /**
    * Get price at a specific time (or closest available)
    */
-  private async getPriceAtTime(tokenMint: string, timestamp: Date): Promise<number | null> {
+  private async getPriceAtTime(
+    tokenMint: string,
+    timestamp: Date,
+  ): Promise<number | null> {
     const priceRecord = await this.prisma.priceHistory.findFirst({
       where: {
         tokenMint,

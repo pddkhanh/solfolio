@@ -106,7 +106,7 @@ export class WalletService {
       // Calculate portfolio changes over time
       const allTokens = [
         { mint: SOL_MINT, amount: parseInt(nativeBalance.amount), decimals: 9 },
-        ...tokenBalances.map(t => ({
+        ...tokenBalances.map((t) => ({
           mint: t.mint,
           amount: parseInt(t.balance || t.amount || '0'),
           decimals: t.decimals,
@@ -115,7 +115,8 @@ export class WalletService {
 
       let portfolioChanges;
       try {
-        portfolioChanges = await this.priceHistoryService.calculatePortfolioChanges(allTokens);
+        portfolioChanges =
+          await this.priceHistoryService.calculatePortfolioChanges(allTokens);
       } catch (error) {
         this.logger.warn(`Failed to calculate portfolio changes: ${error}`);
         portfolioChanges = {
