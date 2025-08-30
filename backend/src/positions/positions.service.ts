@@ -62,6 +62,118 @@ export class PositionsService {
   }
 
   /**
+   * Get protocol breakdown for a wallet
+   */
+  async getProtocolBreakdown(walletAddress: string) {
+    try {
+      // Generate cache key
+      const cacheKey = this.redisService.generateKey(
+        'protocol-breakdown',
+        walletAddress,
+      );
+
+      // Use Redis wrap to handle caching automatically
+      return await this.redisService.wrap(
+        cacheKey,
+        async () => {
+          // Fetch all positions with protocol information
+          const aggregatedPositions =
+            await this.protocolsService.fetchAllPositions(walletAddress, {
+              parallel: true,
+              useCache: true,
+              cacheTtl: 300,
+              timeout: 10000,
+            });
+
+          // Process breakdown by protocol
+          const protocolBreakdown: Array<{
+            protocol: string;
+            type: string;
+            totalValue: number;
+            positions: number;
+            apy: number;
+            rewards: number;
+            percentage: number;
+          }> = [];
+
+          // Calculate total value for percentage calculation
+          const totalValue = aggregatedPositions.totalValue;
+
+          // Process each protocol
+          for (const [
+            protocolType,
+            positions,
+          ] of aggregatedPositions.byProtocol.entries()) {
+            if (positions.length === 0) continue;
+
+            const protocolValue = positions.reduce(
+              (sum, pos) => sum + pos.usdValue,
+              0,
+            );
+            const protocolApy = this.calculateWeightedApy(
+              positions,
+              protocolValue,
+            );
+            const protocolRewards = positions.reduce(
+              (sum, pos) => sum + pos.rewards,
+              0,
+            );
+
+            protocolBreakdown.push({
+              protocol: positions[0].protocolName,
+              type: protocolType,
+              totalValue: protocolValue,
+              positions: positions.length,
+              apy: protocolApy,
+              rewards: protocolRewards,
+              percentage:
+                totalValue > 0 ? (protocolValue / totalValue) * 100 : 0,
+            });
+          }
+
+          // Sort by value descending
+          protocolBreakdown.sort((a, b) => b.totalValue - a.totalValue);
+
+          // Calculate token holdings (non-protocol positions)
+          const walletBalances =
+            await this.walletService.getWalletBalances(walletAddress);
+          const tokensValue = walletBalances.totalValueUSD || 0;
+
+          if (tokensValue > 0) {
+            protocolBreakdown.push({
+              protocol: 'Wallet Tokens',
+              type: 'TOKENS',
+              totalValue: tokensValue,
+              positions: walletBalances.totalAccounts || 0,
+              apy: 0,
+              rewards: 0,
+              percentage:
+                totalValue > 0
+                  ? (tokensValue / (totalValue + tokensValue)) * 100
+                  : 100,
+            });
+          }
+
+          return {
+            walletAddress,
+            protocols: protocolBreakdown,
+            totalValue: totalValue + tokensValue,
+            totalProtocols: protocolBreakdown.length,
+            lastUpdated: new Date().toISOString(),
+          };
+        },
+        { ttl: 300 }, // Cache for 5 minutes
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error fetching protocol breakdown for ${walletAddress}:`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Get all positions for a wallet address using parallel fetching
    */
   async getPositions(walletAddress: string): Promise<PortfolioPosition[]> {
@@ -303,6 +415,18 @@ export class PositionsService {
       this.logger.error('Error storing portfolio data:', error);
       // Don't throw - this is non-critical
     }
+  }
+
+  /**
+   * Calculate weighted APY for a set of positions
+   */
+  private calculateWeightedApy(positions: any[], totalValue: number): number {
+    if (totalValue === 0) return 0;
+
+    return positions.reduce((sum, pos) => {
+      const weight = pos.usdValue / totalValue;
+      return sum + (pos.apy || 0) * weight;
+    }, 0);
   }
 
   /**

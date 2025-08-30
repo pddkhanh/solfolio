@@ -202,7 +202,7 @@
 
 ### 6.1 Portfolio Analytics
 - [x] **TASK-108** Create portfolio pie chart (2h) ✅
-- [ ] **TASK-109** Add protocol breakdown view (1.5h)
+- [x] **TASK-109** Add protocol breakdown view (1.5h) ✅
 - [ ] **TASK-110** Build historical value chart (2h)
 - [ ] **TASK-111** Add 24h/7d/30d change indicators (1.5h)
 
