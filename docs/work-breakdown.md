@@ -204,7 +204,7 @@
 - [x] **TASK-108** Create portfolio pie chart (2h) ✅
 - [x] **TASK-109** Add protocol breakdown view (1.5h) ✅
 - [x] **TASK-110** Build historical value chart (2h) ✅
-- [ ] **TASK-111** Add 24h/7d/30d change indicators (1.5h)
+- [x] **TASK-111** Add 24h/7d/30d change indicators (1.5h) ✅
 
 ### 6.2 Filtering and Sorting
 - [ ] **TASK-112** Add token/position filters (1.5h)
