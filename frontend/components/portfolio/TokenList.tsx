@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { formatUSD, formatNumber, shortenAddress } from '@/lib/utils';
 import { RefreshCw, ExternalLink, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
+import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
 
 interface TokenBalance {
   mint: string;
@@ -44,7 +45,9 @@ export function TokenList() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedMint, setCopiedMint] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'value' | 'amount' | 'name'>('value');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('value');
+  const [filterType, setFilterType] = useState<FilterType>('all');
   const [hideSmallBalances, setHideSmallBalances] = useState(false);
 
   useEffect(() => {
@@ -95,7 +98,7 @@ export function TokenList() {
     setTimeout(() => setCopiedMint(null), 2000);
   };
 
-  const getSortedTokens = () => {
+  const getFilteredAndSortedTokens = useMemo(() => {
     if (!balances) return [];
 
     let tokens = [...balances.tokens];
@@ -110,12 +113,28 @@ export function TokenList() {
         mint: 'So11111111111111111111111111111111111112',
         symbol: 'SOL',
         name: 'Solana',
-        logoUri: '/sol-logo.png', // You'll need to add this logo
+        logoUri: '/sol-logo.png',
         balance: balances.nativeSol.amount,
         decimals: balances.nativeSol.decimals,
         uiAmount: balances.nativeSol.uiAmount,
         valueUSD: balances.nativeSol.uiAmount * solPrice,
       });
+    }
+
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      tokens = tokens.filter((token) => {
+        const symbol = (token.metadata?.symbol || token.symbol || '').toLowerCase();
+        const name = (token.metadata?.name || token.name || '').toLowerCase();
+        const mint = token.mint.toLowerCase();
+        return symbol.includes(query) || name.includes(query) || mint.includes(query);
+      });
+    }
+
+    // Filter by type (for tokens, we only show 'tokens' type)
+    if (filterType !== 'all' && filterType !== 'tokens') {
+      return []; // TokenList only shows tokens
     }
 
     // Filter small balances if enabled
@@ -138,7 +157,7 @@ export function TokenList() {
       default:
         return tokens;
     }
-  };
+  }, [balances, searchQuery, filterType, hideSmallBalances, sortBy]);
 
   if (!connected) {
     return (
@@ -201,7 +220,7 @@ export function TokenList() {
     );
   }
 
-  const sortedTokens = getSortedTokens();
+  const filteredTokens = getFilteredAndSortedTokens;
 
   return (
     <Card>
@@ -222,40 +241,28 @@ export function TokenList() {
       </CardHeader>
       <CardContent>
         {/* Filters */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-sm border rounded px-2 py-1"
-            >
-              <option value="value">Value</option>
-              <option value="amount">Amount</option>
-              <option value="name">Name</option>
-            </select>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="hideSmall"
-              checked={hideSmallBalances}
-              onChange={(e) => setHideSmallBalances(e.target.checked)}
-            />
-            <label htmlFor="hideSmall" className="text-sm text-muted-foreground">
-              Hide small balances (&lt; $1)
-            </label>
-          </div>
-        </div>
+        <PortfolioFilters
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          filterType={filterType}
+          onFilterTypeChange={setFilterType}
+          hideSmallBalances={hideSmallBalances}
+          onHideSmallBalancesChange={setHideSmallBalances}
+          className="mb-6"
+        />
 
         {/* Token List */}
         <div className="space-y-4">
-          {sortedTokens.length === 0 ? (
+          {filteredTokens.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">
-              No tokens found
+              {searchQuery || filterType !== 'all' || hideSmallBalances
+                ? 'No tokens match your filters'
+                : 'No tokens found'}
             </p>
           ) : (
-            sortedTokens.map((token) => {
+            filteredTokens.map((token) => {
               const symbol = token.metadata?.symbol || token.symbol || 'Unknown';
               const name = token.metadata?.name || token.name || '';
               const logoUri = token.metadata?.logoUri || token.logoUri;
