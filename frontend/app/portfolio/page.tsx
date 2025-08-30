@@ -2,38 +2,14 @@
 
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 
-const PortfolioOverview = dynamic(
-  () => import('@/components/portfolio/PortfolioOverview').then(mod => ({ default: mod.PortfolioOverview })),
-  { ssr: false }
-);
-
-const TokenList = dynamic(
-  () => import('@/components/portfolio/TokenList').then(mod => ({ default: mod.TokenList })),
-  { ssr: false }
-);
-
-const PositionsList = dynamic(
-  () => import('@/components/positions/PositionsList').then(mod => ({ default: mod.PositionsList })),
-  { ssr: false }
-);
-
-const PortfolioPieChart = dynamic(
-  () => import('@/components/portfolio/PortfolioPieChart').then(mod => ({ default: mod.PortfolioPieChart })),
-  { ssr: false }
-);
-
-const ProtocolBreakdown = dynamic(
-  () => import('@/components/portfolio/ProtocolBreakdown').then(mod => ({ default: mod.ProtocolBreakdown })),
-  { ssr: false }
-);
-
-const HistoricalValueChart = dynamic(
-  () => import('@/components/portfolio/HistoricalValueChart').then(mod => ({ default: mod.HistoricalValueChart })),
-  { ssr: false }
-);
+import { PortfolioOverview } from '@/components/portfolio/PortfolioOverview';
+import { TokenList } from '@/components/portfolio/TokenList';
+import { PositionsList } from '@/components/positions/PositionsList';
+import { PortfolioPieChart } from '@/components/portfolio/PortfolioPieChart';
+import { ProtocolBreakdown } from '@/components/portfolio/ProtocolBreakdown';
+import { HistoricalValueChart } from '@/components/portfolio/HistoricalValueChart';
 
 export default function PortfolioPage() {
   const { connected } = useWallet();

@@ -9,6 +9,7 @@ import { formatUSD, formatNumber, shortenAddress } from '@/lib/utils';
 import { RefreshCw, ExternalLink, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
 import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
+import { MOCK_TOKENS, isMockMode } from '@/lib/mock-data';
 
 interface TokenBalance {
   mint: string;
@@ -69,19 +70,63 @@ export function TokenList() {
     setError(null);
 
     try {
+      // Use mock data if explicitly enabled
+      if (isMockMode()) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setBalances({
+          wallet: publicKey.toString(),
+          tokens: MOCK_TOKENS.map(t => ({
+            mint: t.mint,
+            symbol: t.symbol,
+            name: t.name,
+            logoUri: `/tokens/${t.symbol.toLowerCase()}.png`,
+            balance: t.balance.toString(),
+            decimals: t.decimals,
+            uiAmount: t.balance,
+            valueUSD: t.value,
+            metadata: {
+              symbol: t.symbol,
+              name: t.name,
+              logoUri: `/tokens/${t.symbol.toLowerCase()}.png`
+            }
+          })),
+          totalValueUSD: MOCK_TOKENS.reduce((sum, t) => sum + t.value, 0),
+          lastUpdated: new Date().toISOString()
+        });
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/wallet/balances/${publicKey.toString()}`
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch balances');
+        // Handle 404 as empty wallet
+        if (response.status === 404) {
+          setBalances({
+            wallet: publicKey.toString(),
+            tokens: [],
+            totalValueUSD: 0,
+            lastUpdated: new Date().toISOString()
+          });
+          return;
+        }
+        throw new Error(`Failed to fetch balances: ${response.statusText}`);
       }
 
       const data = await response.json();
       setBalances(data);
     } catch (err) {
       console.error('Error fetching balances:', err);
-      setError('Failed to load token balances');
+      
+      // Better error messages
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Unable to connect to portfolio service');
+      } else {
+        setError('Failed to load token balances');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
