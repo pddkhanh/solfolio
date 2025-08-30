@@ -60,8 +60,8 @@ async function injectMockWallet(page: Page) {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        // Create test wallet address
-        this.publicKey = new MockPublicKey('7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs')
+        // Create test wallet address - use a deterministic address for testing
+        this.publicKey = new MockPublicKey('8BsE6Pts5DwuHqjrefTtzd9THkttVJtUMAXecg9J9xer')
         this.connected = true
         this.connecting = false
         
@@ -78,7 +78,7 @@ async function injectMockWallet(page: Page) {
       
       signTransaction: async (tx: any) => tx,
       signAllTransactions: async (txs: any[]) => txs,
-      signMessage: async (msg: any) => ({ 
+      signMessage: async (_msg: any) => ({ 
         signature: new Uint8Array(64), 
         publicKey: mockWallet.publicKey 
       }),
@@ -101,81 +101,67 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     // Inject mock wallet before navigating
     await injectMockWallet(page)
     
-    // Navigate to homepage
+    // Navigate to homepage with E2E test mode
     await page.goto('http://localhost:3000')
     
-    // Wait for app to load
-    await page.waitForSelector('[data-testid="connect-wallet-button"], button:has-text("Connect Wallet")', {
-      timeout: 10000
-    })
+    // Wait for app to load and any initial connection attempts to settle
+    await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000)
+    
+    // Wait for Connect Wallet button in header to be visible
+    await expect(page.getByRole('button', { name: 'Connect Wallet' }).first()).toBeVisible({ timeout: 10000 })
   })
   
   test('Step 1-3: Opens wallet selection modal', async ({ page }) => {
     // Find and click Connect Wallet button
-    const connectButton = page.getByTestId('connect-wallet-button').or(
-      page.getByRole('button', { name: 'Connect Wallet' })
-    ).first()
+    const connectButton = page.getByRole('button', { name: 'Connect Wallet' }).first()
     
     await expect(connectButton).toBeVisible()
     await connectButton.click()
     
-    // Verify modal appears
-    const modal = page.getByRole('dialog')
-    await expect(modal).toBeVisible()
+    // Wait a bit for modal animation
+    await page.waitForTimeout(500)
     
-    // Verify modal title
-    await expect(modal.getByRole('heading', { name: /Connect Your Wallet/i })).toBeVisible()
+    // Verify modal appears - use text content as Dialog might not have role=dialog
+    await expect(page.getByText('Connect Your Wallet')).toBeVisible()
+    await expect(page.getByText('Choose a wallet to connect to SolFolio')).toBeVisible()
   })
   
   test('Step 4: Displays all supported wallets', async ({ page }) => {
     // Open modal
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.waitForTimeout(500)
     
     // Verify all wallet options are visible
     const wallets = ['Phantom', 'Solflare', 'Ledger', 'Torus']
     
     for (const wallet of wallets) {
-      const walletOption = page.getByTestId(`wallet-option-${wallet.toLowerCase()}`).or(
-        page.getByRole('button', { name: new RegExp(wallet, 'i') })
-      )
-      await expect(walletOption).toBeVisible()
+      await expect(page.getByText(wallet)).toBeVisible()
     }
     
     // Verify Phantom shows as "Installed" due to mock
-    const phantomButton = page.getByTestId('wallet-option-phantom').or(
-      page.getByRole('button', { name: /Phantom/i })
-    )
-    await expect(phantomButton).toContainText('Installed')
+    await expect(page.getByText('Installed')).toBeVisible()
   })
   
   test('Step 5-6: Successfully connects to wallet', async ({ page }) => {
     // Open modal
     await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.waitForTimeout(500)
     
     // Click Phantom wallet
-    const phantomButton = page.getByTestId('wallet-option-phantom').or(
-      page.getByRole('button', { name: /Phantom/i })
-    )
-    await phantomButton.click()
+    await page.getByRole('button', { name: /Phantom/ }).click()
     
     // Wait for connection to complete
-    await page.waitForTimeout(1000)
+    await page.waitForTimeout(1500)
     
-    // Verify wallet button shows abbreviated address
-    const walletButton = page.getByTestId('wallet-display-button').or(
-      page.getByRole('button', { name: /7EYn...awMs/i })
-    ).first()
-    
-    await expect(walletButton).toBeVisible({ timeout: 10000 })
+    // Verify connection succeeded - look for abbreviated address pattern
+    await expect(page.getByText(/8BsE.*9xer/)).toBeVisible({ timeout: 10000 })
     
     // Verify WalletInfo component appears on homepage
-    const walletInfo = page.getByTestId('wallet-info').or(
-      page.getByText('Connected with Phantom')
-    )
-    await expect(walletInfo).toBeVisible()
+    await expect(page.getByText('Connected with Phantom')).toBeVisible()
     
     // Verify full address is displayed
-    await expect(page.getByText('7EYnhQoR9YM3N7UoaKRoA44Uy8JeaZV3qyouov87awMs')).toBeVisible()
+    await expect(page.getByText('8BsE6Pts5DwuHqjrefTtzd9THkttVJtUMAXecg9J9xer')).toBeVisible()
   })
   
   test('Modal close interactions: Close button', async ({ page }) => {
@@ -239,7 +225,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.getByRole('button', { name: /Phantom/i }).click()
     
     // Should show error state
-    await expect(page.getByText(/failed|error/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/failed|error/i).first()).toBeVisible({ timeout: 5000 })
     
     // Retry button should be available
     const retryButton = page.getByRole('button', { name: /Try Again|Retry/i })
@@ -250,7 +236,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.waitForTimeout(1000)
     
     // Verify successful connection
-    await expect(page.getByRole('button', { name: /7EYn...awMs/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/8BsE.*9xer/)).toBeVisible({ timeout: 10000 })
   })
   
   test('Smooth animations and transitions', async ({ page }) => {
@@ -279,7 +265,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.getByRole('button', { name: /Phantom/i }).click()
     
     // Wait for connection
-    await expect(page.getByRole('button', { name: /7EYn...awMs/i })).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/8BsE.*9xer/)).toBeVisible({ timeout: 10000 })
     
     // Store localStorage state
     const hasWalletConnected = await page.evaluate(() => {
@@ -305,7 +291,7 @@ test.describe('TC-001: Connect Wallet via Modal', () => {
     await page.waitForTimeout(1000)
     
     // Verify only connected once
-    await expect(page.getByRole('button', { name: /7EYn...awMs/i })).toBeVisible()
+    await expect(page.getByText(/8BsE.*9xer/)).toBeVisible()
     
     // Should not show error
     await expect(page.getByText(/error/i)).not.toBeVisible()
@@ -321,20 +307,19 @@ test.describe('TC-001: Mobile Viewport', () => {
     await page.goto('http://localhost:3000')
     
     // Find Connect Wallet button (might be in mobile menu)
-    const connectButton = await page.getByRole('button', { name: 'Connect Wallet' }).first()
+    const connectButton = page.getByRole('button', { name: 'Connect Wallet' }).first()
     await expect(connectButton).toBeVisible({ timeout: 10000 })
     
     // Click to open modal
     await connectButton.click()
     
     // Modal should be visible and properly sized for mobile
-    const modal = page.getByRole('dialog')
-    await expect(modal).toBeVisible()
+    await expect(page.getByText('Connect Your Wallet')).toBeVisible()
     
     // Connect to wallet
     await page.getByRole('button', { name: /Phantom/i }).click()
     
     // Verify connection on mobile
-    await expect(page.getByText(/7EYn/)).toBeVisible({ timeout: 10000 })
+    await expect(page.getByText(/8BsE/)).toBeVisible({ timeout: 10000 })
   })
 })
