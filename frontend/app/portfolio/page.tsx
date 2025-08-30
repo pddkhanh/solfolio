@@ -30,6 +30,11 @@ const ProtocolBreakdown = dynamic(
   { ssr: false }
 );
 
+const HistoricalValueChart = dynamic(
+  () => import('@/components/portfolio/HistoricalValueChart').then(mod => ({ default: mod.HistoricalValueChart })),
+  { ssr: false }
+);
+
 export default function PortfolioPage() {
   const { connected } = useWallet();
   const { setVisible } = useWalletModal();
@@ -60,6 +65,9 @@ export default function PortfolioPage() {
       <div className="space-y-8">
         {/* Portfolio Overview */}
         <PortfolioOverview />
+
+        {/* Historical Value Chart */}
+        <HistoricalValueChart />
 
         {/* Portfolio Analytics Section */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
