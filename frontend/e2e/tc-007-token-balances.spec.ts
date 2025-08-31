@@ -19,8 +19,8 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('TC-007: Display Token Balances', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3000')
+  test.beforeEach(async ({ page, baseURL }) => {
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
   })
 

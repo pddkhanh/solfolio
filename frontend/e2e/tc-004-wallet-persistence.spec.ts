@@ -17,7 +17,7 @@ import {
 test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
   const TEST_ADDRESS = TEST_WALLETS.TOKENS
   
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     
     // Inject mock wallet before navigating
     await injectMockWallet(page, {
@@ -26,7 +26,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     })
     
     // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     
     // Wait for app to load
     await page.waitForLoadState('networkidle')

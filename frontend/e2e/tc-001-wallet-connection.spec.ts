@@ -106,12 +106,12 @@ async function injectMockWallet(page: Page) {
 }
 
 test.describe('TC-001: Wallet Connection User Flows', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Inject mock wallet before navigating
     await injectMockWallet(page)
     
-    // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    // Navigate to homepage using baseURL from config
+    await page.goto(baseURL || '/')
     
     // Wait for app to load
     await page.waitForLoadState('networkidle')

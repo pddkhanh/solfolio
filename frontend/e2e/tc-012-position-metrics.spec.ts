@@ -213,10 +213,10 @@ async function setupPortfolioPage(page: Page) {
 }
 
 test.describe('TC-012: Display Position Metrics', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Inject mock wallet
     await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
   })

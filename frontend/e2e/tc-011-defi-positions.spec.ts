@@ -151,10 +151,10 @@ async function mockPositionsAPIError(page: Page) {
 }
 
 test.describe('TC-011: View Staking Positions', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Inject mock wallet and navigate to portfolio
     await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(500)
   })
@@ -329,7 +329,7 @@ test.describe('TC-011: View Staking Positions', () => {
     console.log('Error handling test completed successfully!')
   })
 
-  test('Should display positions correctly on mobile viewport', async ({ page }) => {
+  test('Should display positions correctly on mobile viewport', async ({ page, baseURL }) => {
     // Set mobile viewport first
     await page.setViewportSize({ width: 375, height: 667 })
 
@@ -365,7 +365,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await expect(page.getByRole('heading', { name: /portfolio/i })).toBeVisible()
     
     // Navigate back home to test home page on mobile
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     
     // Verify home page is responsive

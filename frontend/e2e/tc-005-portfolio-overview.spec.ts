@@ -8,9 +8,9 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('TC-005: Portfolio Overview - CI Tests', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Start fresh on each test
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
   })
 

@@ -215,7 +215,7 @@ async function verifyConnectedState(page: Page, walletName: string, expectedAddr
 }
 
 test.describe('TC-002: Disconnect Wallet', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Use the same mock injection approach as TC-001
     await page.addInitScript(() => {
       // Set E2E test mode flag
@@ -316,7 +316,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
     })
     
     // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     
     // Wait for app to load
     await page.waitForLoadState('networkidle')
@@ -418,7 +418,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
 })
 
 test.describe.skip('TC-003: Switch Between Wallets', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Use the same simple mock as TC-001/TC-002
     await page.addInitScript(() => {
       // Set E2E test mode flag
@@ -534,7 +534,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
     })
     
     // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     
     // Wait for app to load
     await page.waitForLoadState('networkidle')
@@ -683,7 +683,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
 })
 
 test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
-  test('should complete full wallet management journey', async ({ page }) => {
+  test('should complete full wallet management journey', async ({ page, baseURL }) => {
     console.log('Testing complete wallet management flow...')
     
     // Setup: Use simple mock wallet like other tests
@@ -753,7 +753,7 @@ test.describe.skip('TC-002 & TC-003: Combined Flow', () => {
       ;(window as any).mockWallet = mockWallet
     })
     
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(1000)
     
