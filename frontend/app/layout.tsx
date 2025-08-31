@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -9,6 +10,22 @@ import PositionChangeNotifications from '@/components/notifications/PositionChan
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 import MockWalletInjector from '@/components/providers/MockWalletInjector'
 import { ThemeProvider } from '@/contexts/ThemeProvider'
+
+// Configure Inter font with all required weights
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+// Configure JetBrains Mono for code/addresses/numbers
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'SolFolio - Solana DeFi Portfolio Tracker',
@@ -21,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <body className={inter.className}>
         <ThemeProvider>
           <MockWalletInjector />
           <WalletErrorBoundary>
