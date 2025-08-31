@@ -159,10 +159,29 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "shimmer": {
+          "100%": { transform: "translateX(100%)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "count-up": {
+          from: { opacity: "0", transform: "translateY(0.25rem)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "shimmer": "shimmer 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float": "float 3s ease-in-out infinite",
+        "count-up": "count-up 0.5s ease-out",
       },
     },
   },

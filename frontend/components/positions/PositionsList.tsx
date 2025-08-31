@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PositionCard } from './PositionCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PositionCardsGridSkeleton } from './PositionCardSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw, TrendingUp, DollarSign, Percent } from 'lucide-react';
+import { RefreshCw, TrendingUp, DollarSign, Percent, Wallet, Sparkles } from 'lucide-react';
 import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
 import { MOCK_POSITIONS, isMockMode } from '@/lib/mock-data';
+import { staggerContainer } from '@/lib/animations';
 
 interface Position {
   protocol: string;
@@ -258,61 +260,107 @@ export function PositionsList() {
 
   if (!publicKey) {
     return (
-      <Card className="w-full">
-        <CardContent className="py-8">
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            Connect your wallet to view positions
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col items-center justify-center min-h-[400px] p-8"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
+          className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
+        >
+          <Wallet className="w-10 h-10 text-purple-400" />
+        </motion.div>
+        <h3 className="text-xl font-semibold text-white mb-2">Connect Your Wallet</h3>
+        <p className="text-gray-400 text-center max-w-md">
+          Connect your Solana wallet to view your DeFi positions across all supported protocols
+        </p>
+      </motion.div>
     );
   }
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Stats skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-32" />
-              </CardContent>
-            </Card>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="relative rounded-xl bg-gradient-to-r from-purple-500/5 via-cyan-500/5 to-purple-500/5 p-[1px]"
+            >
+              <div className="rounded-xl bg-[#16171F] p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
+                  <div className="h-3 w-24 bg-white/5 rounded animate-pulse" />
+                </div>
+                <div className="h-7 w-32 bg-white/5 rounded animate-pulse mb-2" />
+                <div className="h-3 w-20 bg-white/5 rounded animate-pulse" />
+              </div>
+            </motion.div>
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-48" />
-          ))}
+        
+        {/* Section header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-32 bg-white/5 rounded animate-pulse" />
+          <div className="h-8 w-24 bg-white/5 rounded animate-pulse" />
         </div>
+        
+        {/* Position cards skeleton */}
+        <PositionCardsGridSkeleton count={6} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card className="w-full">
-        <CardContent className="py-8">
-          <div className="text-center text-red-500">
-            Error: {error}
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center min-h-[400px] p-8"
+      >
+        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
+          <span className="text-3xl">❌</span>
+        </div>
+        <h3 className="text-xl font-semibold text-white mb-2">Error Loading Positions</h3>
+        <p className="text-red-400 text-center max-w-md mb-4">{error}</p>
+        <button
+          onClick={() => fetchPositions(true)}
+          className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium hover:opacity-90 transition-opacity"
+        >
+          Try Again
+        </button>
+      </motion.div>
     );
   }
 
   if (!portfolio || portfolio.positions.length === 0) {
     return (
-      <Card className="w-full">
-        <CardContent className="py-8">
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            No positions found. Start by staking SOL or providing liquidity on supported protocols!
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col items-center justify-center min-h-[400px] p-8"
+      >
+        <motion.div
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
+        >
+          <Sparkles className="w-10 h-10 text-purple-400" />
+        </motion.div>
+        <h3 className="text-xl font-semibold text-white mb-2">No Positions Yet</h3>
+        <p className="text-gray-400 text-center max-w-md">
+          Start by staking SOL or providing liquidity on supported protocols to see your positions here!
+        </p>
+      </motion.div>
     );
   }
 
@@ -321,70 +369,118 @@ export function PositionsList() {
 
   return (
     <div className="space-y-6">
-      {/* Portfolio Stats */}
+      {/* Portfolio Stats with animations */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Total Staked Value
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatUSD(stakingValue)}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              Across {portfolio.totalPositions} position{portfolio.totalPositions !== 1 ? 's' : ''}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative group"
+        >
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+          <div className="relative rounded-xl bg-gradient-to-r from-purple-500/5 via-transparent to-cyan-500/5 p-[1px]">
+            <div className="rounded-xl bg-[#16171F] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-full bg-purple-500/10">
+                  <DollarSign className="w-4 h-4 text-purple-400" />
+                </div>
+                <span className="text-sm text-gray-400">Total Staked Value</span>
+              </div>
+              <motion.div
+                key={stakingValue}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-2xl font-bold text-white"
+              >
+                {formatUSD(stakingValue)}
+              </motion.div>
+              <p className="text-xs text-gray-500 mt-1">
+                Across {portfolio.totalPositions} position{portfolio.totalPositions !== 1 ? 's' : ''}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-              <Percent className="w-4 h-4" />
-              Average APY
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {formatNumber(portfolio.performance.totalApy)}%
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative group"
+        >
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+          <div className="relative rounded-xl bg-gradient-to-r from-green-500/5 via-transparent to-emerald-500/5 p-[1px]">
+            <div className="rounded-xl bg-[#16171F] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-full bg-green-500/10">
+                  <Percent className="w-4 h-4 text-green-400" />
+                </div>
+                <span className="text-sm text-gray-400">Average APY</span>
+              </div>
+              <motion.div
+                key={portfolio.performance.totalApy}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-2xl font-bold text-green-400"
+              >
+                {formatNumber(portfolio.performance.totalApy)}%
+              </motion.div>
+              <p className="text-xs text-gray-500 mt-1">
+                Weighted by position value
+              </p>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              Weighted by position value
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              Monthly Rewards
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {formatUSD(portfolio.performance.monthlyRewards)}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative group"
+        >
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl" />
+          <div className="relative rounded-xl bg-gradient-to-r from-blue-500/5 via-transparent to-cyan-500/5 p-[1px]">
+            <div className="rounded-xl bg-[#16171F] p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-full bg-blue-500/10">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                </div>
+                <span className="text-sm text-gray-400">Monthly Rewards</span>
+              </div>
+              <motion.div
+                key={portfolio.performance.monthlyRewards}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                className="text-2xl font-bold text-blue-400"
+              >
+                {formatUSD(portfolio.performance.monthlyRewards)}
+              </motion.div>
+              <p className="text-xs text-gray-500 mt-1">
+                ≈ {formatUSD(portfolio.performance.dailyRewards)}/day
+              </p>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              ≈ {formatUSD(portfolio.performance.dailyRewards)}/day
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">DeFi Positions</h2>
-        <button
+      {/* Section Header with animation */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="flex items-center justify-between mb-4"
+      >
+        <h2 className="text-xl font-semibold text-white">DeFi Positions</h2>
+        <motion.button
           onClick={() => fetchPositions(true)}
           disabled={refreshing}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
+          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''} text-gray-400`} />
+          <span className="text-sm text-gray-400">Refresh</span>
+        </motion.button>
+      </motion.div>
 
       {/* Filters */}
       <PortfolioFilters
@@ -404,86 +500,134 @@ export function PositionsList() {
         className="mb-6"
       />
 
-      {/* Position Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Position Cards with stagger animation */}
+      <AnimatePresence mode="wait">
         {filteredPositions.length === 0 ? (
-          <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
-            {searchQuery || filterType !== 'all' || hideSmallBalances || selectedProtocol !== 'all'
-              ? 'No positions match your filters'
-              : 'No positions found. Start by staking SOL or providing liquidity on supported protocols!'}
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="col-span-full text-center py-16 text-gray-400"
+          >
+            <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <p className="text-lg">
+              {searchQuery || filterType !== 'all' || hideSmallBalances || selectedProtocol !== 'all'
+                ? 'No positions match your filters'
+                : 'No positions found'}
+            </p>
+            {(searchQuery || filterType !== 'all' || hideSmallBalances || selectedProtocol !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterType('all');
+                  setHideSmallBalances(false);
+                  setSelectedProtocol('all');
+                }}
+                className="mt-4 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-gray-300 transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
+          </motion.div>
         ) : (
-          filteredPositions.map((position, index) => (
-            <PositionCard key={index} position={position} />
-          ))
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {filteredPositions.map((position, index) => (
+              <PositionCard key={`${position.protocol}-${index}`} position={position} index={index} />
+            ))}
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
-      {/* Breakdown by Type */}
+      {/* Breakdown by Type with animations */}
       {hasPositions && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Portfolio Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="relative rounded-xl bg-gradient-to-r from-purple-500/5 via-transparent to-cyan-500/5 p-[1px]"
+        >
+          <div className="rounded-xl bg-[#16171F] p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Portfolio Breakdown</h3>
+            <div className="space-y-4">
               {portfolio.breakdown.staking > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Staking</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{
-                          width: `${(portfolio.breakdown.staking / stakingValue) * 100}%`,
-                        }}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="flex justify-between items-center"
+                >
+                  <span className="text-sm text-gray-400">Staking</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32 bg-white/5 rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(portfolio.breakdown.staking / stakingValue) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.7 }}
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
                       />
                     </div>
-                    <span className="text-sm font-medium min-w-[80px] text-right">
+                    <span className="text-sm font-medium min-w-[80px] text-right text-white">
                       {formatUSD(portfolio.breakdown.staking)}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               )}
               {portfolio.breakdown.lending > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Lending</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{
-                          width: `${(portfolio.breakdown.lending / stakingValue) * 100}%`,
-                        }}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="flex justify-between items-center"
+                >
+                  <span className="text-sm text-gray-400">Lending</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32 bg-white/5 rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(portfolio.breakdown.lending / stakingValue) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.8 }}
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full"
                       />
                     </div>
-                    <span className="text-sm font-medium min-w-[80px] text-right">
+                    <span className="text-sm font-medium min-w-[80px] text-right text-white">
                       {formatUSD(portfolio.breakdown.lending)}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               )}
               {portfolio.breakdown.liquidity > 0 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Liquidity</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div
-                        className="bg-purple-500 h-2 rounded-full"
-                        style={{
-                          width: `${(portfolio.breakdown.liquidity / stakingValue) * 100}%`,
-                        }}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="flex justify-between items-center"
+                >
+                  <span className="text-sm text-gray-400">Liquidity</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-32 bg-white/5 rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(portfolio.breakdown.liquidity / stakingValue) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.9 }}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full"
                       />
                     </div>
-                    <span className="text-sm font-medium min-w-[80px] text-right">
+                    <span className="text-sm font-medium min-w-[80px] text-right text-white">
                       {formatUSD(portfolio.breakdown.liquidity)}
                     </span>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </motion.div>
       )}
     </div>
   );
