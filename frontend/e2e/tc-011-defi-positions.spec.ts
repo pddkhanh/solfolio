@@ -247,6 +247,9 @@ test.describe('TC-011: View Staking Positions', () => {
   })
 
   test('Should display empty state message when wallet has no positions', async ({ page }) => {
+    // Inject mock wallet first
+    await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
+    
     // Mock API response with empty positions
     await mockPositionsAPI(page, mockEmptyPositionsData)
 
@@ -310,6 +313,9 @@ test.describe('TC-011: View Staking Positions', () => {
   })
 
   test('Should handle API errors gracefully', async ({ page }) => {
+    // Inject mock wallet first
+    await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
+    
     // Mock API to return error
     await mockPositionsAPIError(page)
 
@@ -376,6 +382,9 @@ test.describe('TC-011: View Staking Positions', () => {
   })
 
   test('Should provide proper accessibility for screen readers', async ({ page }) => {
+    // Inject mock wallet first
+    await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
+    
     // Mock API response
     await mockPositionsAPI(page, mockPositionsData)
 

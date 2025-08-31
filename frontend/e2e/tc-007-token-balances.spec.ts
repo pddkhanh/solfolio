@@ -105,13 +105,17 @@ test.describe('TC-007: Display Token Balances', () => {
     // Navigate to portfolio
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(1000) // Wait for any initial animations
     
-    // Open wallet modal
-    await page.getByRole('button', { name: /connect wallet/i }).first().click()
+    // Wait for and click connect wallet button
+    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+    await expect(connectButton).toBeVisible({ timeout: 10000 })
+    await connectButton.click()
+    await page.waitForTimeout(500) // Small delay for modal animation
     
     // Wait for modal
     const modal = page.locator('[data-testid="wallet-connect-modal"]')
-    await expect(modal).toBeVisible({ timeout: 5000 })
+    await expect(modal).toBeVisible({ timeout: 10000 })
     
     // Test closing modal with escape key
     await page.keyboard.press('Escape')

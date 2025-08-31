@@ -2,6 +2,8 @@ import { test, expect, Page } from '@playwright/test'
 import { testLogger } from './helpers/test-logger'
 import { injectMockWallet, TEST_WALLETS } from './helpers/wallet'
 
+const TEST_WALLET = TEST_WALLETS.DEFI
+
 /**
  * TC-012: Display Position Metrics
  * 
@@ -201,6 +203,9 @@ async function mockPositionsAPI(page: Page, data: any = mockPositionsWithMetrics
 
 // Helper function to connect wallet and navigate to portfolio
 async function setupPortfolioPage(page: Page) {
+  // Inject mock wallet first
+  await injectMockWallet(page, { address: TEST_WALLET, walletName: 'Phantom' })
+  
   // Navigate to portfolio page
   await page.goto('http://localhost:3000/portfolio')
   await page.waitForLoadState('networkidle')
