@@ -573,6 +573,59 @@ export const sharedLayoutTransition: Transition = {
 };
 
 // ============================
+// Additional Animation Exports
+// ============================
+
+// Card hover animation
+export const cardHover = {
+  whileHover: { 
+    y: -4,
+    transition: { duration: 0.2 }
+  },
+  whileTap: { 
+    scale: 0.98,
+    transition: { duration: 0.1 }
+  }
+};
+
+// Shimmer animation for loading states
+export const shimmerAnimation = {
+  animate: {
+    x: ['0%', '100%'],
+    transition: {
+      duration: 2,
+      ease: "linear",
+      repeat: Infinity
+    }
+  }
+};
+
+// Count up animation for numbers
+export const countUpAnimation = {
+  initial: { opacity: 0, y: 10 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: animationConfig.ease.default
+    }
+  }
+};
+
+// Gradient border pulse
+export const gradientPulse = {
+  animate: {
+    backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+    transition: {
+      duration: 5,
+      ease: "linear",
+      repeat: Infinity
+    }
+  }
+};
+
+// ============================
 // Export Types for TypeScript
 // ============================
 
