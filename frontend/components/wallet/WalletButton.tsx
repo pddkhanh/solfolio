@@ -62,6 +62,10 @@ export default function WalletButton() {
     }
   }, [wallet, connected, connecting, connect])
   
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 4)}...${address.slice(-4)}`
+  }
+
   // Clear error when connection succeeds and announce to screen readers
   useEffect(() => {
     if (connected && connectionError) {
@@ -101,10 +105,6 @@ export default function WalletButton() {
         </Button>
       </motion.div>
     )
-  }
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`
   }
 
   const handleConnect = () => {
