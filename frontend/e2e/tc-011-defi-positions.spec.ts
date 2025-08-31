@@ -168,29 +168,26 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
 
-    // Check if wallet is already connected (from injection)
+    // For CI environment, programmatically connect the mock wallet
+    // This bypasses the modal issues when wallet adapter doesn't detect the mock wallet
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        // Simulate wallet connection
+        mockWallet.connect()
+      }
+    })
+    
+    // Wait a bit for the connection to propagate
+    await page.waitForTimeout(1000)
+    
+    // Check if we need to refresh to see the connected state
     const isConnected = await page.getByText(/\w{4,}\.{3}\w{4,}/).isVisible({ timeout: 1000 }).catch(() => false)
     
     if (!isConnected) {
-      // Connect wallet if not already connected
-      const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-      await connectButton.click()
-      await page.waitForTimeout(500)
-      
-      // Wait for modal to open and check if Phantom option is available
-      const modalTitle = page.getByText('Connect Your Wallet')
-      const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-      
-      if (isModalVisible) {
-        // Try to find and click Phantom option (case insensitive)
-        const phantomButton = page.getByRole('button').filter({ hasText: /phantom/i })
-        const isPhantomVisible = await phantomButton.first().isVisible({ timeout: 2000 }).catch(() => false)
-        
-        if (isPhantomVisible) {
-          await phantomButton.first().click()
-          await page.waitForTimeout(1000)
-        }
-      }
+      // Reload the page to pick up the wallet connection from localStorage
+      await page.reload()
+      await page.waitForLoadState('networkidle')
     }
 
     // Wait for positions to load
@@ -275,28 +272,22 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
 
-    // Check if wallet is already connected
+    // Programmatically connect the mock wallet for CI environment
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
+    
+    await page.waitForTimeout(1000)
+    
+    // Check if we need to refresh to see the connected state
     const isConnected = await page.getByText(/\w{4,}\.{3}\w{4,}/).isVisible({ timeout: 1000 }).catch(() => false)
     
     if (!isConnected) {
-      // Connect wallet
-      const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-      await connectButton.click()
-      await page.waitForTimeout(500)
-      
-      // Wait for modal and click Phantom if visible
-      const modalTitle = page.getByText('Connect Your Wallet')
-      const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-      
-      if (isModalVisible) {
-        const phantomButton = page.getByRole('button').filter({ hasText: /phantom/i })
-        const isPhantomVisible = await phantomButton.first().isVisible({ timeout: 2000 }).catch(() => false)
-        
-        if (isPhantomVisible) {
-          await phantomButton.first().click()
-          await page.waitForTimeout(2000)
-        }
-      }
+      await page.reload()
+      await page.waitForLoadState('networkidle')
     }
 
     // Verify empty state message
@@ -315,17 +306,17 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
+    // Skip the modal interaction and programmatically connect
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
     
-    // Wait for modal and click Phantom if visible
-    const modalTitle = page.getByText('Connect Your Wallet')
-    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-    
-    if (isModalVisible) {
-      await page.getByRole('button', { name: /phantom/i }).click()
-      await page.waitForTimeout(2000)
-    }
+    await page.waitForTimeout(1000)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     // Wait for positions to load - check for either heading
     const defiHeading = page.getByText('DeFi Positions').first()
@@ -366,17 +357,17 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
+    // Skip the modal interaction and programmatically connect
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
     
-    // Wait for modal and click Phantom if visible
-    const modalTitle = page.getByText('Connect Your Wallet')
-    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-    
-    if (isModalVisible) {
-      await page.getByRole('button', { name: /phantom/i }).click()
-      await page.waitForTimeout(2000)
-    }
+    await page.waitForTimeout(1000)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     // Verify error handling
     testLogger.step('Verifying error handling...')
@@ -442,17 +433,17 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
+    // Skip the modal interaction and programmatically connect
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
     
-    // Wait for modal and click Phantom if visible
-    const modalTitle = page.getByText('Connect Your Wallet')
-    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-    
-    if (isModalVisible) {
-      await page.getByRole('button', { name: /phantom/i }).click()
-      await page.waitForTimeout(2000)
-    }
+    await page.waitForTimeout(1000)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     // Verify accessibility structure
     testLogger.step('Verifying accessibility structure...')
@@ -493,17 +484,17 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
+    // Skip the modal interaction and programmatically connect
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
     
-    // Wait for modal and click Phantom if visible
-    const modalTitle = page.getByText('Connect Your Wallet')
-    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-    
-    if (isModalVisible) {
-      await page.getByRole('button', { name: /phantom/i }).click()
-      await page.waitForTimeout(2000)
-    }
+    await page.waitForTimeout(1000)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     // Verify each card shows required elements
     testLogger.step('Verifying position card elements...')
@@ -552,17 +543,17 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForLoadState('networkidle')
 
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
+    // Skip the modal interaction and programmatically connect
+    await page.evaluate(() => {
+      const mockWallet = (window as any).mockWallet
+      if (mockWallet && !mockWallet.connected) {
+        mockWallet.connect()
+      }
+    })
     
-    // Wait for modal and click Phantom if visible
-    const modalTitle = page.getByText('Connect Your Wallet')
-    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
-    
-    if (isModalVisible) {
-      await page.getByRole('button', { name: /phantom/i }).click()
-      await page.waitForTimeout(2000)
-    }
+    await page.waitForTimeout(1000)
+    await page.reload()
+    await page.waitForLoadState('networkidle')
 
     // Wait for positions to load first
     await expect(page.getByText('Marinade Finance').first()).toBeVisible({ timeout: 10000 })
