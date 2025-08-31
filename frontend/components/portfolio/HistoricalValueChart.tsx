@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton, SkeletonChart } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { 
   AreaChart, 
@@ -404,32 +404,7 @@ export function HistoricalValueChart() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <motion.div 
-            className="space-y-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-32 bg-gradient-to-r from-gray-800 to-gray-700" />
-                <Skeleton className="h-4 w-24 bg-gradient-to-r from-gray-800 to-gray-700" />
-              </div>
-              <Skeleton className="h-6 w-20 bg-gradient-to-r from-gray-800 to-gray-700" />
-            </div>
-            <div className="relative h-[320px] w-full overflow-hidden rounded-lg">
-              <Skeleton className="h-full w-full bg-gradient-to-r from-gray-800 to-gray-700" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
-                animate={{ x: [-1000, 1000] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-              />
-            </div>
-          </motion.div>
+          <SkeletonChart type="area" height={320} className="mt-4" />
         ) : error ? (
           <EmptyState
             variant="error"

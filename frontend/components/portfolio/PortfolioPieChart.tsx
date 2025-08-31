@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton, SkeletonChart } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatUSD, formatNumber } from '@/lib/utils';
@@ -224,7 +224,7 @@ export function PortfolioPieChart() {
           <CardDescription>Token allocation by value</CardDescription>
         </CardHeader>
         <CardContent className="p-4 md:p-6">
-          <Skeleton className="h-[300px] sm:h-[350px] md:h-[400px] w-full rounded-lg" />
+          <SkeletonChart type="pie" height={400} />
         </CardContent>
       </Card>
     );

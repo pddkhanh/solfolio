@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton, SkeletonTableRow, SkeletonContainer } from '@/components/ui/skeleton';
+import { Skeleton, SkeletonTokenRow, SkeletonContainer } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { VirtualList } from '@/components/ui/virtual-list';
@@ -482,26 +482,9 @@ export function TokenList() {
             </div>
           </CardHeader>
           <CardContent className="p-6">
-            <SkeletonContainer className="space-y-3">
+            <SkeletonContainer className="space-y-2" staggerDelay={0.05}>
               {[1, 2, 3, 4, 5].map((i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-border-default"
-                >
-                  <Skeleton variant="circular" className="h-12 w-12" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-3 w-32" />
-                  </div>
-                  <Skeleton className="h-8 w-20 hidden sm:block" />
-                  <div className="text-right space-y-2">
-                    <Skeleton className="h-5 w-20" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                </motion.div>
+                <SkeletonTokenRow key={i} />
               ))}
             </SkeletonContainer>
           </CardContent>

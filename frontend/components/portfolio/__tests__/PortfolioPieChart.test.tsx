@@ -59,7 +59,7 @@ describe('PortfolioPieChart', () => {
       expect(screen.getByText('Portfolio Distribution')).toBeInTheDocument();
       expect(screen.getByText('Token allocation by value')).toBeInTheDocument();
       // Check for skeleton loader - our Skeleton component uses gradient background
-      const skeleton = document.querySelector('[class*="from-gray-800"]');
+      const skeleton = document.querySelector('[class*="from-transparent"]');
       expect(skeleton).toBeInTheDocument();
     });
   });
