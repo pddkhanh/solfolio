@@ -9,7 +9,7 @@ import { TrendingUp, TrendingDown, DollarSign, Wallet, Coins, Activity, Sparkles
 import { MultiPeriodChange } from './ChangeIndicator';
 import { getMockPortfolioStats, isMockMode } from '@/lib/mock-data';
 import { CountUpUSD, CountUp, CountUpPercentage } from '@/components/ui/count-up';
-import { Sparkline, generateMockSparklineData } from '@/components/ui/sparkline';
+import { Sparkline, generateMockPriceData } from '@/components/ui/sparkline';
 import { staggerContainer, staggerItem, fadeInUp, cardHoverVariants } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { PortfolioOverviewSkeleton } from './PortfolioOverviewSkeleton';
@@ -56,7 +56,7 @@ export function PortfolioOverview() {
         // Add mock sparkline data
         setStats({
           ...mockStats,
-          sparklineData: generateMockSparklineData(20, mockStats.change24h && mockStats.change24h > 0 ? 'up' : 'down'),
+          sparklineData: generateMockPriceData(20),
           totalPositions: 5,
           totalProtocols: 3
         });
@@ -102,7 +102,7 @@ export function PortfolioOverview() {
         changePercent7d: data.totalChangePercent7d || 0,
         change30d: data.totalChange30d || 0,
         changePercent30d: data.totalChangePercent30d || 0,
-        sparklineData: data.sparklineData || generateMockSparklineData(20, data.totalChange24h > 0 ? 'up' : 'down'),
+        sparklineData: data.sparklineData || generateMockPriceData(20),
         totalPositions: data.totalPositions || 0,
         totalProtocols: data.totalProtocols || 0
       });
@@ -272,7 +272,7 @@ export function PortfolioOverview() {
                   data={stats.sparklineData}
                   width={80}
                   height={24}
-                  color={isPositiveChange ? '#14F195' : '#FF4747'}
+                  strokeColor={isPositiveChange ? '#14F195' : '#FF4747'}
                 />
               )}
             </div>

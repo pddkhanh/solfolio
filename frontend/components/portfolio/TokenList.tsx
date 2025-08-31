@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { formatUSD, formatNumber, shortenAddress } from '@/lib/utils';
-import { RefreshCw, ExternalLink, Copy, Check } from 'lucide-react';
+import { VirtualList } from '@/components/ui/virtual-list';
+import { Sparkline, generateMockPriceData } from '@/components/ui/sparkline';
+import { SwipeableRow } from '@/components/ui/swipeable-row';
+import { formatUSD, formatNumber, shortenAddress, cn } from '@/lib/utils';
+import { RefreshCw, ExternalLink, Copy, Check, TrendingUp, TrendingDown, Minus, ArrowUpDown, Send, Repeat } from 'lucide-react';
 import Image from 'next/image';
 import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
-import { MOCK_TOKENS, isMockMode } from '@/lib/mock-data';
+import { MOCK_TOKENS, isMockMode, type MockToken } from '@/lib/mock-data';
 
 interface TokenBalance {
   mint: string;
@@ -20,6 +24,9 @@ interface TokenBalance {
   decimals: number;
   uiAmount?: number;
   valueUSD: number;
+  priceHistory?: number[];
+  change24h?: number;
+  changePercent24h?: number;
   metadata?: {
     symbol: string;
     name: string;
@@ -84,6 +91,9 @@ export function TokenList() {
             decimals: t.decimals,
             uiAmount: t.balance,
             valueUSD: t.value,
+            priceHistory: t.priceHistory || generateMockPriceData(),
+            change24h: t.change24h,
+            changePercent24h: t.changePercent24h,
             metadata: {
               symbol: t.symbol,
               name: t.name,
@@ -142,6 +152,227 @@ export function TokenList() {
     setCopiedMint(text);
     setTimeout(() => setCopiedMint(null), 2000);
   };
+
+  // Animation variants (defined before any conditional returns)
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1] as const,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: [0.4, 0, 0.2, 1] as const,
+      },
+    },
+    exit: {
+      opacity: 0,
+      x: 20,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
+
+  // Render individual token row (must be before any conditional returns)
+  const renderTokenRow = useCallback((token: TokenBalance, index: number) => {
+    const symbol = token.metadata?.symbol || token.symbol || 'Unknown';
+    const name = token.metadata?.name || token.name || '';
+    const logoUri = token.metadata?.logoUri || token.logoUri;
+    const changePercent = token.changePercent24h || 0;
+    const isPositive = changePercent > 0;
+    const isNeutral = changePercent === 0;
+    
+    const tokenRow = (
+      <motion.div
+        layout
+        layoutId={token.mint}
+        variants={itemVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className={cn(
+          "group relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
+          "bg-gradient-to-r from-transparent to-transparent",
+          "hover:from-purple-500/5 hover:to-green-500/5",
+          "hover:border-purple-500/20 hover:shadow-lg hover:shadow-purple-500/10",
+          "cursor-pointer"
+        )}
+        style={{
+          animationDelay: `${index * 0.05}s`,
+        }}
+      >
+        {/* Token Icon with Fallback */}
+        <div className="relative h-12 w-12 rounded-full bg-gradient-to-br from-purple-500/20 to-green-500/20 p-[1px]">
+          <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+            {logoUri ? (
+              <Image
+                src={logoUri}
+                alt={symbol}
+                width={40}
+                height={40}
+                className="rounded-full"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    const fallback = document.createElement('div');
+                    fallback.className = 'text-xs font-bold bg-gradient-to-br from-purple-500 to-green-500 bg-clip-text text-transparent';
+                    fallback.textContent = symbol.slice(0, 3);
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
+            ) : (
+              <div className="text-xs font-bold bg-gradient-to-br from-purple-500 to-green-500 bg-clip-text text-transparent">
+                {symbol.slice(0, 3)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Token Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">{symbol}</span>
+            {name && (
+              <span className="text-sm text-muted-foreground truncate">{name}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+            <span>{shortenAddress(token.mint)}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyToClipboard(token.mint);
+              }}
+              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+            >
+              {copiedMint === token.mint ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </button>
+            <a
+              href={`https://solscan.io/token/${token.mint}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+
+        {/* Sparkline Chart */}
+        <div className="hidden sm:block">
+          <Sparkline
+            data={token.priceHistory || generateMockPriceData()}
+            width={80}
+            height={32}
+            animate={false}
+          />
+        </div>
+
+        {/* Price Change */}
+        <div className="flex items-center gap-1">
+          {isPositive ? (
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          ) : isNeutral ? (
+            <Minus className="h-4 w-4 text-gray-500" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-red-500" />
+          )}
+          <span
+            className={cn(
+              "text-sm font-medium",
+              isPositive ? "text-green-500" : isNeutral ? "text-gray-500" : "text-red-500"
+            )}
+          >
+            {Math.abs(changePercent).toFixed(2)}%
+          </span>
+        </div>
+
+        {/* Token Balance & Value */}
+        <div className="text-right">
+          <div className="font-semibold text-foreground">
+            {formatUSD(token.valueUSD)}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {formatNumber(token.uiAmount || 0)} {symbol}
+          </div>
+        </div>
+
+        {/* Quick Actions (shown on hover) */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle send action
+            }}
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle swap action
+            }}
+          >
+            <Repeat className="h-4 w-4" />
+          </Button>
+        </div>
+      </motion.div>
+    );
+
+    // Wrap with swipeable row for mobile
+    return (
+      <SwipeableRow
+        leftAction={{
+          icon: <Send className="h-5 w-5 text-white" />,
+          label: 'Send',
+          color: '#9945FF',
+          onAction: () => {
+            // Handle send action
+            console.log('Send', symbol);
+          },
+        }}
+        rightAction={{
+          icon: <Repeat className="h-5 w-5 text-white" />,
+          label: 'Swap',
+          color: '#14F195',
+          onAction: () => {
+            // Handle swap action
+            console.log('Swap', symbol);
+          },
+        }}
+      >
+        {tokenRow as ReactNode}
+      </SwipeableRow>
+    );
+  }, [copiedMint, copyToClipboard, itemVariants]);
 
   const getFilteredAndSortedTokens = useMemo(() => {
     if (!balances) return [];
@@ -268,126 +499,105 @@ export function TokenList() {
   const filteredTokens = getFilteredAndSortedTokens;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Token Balances</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              size="sm"
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={cardVariants}
+    >
+      <Card className="overflow-hidden border-purple-500/10">
+        <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+                Token Balances
+              </CardTitle>
+              {filteredTokens.length > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  ({filteredTokens.length} tokens)
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="outline"
+                size="sm"
+                disabled={refreshing}
+                className="border-purple-500/20 hover:border-purple-500/40"
+              >
+                <RefreshCw className={cn(
+                  "h-4 w-4",
+                  refreshing && "animate-spin"
+                )} />
+              </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {/* Filters */}
-        <PortfolioFilters
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          filterType={filterType}
-          onFilterTypeChange={setFilterType}
-          hideSmallBalances={hideSmallBalances}
-          onHideSmallBalancesChange={setHideSmallBalances}
-          className="mb-6"
-        />
+        </CardHeader>
+        <CardContent className="p-6">
+          {/* Filters */}
+          <PortfolioFilters
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            filterType={filterType}
+            onFilterTypeChange={setFilterType}
+            hideSmallBalances={hideSmallBalances}
+            onHideSmallBalancesChange={setHideSmallBalances}
+            className="mb-6"
+          />
 
-        {/* Token List */}
-        <div className="space-y-4">
+          {/* Token List with Virtual Scrolling */}
           {filteredTokens.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-muted-foreground text-center py-12"
+            >
               {searchQuery || filterType !== 'all' || hideSmallBalances
                 ? 'No tokens match your filters'
                 : 'No tokens found'}
-            </p>
+            </motion.p>
           ) : (
-            filteredTokens.map((token) => {
-              const symbol = token.metadata?.symbol || token.symbol || 'Unknown';
-              const name = token.metadata?.name || token.name || '';
-              const logoUri = token.metadata?.logoUri || token.logoUri;
-              
-              return (
-                <div
-                  key={token.mint}
-                  className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors"
-                >
-                  {/* Token Icon */}
-                  <div className="relative h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    {logoUri ? (
-                      <Image
-                        src={logoUri}
-                        alt={symbol}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="text-xs font-bold">{symbol.slice(0, 2)}</span>
-                    )}
+            <LayoutGroup>
+              <AnimatePresence mode="popLayout">
+                {filteredTokens.length > 10 ? (
+                  // Use virtual scrolling for large lists
+                  <VirtualList
+                    items={filteredTokens}
+                    height={600}
+                    itemHeight={80}
+                    renderItem={renderTokenRow}
+                    getItemKey={(item) => item.mint}
+                    className="space-y-2"
+                  />
+                ) : (
+                  // Regular rendering for small lists
+                  <div className="space-y-2">
+                    {filteredTokens.map((token, index) => (
+                      <div key={token.mint}>
+                        {renderTokenRow(token, index)}
+                      </div>
+                    ))}
                   </div>
-
-                  {/* Token Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{symbol}</span>
-                      {name && (
-                        <span className="text-sm text-muted-foreground">{name}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>{shortenAddress(token.mint)}</span>
-                      <button
-                        onClick={() => copyToClipboard(token.mint)}
-                        className="hover:text-primary transition-colors"
-                      >
-                        {copiedMint === token.mint ? (
-                          <Check className="h-3 w-3" />
-                        ) : (
-                          <Copy className="h-3 w-3" />
-                        )}
-                      </button>
-                      <a
-                        href={`https://solscan.io/token/${token.mint}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-primary transition-colors"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Token Balance & Value */}
-                  <div className="text-right">
-                    <div className="font-semibold">
-                      {formatUSD(token.valueUSD)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {formatNumber(token.uiAmount || 0)} {symbol}
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+                )}
+              </AnimatePresence>
+            </LayoutGroup>
           )}
-        </div>
 
-        {/* Last Updated */}
-        {balances && (
-          <div className="text-xs text-muted-foreground text-center mt-4">
-            Last updated: {new Date(balances.lastUpdated).toLocaleTimeString()}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {/* Last Updated */}
+          {balances && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="text-xs text-muted-foreground text-center mt-6 pt-4 border-t border-border/50"
+            >
+              Last updated: {new Date(balances.lastUpdated).toLocaleTimeString()}
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
