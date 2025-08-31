@@ -67,7 +67,7 @@ async function injectMockWallet(page: Page, options: { shouldConnect?: boolean }
         this.connected = true
         this.connecting = false
         
-        testLogger.step('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+        testLogger.step(`[E2E Mock Wallet] Connected with address: ${this.publicKey.toString()}`)
         return { publicKey: this.publicKey }
       },
       
@@ -95,7 +95,7 @@ async function injectMockWallet(page: Page, options: { shouldConnect?: boolean }
     ;(window as any).solana = mockWallet
     ;(window as any).mockWallet = mockWallet
     
-    testLogger.step('[E2E] Mock wallet injected, connected:', shouldConnect)
+    testLogger.step(`[E2E] Mock wallet injected, connected: ${shouldConnect}`)
   }, { shouldConnect: options.shouldConnect })
 }
 

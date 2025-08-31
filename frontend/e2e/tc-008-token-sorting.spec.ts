@@ -309,7 +309,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Get initial token order
     const initialOrder = await getTokenOrder(page)
-    testLogger.step('Initial order:', initialOrder)
+    testLogger.step(`Initial order: ${initialOrder}`)
     
     // Monitor network requests for page reloads
     let reloadDetected = false
@@ -324,7 +324,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     
     // Get new order
     const newOrder = await getTokenOrder(page)
-    testLogger.step('New order after sorting:', newOrder)
+    testLogger.step(`New order after sorting: ${newOrder}`)
     
     // Verify order changed without page reload
     expect(reloadDetected).toBeFalsy()

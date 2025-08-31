@@ -137,7 +137,7 @@ async function injectMockWallet(page: Page, walletType: 'phantom' | 'solflare' =
     ;(window as any).mockPhantom = phantomWallet // Expose phantom for switching
     ;(window as any).mockSolflare = solflareWallet // Expose solflare for switching
     
-    testLogger.step(`[E2E] Mock wallets injected successfully, initial: ${config.walletType}`)
+    testLogger.step(`[E2E] Mock wallets injected successfully, initial: ${config.walletType}`}`)
   }, { walletType })
 }
 */
@@ -272,7 +272,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
           this.connected = true
           this.connecting = false
           
-          testLogger.step('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+          testLogger.step(`[E2E Mock Wallet] Connected with address: ${this.publicKey.toString()}`)
           
           // Store connection state
           localStorage.setItem('walletConnected', 'true')
@@ -365,7 +365,7 @@ test.describe('TC-002: Disconnect Wallet', () => {
         localStorage: localStorage.getItem('walletConnected')
       }
     })
-    testLogger.step('Wallet state after disconnect:', walletConnectedAfter)
+    testLogger.step(`Wallet state after disconnect: ${JSON.stringify(walletConnectedAfter)}`)
     
     // Step 5: Verify disconnection - returns to "Connect Wallet" button
     testLogger.step('Verifying disconnection...')
@@ -479,7 +479,7 @@ test.describe.skip('TC-003: Switch Between Wallets', () => {
           this.connected = true
           this.connecting = false
           
-          testLogger.step('[E2E Mock Wallet] Connected with address:', this.publicKey.toString())
+          testLogger.step(`[E2E Mock Wallet] Connected with address: ${this.publicKey.toString()}`)
           localStorage.setItem('walletConnected', 'true')
           localStorage.setItem('walletType', currentWalletType)
           

@@ -106,7 +106,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     // This might be implemented with different classes depending on the design
     // Common patterns include: 'active', 'text-foreground', removing 'text-foreground/60'
     const portfolioLinkClasses = await portfolioLink.getAttribute('class')
-    testLogger.step('Portfolio link classes when active:', portfolioLinkClasses)
+    testLogger.step(`Portfolio link classes when active: ${portfolioLinkClasses}`)
     
     // Navigate back to home
     await dashboardLink.click()
@@ -114,7 +114,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     
     // Check if Dashboard link has active styling
     const dashboardLinkClasses = await dashboardLink.getAttribute('class')
-    testLogger.step('Dashboard link classes when active:', dashboardLinkClasses)
+    testLogger.step(`Dashboard link classes when active: ${dashboardLinkClasses}`)
     
     // Step 7: Test navigation to non-existent pages (404 handling)
     testLogger.step('Step 7: Testing 404 error handling...')
@@ -145,7 +145,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
             testLogger.step(`${pagePath} page exists and loaded successfully`)
           }
         } catch (error) {
-          testLogger.step(`Error navigating to ${pagePath}:`, error instanceof Error ? error.message : String(error))
+          testLogger.step(`Error navigating to ${pagePath}: ${error instanceof Error ? error.message : String(error)}`)
         }
         
         // Navigate back using browser back or direct navigation
@@ -167,7 +167,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     }
     
     const homeTitle = await page.title()
-    testLogger.step('Home page title:', homeTitle)
+    testLogger.step(`Home page title: ${homeTitle}`)
     expect(homeTitle).toContain('SolFolio')
     
     // Navigate to portfolio
@@ -175,7 +175,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     await page.waitForLoadState('networkidle')
     
     const portfolioTitle = await page.title()
-    testLogger.step('Portfolio page title:', portfolioTitle)
+    testLogger.step(`Portfolio page title: ${portfolioTitle}`)
     expect(portfolioTitle).toContain('SolFolio')
     
     // Step 9: Verify smooth transitions (no jarring page loads)
@@ -198,7 +198,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
     
     // Check for any console errors
     if (consoleErrors.length > 0) {
-      testLogger.step('Console errors detected during navigation:', consoleErrors)
+      testLogger.step(`Console errors detected during navigation: ${consoleErrors}`)
     }
     
     // Verify no critical errors (filter out expected warnings)
@@ -343,7 +343,7 @@ test.describe('TC-014: Navigate Between Pages', () => {
           text: el?.textContent
         }
       })
-      testLogger.step('Focused element:', focusedElement)
+      testLogger.step(`Focused element: ${focusedElement}`)
     }
     
     // Step 2: Test Enter key navigation on focused link

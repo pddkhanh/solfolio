@@ -73,7 +73,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Get the displayed address for comparison after refresh
     const addressElement = await page.getByText(/\w{4,}\.{3}\w{4,}/).first()
     const displayedAddress = await addressElement.textContent()
-    testLogger.step('Initial connected address:', displayedAddress)
+    testLogger.step(`Initial connected address: ${displayedAddress}`)
     
     // Step 3: Refresh the page (F5 or browser refresh)
     testLogger.step('Step 3: Refreshing page...')
@@ -102,7 +102,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     // Get the displayed address after refresh
     const addressAfterRefresh = await page.getByText(/\w{4,}\.{3}\w{4,}/).first()
     const displayedAddressAfterRefresh = await addressAfterRefresh.textContent()
-    testLogger.step('Address after refresh:', displayedAddressAfterRefresh)
+    testLogger.step(`Address after refresh: ${displayedAddressAfterRefresh}`)
     
     // Verify a wallet address is still displayed (may be different due to wallet adapter behavior)
     expect(displayedAddressAfterRefresh).toMatch(/\w{4,}\.{3}\w{4,}/)
@@ -116,7 +116,7 @@ test.describe('TC-004: Persist Wallet Connection on Refresh', () => {
     })
     expect(walletStillConnected).toBeTruthy()
     
-    testLogger.step('LocalStorage shows wallet connected:', walletStillConnected)
+    testLogger.step(`LocalStorage shows wallet connected: ${walletStillConnected}`)
     
     // Additional verification: Portfolio data loads automatically
     testLogger.step('Verifying portfolio data loads automatically...')
