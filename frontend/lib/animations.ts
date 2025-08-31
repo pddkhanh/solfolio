@@ -625,6 +625,30 @@ export const gradientPulse = {
   }
 };
 
+// Scale Variants
+export const scaleVariants: Variants = {
+  initial: {
+    opacity: 0,
+    scale: 0.95,
+  },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: animationConfig.duration.normal,
+      ease: animationConfig.ease.default,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.95,
+    transition: {
+      duration: animationConfig.duration.fast,
+      ease: animationConfig.ease.easeIn,
+    },
+  },
+};
+
 // ============================
 // Export Types for TypeScript
 // ============================
