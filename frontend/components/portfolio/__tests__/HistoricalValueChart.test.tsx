@@ -108,7 +108,7 @@ describe('HistoricalValueChart', () => {
       const { container } = render(<HistoricalValueChart />);
       
       // Check for skeleton loader - our Skeleton component uses gradient backgrounds
-      const skeletons = container.querySelectorAll('[class*="from-gray-800"]');
+      const skeletons = container.querySelectorAll('[class*="from-transparent"]');
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
