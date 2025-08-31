@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { formatUSD, formatNumber, cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus, LineChart, Clock } from 'lucide-react';
+import { TouchChart } from '@/components/ui/touch-chart';
 
 interface HistoricalDataPoint {
   timestamp: string;
@@ -371,8 +372,9 @@ export function HistoricalValueChart() {
                 key={value}
                 onClick={() => setPeriod(value as TimePeriod)}
                 className={cn(
-                  "relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+                  "relative px-3 py-2 md:py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                   "hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50",
+                  "min-h-[44px] md:min-h-[32px] flex items-center justify-center",
                   period === value
                     ? "text-foreground"
                     : "text-muted-foreground hover:bg-background/80"
@@ -478,7 +480,7 @@ export function HistoricalValueChart() {
                 </motion.div>
               </motion.div>
 
-              {/* Enhanced Chart with Solana gradients */}
+              {/* Enhanced Chart with Solana gradients and touch support */}
               <motion.div
                 ref={chartRef}
                 className="relative"
@@ -486,8 +488,16 @@ export function HistoricalValueChart() {
                 animate={{ opacity: isTransitioning ? 0.5 : 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
               >
-                <ResponsiveContainer width="100%" height={320}>
-                  <AreaChart
+                <TouchChart
+                  enablePinchZoom={true}
+                  enableDoubleTapZoom={true}
+                  minZoom={1}
+                  maxZoom={3}
+                  showZoomControls={true}
+                  className="rounded-lg"
+                >
+                  <ResponsiveContainer width="100%" height={320}>
+                    <AreaChart
                     data={historicalData.dataPoints}
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     onMouseMove={(e: any) => {
@@ -589,6 +599,7 @@ export function HistoricalValueChart() {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+                </TouchChart>
               </motion.div>
             </motion.div>
           </AnimatePresence>

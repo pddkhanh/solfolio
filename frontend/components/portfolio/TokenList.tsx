@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { VirtualList } from '@/components/ui/virtual-list';
 import { Sparkline, generateMockPriceData } from '@/components/ui/sparkline';
 import { SwipeableRow } from '@/components/ui/swipeable-row';
+import { PullToRefresh } from '@/components/ui/pull-to-refresh';
+import { LongPressMenu } from '@/components/ui/long-press-menu';
+import { Share2, Star } from 'lucide-react';
 import { formatUSD, formatNumber, shortenAddress, cn } from '@/lib/utils';
 import { RefreshCw, ExternalLink, Copy, Check, TrendingUp, TrendingDown, Minus, ArrowUpDown, Send, Repeat } from 'lucide-react';
 import Image from 'next/image';
@@ -144,8 +147,18 @@ export function TokenList() {
     }
   };
 
-  const handleRefresh = () => {
-    fetchBalances(true);
+  const handleRefresh = async () => {
+    await fetchBalances(true);
+  };
+
+  const handleShare = (token: TokenBalance) => {
+    if (navigator.share) {
+      navigator.share({
+        title: `${token.symbol} Token`,
+        text: `Check out ${token.symbol} on Solana`,
+        url: `https://solscan.io/token/${token.mint}`
+      });
+    }
   };
 
   const copyToClipboard = (text: string) => {
@@ -195,7 +208,7 @@ export function TokenList() {
     const isPositive = changePercent > 0;
     const isNeutral = changePercent === 0;
     
-    const tokenRow = (
+    const tokenContent = (
       <motion.div
         layout
         layoutId={token.mint}
@@ -203,21 +216,21 @@ export function TokenList() {
         initial="hidden"
         animate="visible"
         exit="exit"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
         className={cn(
           "group relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
           "bg-gradient-to-r from-transparent to-transparent",
           "hover:from-purple-500/5 hover:to-green-500/5",
           "hover:border-purple-500/20 hover:shadow-lg hover:shadow-purple-500/10",
-          "cursor-pointer"
+          "cursor-pointer",
+          "min-h-[72px]" // Touch-friendly height
         )}
         style={{
           animationDelay: `${index * 0.05}s`,
         }}
+        data-testid="token-row"
       >
-        {/* Token Icon with Fallback */}
-        <div className="relative h-12 w-12 rounded-full bg-gradient-to-br from-purple-500/20 to-green-500/20 p-[1px]">
+        {/* Token Icon with Fallback - Touch-friendly size */}
+        <div className="relative h-12 w-12 rounded-full bg-gradient-to-br from-purple-500/20 to-green-500/20 p-[1px] flex-shrink-0">
           <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
             {logoUri ? (
               <Image
@@ -261,7 +274,7 @@ export function TokenList() {
                 e.stopPropagation();
                 copyToClipboard(token.mint);
               }}
-              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2.5 p-2.5"
             >
               {copiedMint === token.mint ? (
                 <Check className="h-3 w-3" />
@@ -274,7 +287,7 @@ export function TokenList() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+              className="hover:text-primary transition-colors opacity-0 group-hover:opacity-100 min-w-[44px] min-h-[44px] flex items-center justify-center -m-2.5 p-2.5"
             >
               <ExternalLink className="h-3 w-3" />
             </a>
@@ -348,32 +361,62 @@ export function TokenList() {
       </motion.div>
     );
 
-    // Wrap with swipeable row for mobile
-    return (
-      <SwipeableRow
-        leftAction={{
-          icon: <Send className="h-5 w-5 text-white" />,
-          label: 'Send',
-          color: '#9945FF',
-          onAction: () => {
-            // Handle send action
-            console.log('Send', symbol);
+    // Wrap with long press menu and swipeable row for mobile
+    const tokenRow = (
+      <LongPressMenu
+        items={[
+          {
+            label: 'Copy Address',
+            icon: <Copy className="w-4 h-4" />,
+            onClick: () => copyToClipboard(token.mint)
           },
-        }}
-        rightAction={{
-          icon: <Repeat className="h-5 w-5 text-white" />,
-          label: 'Swap',
-          color: '#14F195',
-          onAction: () => {
-            // Handle swap action
-            console.log('Swap', symbol);
+          {
+            label: 'Share',
+            icon: <Share2 className="w-4 h-4" />,
+            onClick: () => handleShare(token)
           },
-        }}
+          {
+            label: 'View on Explorer',
+            icon: <ExternalLink className="w-4 h-4" />,
+            onClick: () => window.open(`https://solscan.io/token/${token.mint}`, '_blank')
+          },
+          {
+            label: 'Add to Favorites',
+            icon: <Star className="w-4 h-4" />,
+            onClick: () => console.log('Add to favorites', token.symbol)
+          }
+        ]}
+        delay={400}
+        showIndicator={false}
       >
-        {tokenRow as ReactNode}
-      </SwipeableRow>
+        <SwipeableRow
+          leftAction={{
+            icon: <Send className="h-5 w-5 text-white" />,
+            label: 'Send',
+            color: '#9945FF',
+            onAction: () => {
+              // Handle send action
+              console.log('Send', symbol);
+            },
+          }}
+          rightAction={{
+            icon: <Repeat className="h-5 w-5 text-white" />,
+            label: 'Swap',
+            color: '#14F195',
+            onAction: () => {
+              // Handle swap action
+              console.log('Swap', symbol);
+            },
+          }}
+          hapticFeedback={true}
+        >
+          {tokenContent}
+        </SwipeableRow>
+      </LongPressMenu>
     );
-  }, [copiedMint, copyToClipboard, itemVariants]);
+    
+    return tokenRow;
+  }, [copiedMint, copyToClipboard, itemVariants, handleShare]);
 
   const getFilteredAndSortedTokens = useMemo(() => {
     if (!balances) return [];
@@ -522,41 +565,51 @@ export function TokenList() {
   const filteredTokens = getFilteredAndSortedTokens;
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={cardVariants}
+    <PullToRefresh
+      onRefresh={handleRefresh}
+      disabled={!connected || loading}
+      threshold={80}
+      refreshText="Updating balances..."
+      pullingText="Pull to refresh balances"
+      releaseText="Release to refresh"
     >
-      <Card className="overflow-hidden border-purple-500/10">
-        <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
-                Token Balances
-              </CardTitle>
-              {filteredTokens.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  ({filteredTokens.length} tokens)
-                </span>
-              )}
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={cardVariants}
+        data-testid="token-list-container"
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+                  Token Balances
+                </CardTitle>
+                {filteredTokens.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    ({filteredTokens.length} tokens)
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleRefresh}
+                  variant="outline"
+                  size="sm"
+                  disabled={refreshing}
+                  className="border-purple-500/20 hover:border-purple-500/40 min-h-[44px] min-w-[44px] md:min-h-[36px] md:min-w-auto"
+                >
+                  <RefreshCw className={cn(
+                    "h-4 w-4",
+                    refreshing && "animate-spin"
+                  )} />
+                  <span className="hidden md:inline ml-2">Refresh</span>
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                size="sm"
-                disabled={refreshing}
-                className="border-purple-500/20 hover:border-purple-500/40"
-              >
-                <RefreshCw className={cn(
-                  "h-4 w-4",
-                  refreshing && "animate-spin"
-                )} />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
+          </CardHeader>
+          <CardContent className="p-6">
           {/* Filters */}
           <PortfolioFilters
             searchQuery={searchQuery}
@@ -642,5 +695,6 @@ export function TokenList() {
         </CardContent>
       </Card>
     </motion.div>
+    </PullToRefresh>
   );
 }
