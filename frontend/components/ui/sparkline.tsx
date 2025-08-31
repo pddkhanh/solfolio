@@ -1,183 +1,171 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface SparklineProps {
   data: number[];
   width?: number;
   height?: number;
   strokeWidth?: number;
-  color?: string;
-  gradientId?: string;
-  showGradient?: boolean;
+  strokeColor?: string;
+  fillColor?: string;
   className?: string;
   animate?: boolean;
-  animationDuration?: number;
+  showDots?: boolean;
 }
 
 export function Sparkline({
   data,
-  width = 120,
+  width = 100,
   height = 32,
   strokeWidth = 2,
-  color,
-  gradientId = 'sparkline-gradient',
-  showGradient = true,
-  className = '',
+  strokeColor,
+  fillColor,
+  className,
   animate = true,
-  animationDuration = 1000
+  showDots = false,
 }: SparklineProps) {
-  // Calculate SVG path from data points
-  const path = useMemo(() => {
-    if (!data || data.length < 2) return '';
+  const { path, fillPath, dots, trend } = useMemo(() => {
+    if (!data || data.length < 2) {
+      return { path: '', fillPath: '', dots: [], trend: 'neutral' };
+    }
 
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min || 1;
     const padding = 2;
-    
-    // Calculate points
+
     const points = data.map((value, index) => {
       const x = (index / (data.length - 1)) * (width - padding * 2) + padding;
       const y = height - ((value - min) / range) * (height - padding * 2) - padding;
-      return { x, y };
+      return { x, y, value };
     });
 
-    // Create smooth bezier curve path
-    let pathData = `M ${points[0].x} ${points[0].y}`;
-    
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1];
-      const curr = points[i];
-      
-      // Calculate control points for smooth curve
-      const cpx = (prev.x + curr.x) / 2;
-      const cpy1 = prev.y;
-      const cpy2 = curr.y;
-      
-      pathData += ` C ${cpx} ${cpy1}, ${cpx} ${cpy2}, ${curr.x} ${curr.y}`;
-    }
+    const pathData = points
+      .map((point, index) => {
+        if (index === 0) return `M ${point.x},${point.y}`;
+        
+        // Create smooth curve using quadratic bezier
+        const prevPoint = points[index - 1];
+        const cpx = (prevPoint.x + point.x) / 2;
+        const cpy = (prevPoint.y + point.y) / 2;
+        
+        return `Q ${cpx},${prevPoint.y} ${cpx},${cpy} T ${point.x},${point.y}`;
+      })
+      .join(' ');
 
-    return pathData;
+    const fillPathData = `${pathData} L ${points[points.length - 1].x},${height} L ${points[0].x},${height} Z`;
+
+    const trendDirection = data[data.length - 1] > data[0] ? 'up' : data[data.length - 1] < data[0] ? 'down' : 'neutral';
+
+    return {
+      path: pathData,
+      fillPath: fillPathData,
+      dots: points,
+      trend: trendDirection,
+    };
   }, [data, width, height]);
 
-  // Determine color based on trend
-  const trendColor = useMemo(() => {
-    if (color) return color;
-    if (!data || data.length < 2) return '#6B7280'; // gray
-    
-    const firstValue = data[0];
-    const lastValue = data[data.length - 1];
-    
-    if (lastValue > firstValue) {
-      return '#14F195'; // green - positive trend
-    } else if (lastValue < firstValue) {
-      return '#FF4747'; // red - negative trend
-    } else {
-      return '#6B7280'; // gray - neutral
+  const getColor = () => {
+    if (strokeColor) return strokeColor;
+    switch (trend) {
+      case 'up':
+        return '#14F195'; // Solana green
+      case 'down':
+        return '#F43F5E'; // Red
+      default:
+        return '#94A3B8'; // Gray
     }
-  }, [data, color]);
+  };
+
+  const getFillColor = () => {
+    if (fillColor) return fillColor;
+    const color = getColor();
+    return `${color}20`; // 20% opacity
+  };
 
   if (!data || data.length < 2) {
     return (
-      <div className={`inline-block ${className}`} style={{ width, height }}>
-        <svg width={width} height={height} className="opacity-20">
-          <line
-            x1={0}
-            y1={height / 2}
-            x2={width}
-            y2={height / 2}
-            stroke={trendColor}
-            strokeWidth={strokeWidth}
-            strokeDasharray="2 2"
-          />
-        </svg>
+      <div className={cn('flex items-center justify-center', className)} style={{ width, height }}>
+        <div className="h-px w-full bg-gray-700" />
       </div>
     );
   }
 
   return (
-    <div className={`inline-block ${className}`} style={{ width, height }}>
-      <svg 
-        width={width} 
-        height={height}
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-      >
-        {showGradient && (
-          <defs>
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor={trendColor} stopOpacity="0.3" />
-              <stop offset="100%" stopColor={trendColor} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        )}
-        
-        {/* Area fill */}
-        {showGradient && (
-          <motion.path
-            d={`${path} L ${width} ${height} L 0 ${height} Z`}
-            fill={`url(#${gradientId})`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: animationDuration / 1000, delay: 0.2 }}
-          />
-        )}
-        
-        {/* Line */}
-        <motion.path
-          d={path}
-          fill="none"
-          stroke={trendColor}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={animate ? { pathLength: 0, opacity: 0 } : {}}
-          animate={animate ? { pathLength: 1, opacity: 1 } : {}}
-          transition={{
-            pathLength: { duration: animationDuration / 1000, ease: [0.4, 0, 0.2, 1] },
-            opacity: { duration: 0.2 }
-          }}
-        />
-        
-        {/* End dot */}
+    <svg
+      width={width}
+      height={height}
+      className={cn('overflow-visible', className)}
+      viewBox={`0 0 ${width} ${height}`}
+    >
+      {/* Gradient definition */}
+      <defs>
+        <linearGradient id={`sparkline-gradient-${trend}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={getColor()} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={getColor()} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* Fill area */}
+      <motion.path
+        d={fillPath}
+        fill={`url(#sparkline-gradient-${trend})`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      />
+
+      {/* Line */}
+      <motion.path
+        d={path}
+        fill="none"
+        stroke={getColor()}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        initial={animate ? { pathLength: 0 } : { pathLength: 1 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+      />
+
+      {/* Optional dots */}
+      {showDots && dots.map((dot, index) => (
         <motion.circle
-          cx={width - 2}
-          cy={height - ((data[data.length - 1] - Math.min(...data)) / (Math.max(...data) - Math.min(...data) || 1)) * (height - 4) - 2}
-          r={strokeWidth * 1.5}
-          fill={trendColor}
-          initial={animate ? { scale: 0, opacity: 0 } : {}}
-          animate={animate ? { scale: 1, opacity: 1 } : {}}
-          transition={{
-            duration: 0.3,
-            delay: animationDuration / 1000,
-            ease: [0.4, 0, 0.2, 1]
-          }}
+          key={index}
+          cx={dot.x}
+          cy={dot.y}
+          r={2}
+          fill={getColor()}
+          initial={animate ? { scale: 0 } : { scale: 1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
         />
-      </svg>
-    </div>
+      ))}
+
+      {/* Hover area for last point */}
+      <circle
+        cx={dots[dots.length - 1]?.x}
+        cy={dots[dots.length - 1]?.y}
+        r={4}
+        fill={getColor()}
+        opacity={0}
+        className="hover:opacity-100 transition-opacity"
+      />
+    </svg>
   );
 }
 
-// Generate mock data for testing
-export function generateMockSparklineData(
-  length: number = 20,
-  trend: 'up' | 'down' | 'volatile' = 'volatile'
-): number[] {
+// Generate mock price data for testing
+export function generateMockPriceData(points: number = 20, volatility: number = 0.1): number[] {
   const data: number[] = [];
-  let value = 50;
+  let value = 100;
   
-  for (let i = 0; i < length; i++) {
-    if (trend === 'up') {
-      value += Math.random() * 5 - 1;
-    } else if (trend === 'down') {
-      value -= Math.random() * 5 - 1;
-    } else {
-      value += Math.random() * 10 - 5;
-    }
-    
-    value = Math.max(0, Math.min(100, value));
+  for (let i = 0; i < points; i++) {
+    const change = (Math.random() - 0.5) * volatility * value;
+    value = Math.max(value + change, 1);
     data.push(value);
   }
   

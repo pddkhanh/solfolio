@@ -8,6 +8,7 @@ export interface MockToken {
   value: number;
   change24h: number;
   changePercent24h: number;
+  priceHistory?: number[];
 }
 
 export interface MockPosition {
@@ -31,7 +32,22 @@ export interface MockProtocolData {
   positions: number;
 }
 
-export const MOCK_TOKENS: MockToken[] = [
+// Helper function to generate realistic price history
+function generatePriceHistory(currentPrice: number, changePercent: number, points: number = 24): number[] {
+  const history: number[] = [];
+  const startPrice = currentPrice / (1 + changePercent / 100);
+  
+  for (let i = 0; i < points; i++) {
+    const progress = i / (points - 1);
+    const noise = (Math.random() - 0.5) * currentPrice * 0.02; // 2% noise
+    const price = startPrice + (currentPrice - startPrice) * progress + noise;
+    history.push(Math.max(price, 0));
+  }
+  
+  return history;
+}
+
+const BASE_TOKENS: MockToken[] = [
   {
     mint: 'So11111111111111111111111111111111111111112',
     symbol: 'SOL',
@@ -42,6 +58,7 @@ export const MOCK_TOKENS: MockToken[] = [
     value: 1525.86,
     change24h: 2.45,
     changePercent24h: 1.71,
+    priceHistory: generatePriceHistory(145.32, 1.71),
   },
   {
     mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -53,6 +70,7 @@ export const MOCK_TOKENS: MockToken[] = [
     value: 500,
     change24h: 0,
     changePercent24h: 0,
+    priceHistory: Array(24).fill(1.0),
   },
   {
     mint: 'mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So',
@@ -64,6 +82,7 @@ export const MOCK_TOKENS: MockToken[] = [
     value: 815.26,
     change24h: 3.12,
     changePercent24h: 2.03,
+    priceHistory: generatePriceHistory(156.78, 2.03),
   },
   {
     mint: 'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn',
@@ -75,8 +94,55 @@ export const MOCK_TOKENS: MockToken[] = [
     value: 341.15,
     change24h: 2.89,
     changePercent24h: 1.81,
+    priceHistory: generatePriceHistory(162.45, 1.81),
   },
 ];
+
+// Additional tokens for testing virtual scrolling
+const ADDITIONAL_TOKENS: Partial<MockToken>[] = [
+  { symbol: 'BONK', name: 'Bonk', price: 0.00002145, changePercent24h: 5.23 },
+  { symbol: 'JUP', name: 'Jupiter', price: 1.12, changePercent24h: -2.15 },
+  { symbol: 'ORCA', name: 'Orca', price: 3.45, changePercent24h: 3.67 },
+  { symbol: 'RAY', name: 'Raydium', price: 2.78, changePercent24h: -1.45 },
+  { symbol: 'MNDE', name: 'Marinade', price: 0.145, changePercent24h: 8.92 },
+  { symbol: 'STEP', name: 'Step Finance', price: 0.0234, changePercent24h: -3.21 },
+  { symbol: 'FIDA', name: 'Bonfida', price: 0.234, changePercent24h: 1.23 },
+  { symbol: 'COPE', name: 'Cope', price: 0.0123, changePercent24h: -5.67 },
+  { symbol: 'TULIP', name: 'Tulip Protocol', price: 0.345, changePercent24h: 2.34 },
+  { symbol: 'SAMO', name: 'Samoyedcoin', price: 0.00567, changePercent24h: 12.45 },
+  { symbol: 'SLND', name: 'Solend', price: 0.89, changePercent24h: -0.56 },
+  { symbol: 'PORT', name: 'Port Finance', price: 0.0234, changePercent24h: 3.45 },
+  { symbol: 'MAPS', name: 'Maps.me', price: 0.0456, changePercent24h: -2.34 },
+  { symbol: 'LIKE', name: 'Only1', price: 0.00234, changePercent24h: 7.89 },
+  { symbol: 'KINS', name: 'Kin', price: 0.0000123, changePercent24h: 1.45 },
+];
+
+// Generate full mock tokens list with realistic data
+function generateFullTokensList(): MockToken[] {
+  const allTokens = [...BASE_TOKENS];
+  
+  ADDITIONAL_TOKENS.forEach((token, index) => {
+    const balance = Math.random() * 1000;
+    const value = balance * (token.price || 1);
+    
+    allTokens.push({
+      mint: `${token.symbol}${'1'.repeat(44 - token.symbol!.length)}`,
+      symbol: token.symbol!,
+      name: token.name!,
+      balance,
+      decimals: 9,
+      price: token.price!,
+      value,
+      change24h: (token.price! * token.changePercent24h!) / 100,
+      changePercent24h: token.changePercent24h!,
+      priceHistory: generatePriceHistory(token.price!, token.changePercent24h!),
+    });
+  });
+  
+  return allTokens;
+}
+
+export const MOCK_TOKENS: MockToken[] = generateFullTokensList();
 
 export const MOCK_POSITIONS: MockPosition[] = [
   {
