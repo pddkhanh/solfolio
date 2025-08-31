@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton, SkeletonTableRow, SkeletonContainer } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { VirtualList } from '@/components/ui/virtual-list';
 import { Sparkline, generateMockPriceData } from '@/components/ui/sparkline';
@@ -437,62 +438,101 @@ export function TokenList() {
 
   if (!connected) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Token Balances</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Connect your wallet to view your tokens
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={cardVariants}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Token Balances
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-wallet"
+              action={{
+                label: "Connect Wallet",
+                onClick: () => {
+                  // Trigger wallet connect modal
+                  const button = document.querySelector('[data-testid="wallet-connect-button"]') as HTMLButtonElement;
+                  if (button) button.click();
+                },
+              }}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   if (loading && !balances) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Token Balances</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-                <div className="text-right space-y-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-3 w-16" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={cardVariants}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-7 w-32" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <SkeletonContainer className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-border-default"
+                >
+                  <Skeleton variant="circular" className="h-12 w-12" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                  <Skeleton className="h-8 w-20 hidden sm:block" />
+                  <div className="text-right space-y-2">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                </motion.div>
+              ))}
+            </SkeletonContainer>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Token Balances</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive text-center py-8">{error}</p>
-          <div className="flex justify-center">
-            <Button onClick={handleRefresh} variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={cardVariants}
+      >
+        <Card className="overflow-hidden border-red-500/10">
+          <CardHeader className="bg-gradient-to-r from-red-500/5 to-orange-500/5">
+            <CardTitle className="text-red-500">Token Balances</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="error"
+              description={error}
+              action={{
+                label: "Try Again",
+                onClick: handleRefresh,
+              }}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -549,15 +589,35 @@ export function TokenList() {
 
           {/* Token List with Virtual Scrolling */}
           {filteredTokens.length === 0 ? (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-muted-foreground text-center py-12"
-            >
-              {searchQuery || filterType !== 'all' || hideSmallBalances
-                ? 'No tokens match your filters'
-                : 'No tokens found'}
-            </motion.p>
+            <EmptyState
+              variant={searchQuery || filterType !== 'all' || hideSmallBalances ? "no-results" : "no-tokens"}
+              description={
+                searchQuery || filterType !== 'all' || hideSmallBalances
+                  ? "No tokens match your current filters. Try adjusting your search or filter criteria."
+                  : balances?.tokens?.length === 0 
+                    ? "Your wallet doesn't have any tokens yet. Start by acquiring some SOL or other Solana tokens."
+                    : "No tokens found in your wallet."
+              }
+              action={
+                searchQuery || filterType !== 'all' || hideSmallBalances
+                  ? {
+                      label: "Clear Filters",
+                      onClick: () => {
+                        setSearchQuery('');
+                        setFilterType('all');
+                        setHideSmallBalances(false);
+                      },
+                    }
+                  : balances?.tokens?.length === 0
+                    ? {
+                        label: "Get Started",
+                        onClick: () => window.open('https://jupiter.ag', '_blank'),
+                      }
+                    : undefined
+              }
+              className="py-12"
+              animated={true}
+            />
           ) : (
             <LayoutGroup>
               <AnimatePresence mode="popLayout">
