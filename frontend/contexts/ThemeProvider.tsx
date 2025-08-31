@@ -27,10 +27,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     setMounted(true)
   }, [])
 
-  // Prevent hydration mismatch by not rendering until mounted
+  // During SSR and initial hydration, render children directly to prevent E2E test issues
+  // The suppressHydrationWarning prevents Next.js from complaining about mismatches
   if (!mounted) {
     return (
-      <div suppressHydrationWarning>
+      <div suppressHydrationWarning className="min-h-screen">
         {children}
       </div>
     )

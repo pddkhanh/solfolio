@@ -170,12 +170,12 @@ async function mockPortfolioAPI(page: Page) {
 
 test.describe('TC-006: Navigate to Portfolio Page', () => {
   test.describe('When wallet is NOT connected', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, baseURL }) => {
       // Inject mock wallet (not connected)
       await injectMockWallet(page, { shouldConnect: false })
       
       // Navigate to homepage
-      await page.goto('http://localhost:3000')
+      await page.goto(baseURL || '/')
       await page.waitForLoadState('networkidle')
     })
 
@@ -288,7 +288,7 @@ test.describe('TC-006: Navigate to Portfolio Page', () => {
   })
 
   test.describe('When wallet IS connected', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, baseURL }) => {
       // Mock API responses
       await mockPortfolioAPI(page)
       
@@ -296,7 +296,7 @@ test.describe('TC-006: Navigate to Portfolio Page', () => {
       await injectMockWallet(page, { shouldConnect: false })
       
       // Navigate to homepage
-      await page.goto('http://localhost:3000')
+      await page.goto(baseURL || '/')
       await page.waitForLoadState('networkidle')
       
       // Connect wallet
@@ -400,12 +400,12 @@ test.describe('TC-006: Navigate to Portfolio Page', () => {
   test.describe('Mobile navigation', () => {
     test.use({ viewport: { width: 375, height: 667 } }) // iPhone SE viewport
 
-    test('Should navigate to portfolio on mobile', async ({ page }) => {
+    test('Should navigate to portfolio on mobile', async ({ page, baseURL }) => {
       // Inject mock wallet (not connected)
       await injectMockWallet(page, { shouldConnect: false })
       
       // Navigate to homepage
-      await page.goto('http://localhost:3000')
+      await page.goto(baseURL || '/')
       await page.waitForLoadState('networkidle')
       
       // Step 1: Open mobile menu

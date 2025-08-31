@@ -15,9 +15,9 @@ import { test, expect, Page } from '@playwright/test'
  */
 
 test.describe('TC-014: Navigate Between Pages', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     
     // Wait for app to fully load
     await page.waitForLoadState('networkidle')

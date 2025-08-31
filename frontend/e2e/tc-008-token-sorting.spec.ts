@@ -31,7 +31,7 @@ import {
 const MOCK_TOKEN_DATA = generateMockTokens()
 
 // Helper to navigate to portfolio with connected wallet
-async function navigateToPortfolioWithWallet(page: Page) {
+async function navigateToPortfolioWithWallet(page: Page, baseURL?: string) {
   // Inject mock wallet BEFORE navigation
   await injectMockWallet(page, { 
     address: TEST_WALLETS.TOKENS,
@@ -42,7 +42,7 @@ async function navigateToPortfolioWithWallet(page: Page) {
   await mockTokenAPIs(page, MOCK_TOKEN_DATA)
   
   // Navigate to homepage
-  await page.goto('http://localhost:3000')
+  await page.goto(baseURL || '/')
   await page.waitForLoadState('networkidle')
   await page.waitForTimeout(1000)
   
@@ -70,12 +70,12 @@ async function navigateToPortfolioWithWallet(page: Page) {
 }
 
 test.describe('TC-008: Sort Tokens by Value/Amount', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, baseURL }) => {
     // Set a reasonable timeout for the entire test
     test.setTimeout(60000)
   })
   
-  test('Test infrastructure verification - wallet connection works', async ({ page }) => {
+  test('Test infrastructure verification - wallet connection works', async ({ page, baseURL }) => {
     // This test verifies the test infrastructure is working correctly
     // The actual sorting tests are skipped until the feature is implemented
     
@@ -86,7 +86,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     })
     
     // Navigate to homepage
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(1000)
     
@@ -110,10 +110,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     console.log('Test infrastructure verified - ready for feature implementation!')
   })
   
-  test.skip('Should display sort dropdown with three options and sort tokens correctly', async ({ page }) => {
+  test.skip('Should display sort dropdown with three options and sort tokens correctly', async ({ page, baseURL }) => {
     // SKIP: Feature not yet implemented - test written for TDD
     // Navigate to portfolio with connected wallet
-    await navigateToPortfolioWithWallet(page)
+    await navigateToPortfolioWithWallet(page, baseURL)
     
     // Step 1: Ensure sort dropdown exists
     console.log('Step 1: Setting up sort dropdown...')
@@ -197,7 +197,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     expect(currentSort).toBe('name') // Should be 'name' from step 5
     
     // Navigate away and back
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
@@ -223,7 +223,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     console.log('Test completed successfully!')
   })
   
-  test.skip('Should handle sorting with empty wallet gracefully', async ({ page }) => {
+  test.skip('Should handle sorting with empty wallet gracefully', async ({ page, baseURL }) => {
     // SKIP: Feature not yet implemented - test written for TDD
     // Inject mock wallet with no tokens
     await injectMockWallet(page, { 
@@ -235,7 +235,7 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     await mockTokenAPIs(page, { tokens: [], totalValue: 0 })
     
     // Navigate and connect wallet
-    await page.goto('http://localhost:3000')
+    await page.goto(baseURL || '/')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(1000)
     
@@ -271,10 +271,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     console.log('Empty wallet sorting handled correctly!')
   })
   
-  test.skip('Should maintain SOL at top when sorting by value', async ({ page }) => {
+  test.skip('Should maintain SOL at top when sorting by value', async ({ page, baseURL }) => {
     // SKIP: Feature not yet implemented - test written for TDD
     // Navigate to portfolio with connected wallet
-    await navigateToPortfolioWithWallet(page)
+    await navigateToPortfolioWithWallet(page, baseURL)
     
     // Ensure sort dropdown exists
     await ensureSortDropdown(page)
@@ -298,10 +298,10 @@ test.describe('TC-008: Sort Tokens by Value/Amount', () => {
     console.log('Value sorting with SOL priority verified!')
   })
   
-  test.skip('Should instantly sort without page reload', async ({ page }) => {
+  test.skip('Should instantly sort without page reload', async ({ page, baseURL }) => {
     // SKIP: Feature not yet implemented - test written for TDD
     // Navigate to portfolio with connected wallet
-    await navigateToPortfolioWithWallet(page)
+    await navigateToPortfolioWithWallet(page, baseURL)
     
     // Ensure sort dropdown exists
     await ensureSortDropdown(page)
