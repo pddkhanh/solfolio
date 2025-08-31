@@ -6,6 +6,7 @@ import { Menu, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useWebSocketContext } from '@/contexts/WebSocketProvider'
 import ConnectionStatus from '@/components/websocket/ConnectionStatus'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 // Dynamically import WalletButton to prevent SSR issues
 const WalletButton = dynamic(
@@ -32,14 +33,14 @@ export default function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border-default glass">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-[72px] items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600" />
-              <span className="text-xl font-bold">SolFolio</span>
+            <Link href="/" className="flex items-center space-x-2 group">
+              <div className="h-10 w-10 rounded-lg bg-solana-gradient-primary shadow-glow-purple transition-transform group-hover:scale-105" />
+              <span className="text-xl font-bold gradient-text">SolFolio</span>
             </Link>
           </div>
 
@@ -49,7 +50,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="transition-colors hover:text-foreground/80 text-foreground/60"
+                className="transition-colors hover:text-text-primary text-text-secondary"
               >
                 {item.label}
               </Link>
@@ -77,6 +78,9 @@ export default function Header() {
                 showText={false}
               />
             </div>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Wallet button */}
             <div className="hidden md:block">

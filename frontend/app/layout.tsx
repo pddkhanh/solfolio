@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -9,8 +8,7 @@ import WebSocketProvider from '@/contexts/WebSocketProvider'
 import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 import MockWalletInjector from '@/components/providers/MockWalletInjector'
-
-const inter = Inter({ subsets: ['latin'] })
+import { ThemeProvider } from '@/contexts/ThemeProvider'
 
 export const metadata: Metadata = {
   title: 'SolFolio - Solana DeFi Portfolio Tracker',
@@ -23,25 +21,27 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <MockWalletInjector />
-        <WalletErrorBoundary>
-          <WalletContextProvider>
-            <WalletPersistenceProvider>
-              <WebSocketProvider>
-                <div className="relative flex min-h-screen flex-col">
-                  <Header />
-                  <PositionChangeNotifications />
-                  <main className="flex-1">
-                    {children}
-                  </main>
-                  <Footer />
-                </div>
-              </WebSocketProvider>
-            </WalletPersistenceProvider>
-          </WalletContextProvider>
-        </WalletErrorBoundary>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>
+          <MockWalletInjector />
+          <WalletErrorBoundary>
+            <WalletContextProvider>
+              <WalletPersistenceProvider>
+                <WebSocketProvider>
+                  <div className="relative flex min-h-screen flex-col">
+                    <Header />
+                    <PositionChangeNotifications />
+                    <main className="flex-1">
+                      {children}
+                    </main>
+                    <Footer />
+                  </div>
+                </WebSocketProvider>
+              </WalletPersistenceProvider>
+            </WalletContextProvider>
+          </WalletErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   )
