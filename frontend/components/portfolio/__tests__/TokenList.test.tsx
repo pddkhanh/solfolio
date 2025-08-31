@@ -135,7 +135,8 @@ describe('TokenList', () => {
 
       render(<TokenList />);
       
-      expect(screen.getByText(/connect your wallet to view your tokens/i)).toBeInTheDocument();
+      expect(screen.getByText(/Connect Your Wallet/i)).toBeInTheDocument();
+      expect(screen.getByText(/Connect your Solana wallet to view your DeFi portfolio/i)).toBeInTheDocument();
     });
 
     it('fetches and displays tokens when wallet is connected', async () => {
@@ -203,7 +204,8 @@ describe('TokenList', () => {
       const searchInput = screen.getByTestId('search-input');
       await userEvent.type(searchInput, 'NONEXISTENT');
 
-      expect(screen.getByText('No tokens match your filters')).toBeInTheDocument();
+      expect(screen.getByText('No Results Found')).toBeInTheDocument();
+      expect(screen.getByText(/No tokens match your current filters/i)).toBeInTheDocument();
     });
 
     it('includes SOL in the token list', async () => {
@@ -331,6 +333,9 @@ describe('TokenList', () => {
       render(<TokenList />);
 
       await waitFor(() => {
+        // Check for the error title from EmptyState
+        expect(screen.getByText('Something Went Wrong')).toBeInTheDocument();
+        // The actual error message is passed as description
         expect(screen.getByText('Failed to load token balances')).toBeInTheDocument();
       });
     });
@@ -341,7 +346,7 @@ describe('TokenList', () => {
       render(<TokenList />);
 
       await waitFor(() => {
-        expect(screen.getByText('Retry')).toBeInTheDocument();
+        expect(screen.getByText('Try Again')).toBeInTheDocument();
       });
 
       // Mock successful response for retry
@@ -350,7 +355,7 @@ describe('TokenList', () => {
         json: async () => mockWalletBalances,
       });
 
-      const retryButton = screen.getByText('Retry');
+      const retryButton = screen.getByText('Try Again');
       fireEvent.click(retryButton);
 
       await waitFor(() => {

@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PositionCard } from './PositionCard';
 import { PositionCardsGridSkeleton } from './PositionCardSkeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Skeleton, SkeletonCard, SkeletonContainer } from '@/components/ui/skeleton';
 import { RefreshCw, TrendingUp, DollarSign, Percent, Wallet, Sparkles } from 'lucide-react';
 import { PortfolioFilters, type SortOption, type FilterType } from '@/components/filters/PortfolioFilters';
 import { MOCK_POSITIONS, isMockMode } from '@/lib/mock-data';
 import { staggerContainer } from '@/lib/animations';
+import { formatUSD } from '@/lib/utils';
 
 interface Position {
   protocol: string;
@@ -260,33 +263,35 @@ export function PositionsList() {
 
   if (!publicKey) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex flex-col items-center justify-center min-h-[400px] p-8"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
-          className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
-        >
-          <Wallet className="w-10 h-10 text-purple-400" />
-        </motion.div>
-        <h3 className="text-xl font-semibold text-white mb-2">Connect Your Wallet</h3>
-        <p className="text-gray-400 text-center max-w-md">
-          Connect your Solana wallet to view your DeFi positions across all supported protocols
-        </p>
-      </motion.div>
+      <Card className="overflow-hidden border-purple-500/10">
+        <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+          <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+            DeFi Positions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <EmptyState
+            variant="no-wallet"
+            description="Connect your Solana wallet to view your DeFi positions across all supported protocols"
+            action={{
+              label: "Connect Wallet",
+              onClick: () => {
+                const button = document.querySelector('[data-testid="wallet-connect-button"]') as HTMLButtonElement;
+                if (button) button.click();
+              },
+            }}
+            animated={true}
+          />
+        </CardContent>
+      </Card>
     );
   }
 
   if (loading) {
     return (
       <div className="space-y-6">
-        {/* Stats skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Stats skeleton with shimmer */}
+        <SkeletonContainer className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
             <motion.div
               key={i}
@@ -297,23 +302,23 @@ export function PositionsList() {
             >
               <div className="rounded-xl bg-[#16171F] p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-white/5 animate-pulse" />
-                  <div className="h-3 w-24 bg-white/5 rounded animate-pulse" />
+                  <Skeleton variant="circular" className="w-8 h-8" />
+                  <Skeleton className="h-3 w-24" />
                 </div>
-                <div className="h-7 w-32 bg-white/5 rounded animate-pulse mb-2" />
-                <div className="h-3 w-20 bg-white/5 rounded animate-pulse" />
+                <Skeleton className="h-7 w-32 mb-2" />
+                <Skeleton className="h-3 w-20" />
               </div>
             </motion.div>
           ))}
-        </div>
+        </SkeletonContainer>
         
         {/* Section header skeleton */}
         <div className="flex items-center justify-between">
-          <div className="h-6 w-32 bg-white/5 rounded animate-pulse" />
-          <div className="h-8 w-24 bg-white/5 rounded animate-pulse" />
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-8 w-24" />
         </div>
         
-        {/* Position cards skeleton */}
+        {/* Position cards skeleton with proper shimmer */}
         <PositionCardsGridSkeleton count={6} />
       </div>
     );
@@ -321,46 +326,49 @@ export function PositionsList() {
 
   if (error) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center min-h-[400px] p-8"
-      >
-        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
-          <span className="text-3xl">❌</span>
-        </div>
-        <h3 className="text-xl font-semibold text-white mb-2">Error Loading Positions</h3>
-        <p className="text-red-400 text-center max-w-md mb-4">{error}</p>
-        <button
-          onClick={() => fetchPositions(true)}
-          className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-cyan-500 text-white font-medium hover:opacity-90 transition-opacity"
-        >
-          Try Again
-        </button>
-      </motion.div>
+      <Card className="overflow-hidden border-red-500/10">
+        <CardHeader className="bg-gradient-to-r from-red-500/5 to-orange-500/5">
+          <CardTitle className="text-red-500">DeFi Positions</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <EmptyState
+            variant="error"
+            title="Error Loading Positions"
+            description={error}
+            action={{
+              label: "Try Again",
+              onClick: () => fetchPositions(true),
+            }}
+            animated={true}
+          />
+        </CardContent>
+      </Card>
     );
   }
 
   if (!portfolio || portfolio.positions.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex flex-col items-center justify-center min-h-[400px] p-8"
-      >
-        <motion.div
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-          className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 flex items-center justify-center mb-4"
-        >
-          <Sparkles className="w-10 h-10 text-purple-400" />
-        </motion.div>
-        <h3 className="text-xl font-semibold text-white mb-2">No Positions Yet</h3>
-        <p className="text-gray-400 text-center max-w-md">
-          Start by staking SOL or providing liquidity on supported protocols to see your positions here!
-        </p>
-      </motion.div>
+      <Card className="overflow-hidden border-purple-500/10">
+        <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+          <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+            DeFi Positions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <EmptyState
+            variant="no-positions"
+            action={{
+              label: "Explore Protocols",
+              onClick: () => window.open('https://defillama.com/chain/Solana', '_blank'),
+            }}
+            secondaryAction={{
+              label: "Learn More",
+              onClick: () => window.open('https://solana.com/defi', '_blank'),
+            }}
+            animated={true}
+          />
+        </CardContent>
+      </Card>
     );
   }
 

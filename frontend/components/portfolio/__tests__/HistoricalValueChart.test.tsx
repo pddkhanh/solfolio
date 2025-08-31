@@ -99,8 +99,8 @@ describe('HistoricalValueChart', () => {
 
       const { container } = render(<HistoricalValueChart />);
       
-      // Check for skeleton loader
-      const skeletons = container.querySelectorAll('.animate-pulse');
+      // Check for skeleton loader - our Skeleton component uses gradient backgrounds
+      const skeletons = container.querySelectorAll('[class*="from-gray-800"]');
       expect(skeletons.length).toBeGreaterThan(0);
     });
 
