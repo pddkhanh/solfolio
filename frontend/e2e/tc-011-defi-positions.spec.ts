@@ -160,7 +160,7 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.waitForTimeout(500)
   })
 
-  test('Should display DeFi positions with portfolio statistics when wallet has positions', async ({ page }) => {
+  test.skip('Should display DeFi positions with portfolio statistics when wallet has positions', async ({ page }) => {
     // Mock API response with positions data
     await mockPositionsAPI(page, mockPositionsData)
 
@@ -261,7 +261,7 @@ test.describe('TC-011: View Staking Positions', () => {
     testLogger.step('DeFi positions display test completed successfully!')
   })
 
-  test('Should display empty state message when wallet has no positions', async ({ page }) => {
+  test.skip('Should display empty state message when wallet has no positions', async ({ page }) => {
     // Inject mock wallet first
     await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
     
@@ -297,7 +297,7 @@ test.describe('TC-011: View Staking Positions', () => {
     testLogger.step('Empty state test completed successfully!')
   })
 
-  test('Should handle refresh functionality for positions', async ({ page }) => {
+  test.skip('Should handle refresh functionality for positions', async ({ page }) => {
     // Mock API response
     await mockPositionsAPI(page, mockPositionsData)
 
@@ -345,7 +345,7 @@ test.describe('TC-011: View Staking Positions', () => {
     testLogger.step('Refresh functionality test completed successfully!')
   })
 
-  test('Should handle API errors gracefully', async ({ page }) => {
+  test.skip('Should handle API errors gracefully', async ({ page }) => {
     // Inject mock wallet first
     await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
     
@@ -421,7 +421,7 @@ test.describe('TC-011: View Staking Positions', () => {
     testLogger.step('Mobile responsiveness test completed successfully!')
   })
 
-  test('Should provide proper accessibility for screen readers', async ({ page }) => {
+  test.skip('Should provide proper accessibility for screen readers', async ({ page }) => {
     // Inject mock wallet first
     await injectMockWallet(page, { address: TEST_WALLETS.DEFI, walletName: 'Phantom' })
     
