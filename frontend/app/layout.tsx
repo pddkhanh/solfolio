@@ -10,6 +10,8 @@ import PositionChangeNotifications from '@/components/notifications/PositionChan
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 import MockWalletInjector from '@/components/providers/MockWalletInjector'
 import { ThemeProvider } from '@/contexts/ThemeProvider'
+import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
+import { PageTransition } from '@/components/layout/PageTransition'
 
 // Configure Inter font with all required weights
 const inter = Inter({
@@ -41,23 +43,27 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className={inter.className}>
         <ThemeProvider>
-          <MockWalletInjector />
-          <WalletErrorBoundary>
-            <WalletContextProvider>
-              <WalletPersistenceProvider>
-                <WebSocketProvider>
-                  <div className="relative flex min-h-screen flex-col">
-                    <Header />
-                    <PositionChangeNotifications />
-                    <main className="flex-1">
-                      {children}
-                    </main>
-                    <Footer />
-                  </div>
-                </WebSocketProvider>
-              </WalletPersistenceProvider>
-            </WalletContextProvider>
-          </WalletErrorBoundary>
+          <GlobalErrorBoundary>
+            <MockWalletInjector />
+            <WalletErrorBoundary>
+              <WalletContextProvider>
+                <WalletPersistenceProvider>
+                  <WebSocketProvider>
+                    <div className="relative flex min-h-screen flex-col">
+                      <Header />
+                      <PositionChangeNotifications />
+                      <main className="flex-1">
+                        <PageTransition>
+                          {children}
+                        </PageTransition>
+                      </main>
+                      <Footer />
+                    </div>
+                  </WebSocketProvider>
+                </WalletPersistenceProvider>
+              </WalletContextProvider>
+            </WalletErrorBoundary>
+          </GlobalErrorBoundary>
         </ThemeProvider>
       </body>
     </html>
