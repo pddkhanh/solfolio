@@ -11,8 +11,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Wallet, Copy, LogOut, ChevronDown, Check, Loader2, AlertCircle } from 'lucide-react'
+import { Wallet, Copy, LogOut, ChevronDown, Check, Loader2, AlertCircle, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { 
+  buttonHoverVariants, 
+  fadeVariants,
+  pulseVariants,
+  animationConfig 
+} from '@/lib/animations'
 
 export default function WalletButton() {
   const { publicKey, disconnect, connecting, connected, wallet, connect } = useWallet()
@@ -73,10 +81,16 @@ export default function WalletButton() {
 
   if (!mounted) {
     return (
-      <Button disabled>
-        <Wallet className="mr-2 h-4 w-4" />
-        Connect Wallet
-      </Button>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Button disabled className="relative overflow-hidden">
+          <Wallet className="mr-2 h-4 w-4" />
+          Connect Wallet
+        </Button>
+      </motion.div>
     )
   }
 
@@ -112,6 +126,15 @@ export default function WalletButton() {
     return `${address.slice(0, 4)}...${address.slice(-4)}`
   }
 
+  // Generate a gradient avatar based on wallet address
+  const getAvatarGradient = (address: string) => {
+    if (!address) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    const hash = address.slice(0, 6)
+    const hue1 = parseInt(hash.slice(0, 3), 16) % 360
+    const hue2 = (hue1 + 40) % 360
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 50%) 100%)`
+  }
+
   const copyAddress = async () => {
     if (publicKey) {
       try {
@@ -130,35 +153,104 @@ export default function WalletButton() {
     return (
       <>
         <div className="flex flex-col items-end gap-2">
-          <Button
-            onClick={handleConnect}
-            disabled={connecting}
-            variant={connectionError ? "destructive" : "default"}
-            data-testid="connect-wallet-button"
-            className="shadow-sm hover:shadow-md transition-all"
+          <motion.div
+            variants={buttonHoverVariants}
+            initial="rest"
+            whileHover="hover"
+            whileTap="tap"
           >
-            {connecting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : connectionError ? (
-              <>
-                <AlertCircle className="mr-2 h-4 w-4" />
-                Retry Connection
-              </>
-            ) : (
-              <>
-                <Wallet className="mr-2 h-4 w-4" />
-                Connect Wallet
-              </>
+            <Button
+              onClick={handleConnect}
+              disabled={connecting}
+              variant={connectionError ? "destructive" : "default"}
+              data-testid="connect-wallet-button"
+              className={cn(
+                "relative overflow-hidden shadow-sm transition-all",
+                "bg-gradient-to-r from-solana-purple to-solana-green",
+                "hover:shadow-lg hover:shadow-solana-purple/20",
+                "border border-white/10",
+                connectionError && "from-red-500 to-red-600"
+              )}
+            >
+              <AnimatePresence mode="wait">
+                {connecting ? (
+                  <motion.div
+                    key="connecting"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center"
+                  >
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Loader2 className="mr-2 h-4 w-4" />
+                    </motion.div>
+                    Connecting...
+                  </motion.div>
+                ) : connectionError ? (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center"
+                  >
+                    <motion.div
+                      variants={pulseVariants}
+                      animate="animate"
+                    >
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                    </motion.div>
+                    Retry Connection
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="connect"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center"
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    Connect Wallet
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              {/* Animated gradient background */}
+              <motion.div
+                className="absolute inset-0 opacity-30"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+                  backgroundSize: "200% 100%",
+                }}
+              />
+            </Button>
+          </motion.div>
+          
+          <AnimatePresence>
+            {connectionError && (
+              <motion.div
+                initial={{ opacity: 0, y: -5, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -5, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-xs text-destructive max-w-xs text-right"
+              >
+                {connectionError}
+              </motion.div>
             )}
-          </Button>
-          {connectionError && (
-            <div className="text-xs text-destructive max-w-xs text-right animate-in slide-in-from-top-1">
-              {connectionError}
-            </div>
-          )}
+          </AnimatePresence>
         </div>
         <WalletConnectModal />
       </>
@@ -169,45 +261,189 @@ export default function WalletButton() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="gap-2 shadow-sm hover:shadow-md transition-all"
-            data-testid="wallet-dropdown-button"
+          <motion.div
+            variants={buttonHoverVariants}
+            initial="rest"
+            whileHover="hover"
+            whileTap="tap"
           >
-            <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline font-mono">
-              {publicKey && formatAddress(publicKey.toBase58())}
-            </span>
-            <ChevronDown className="h-3 w-3 opacity-50" />
-          </Button>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "group relative overflow-hidden",
+                "bg-bg-secondary/50 backdrop-blur-sm",
+                "border border-border-default hover:border-solana-purple/50",
+                "shadow-sm hover:shadow-md hover:shadow-solana-purple/10",
+                "transition-all duration-200"
+              )}
+              data-testid="wallet-dropdown-button"
+            >
+              {/* Wallet Avatar */}
+              <motion.div 
+                className="relative h-6 w-6 rounded-full overflow-hidden mr-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  type: "spring",
+                  stiffness: 500,
+                  damping: 20,
+                  delay: 0.1
+                }}
+              >
+                <div 
+                  className="h-full w-full"
+                  style={{ 
+                    background: getAvatarGradient(publicKey?.toBase58() || '')
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <User className="h-3 w-3 text-white/80" />
+                </div>
+                
+                {/* Connected status dot */}
+                <motion.div
+                  className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-success border border-bg-primary"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-success"
+                    animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  />
+                </motion.div>
+              </motion.div>
+              
+              <span className="hidden sm:inline font-mono text-sm">
+                {publicKey && formatAddress(publicKey.toBase58())}
+              </span>
+              
+              <motion.div
+                animate={{ rotate: 0 }}
+                whileHover={{ rotate: 180 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ChevronDown className="ml-1 h-3 w-3 opacity-50" />
+              </motion.div>
+              
+              {/* Hover gradient effect */}
+              <motion.div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{
+                  background: "linear-gradient(90deg, transparent, rgba(153, 69, 255, 0.1), transparent)",
+                }}
+                animate={{
+                  x: ["-100%", "100%"],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              />
+            </Button>
+          </motion.div>
         </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <div className="px-2 py-1.5">
-          <p className="text-sm font-medium">Connected Wallet</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {wallet?.adapter.name}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1 font-mono">
-            {publicKey && formatAddress(publicKey.toBase58())}
-          </p>
-        </div>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={copyAddress}>
-          {copied ? (
-            <Check className="mr-2 h-4 w-4" />
-          ) : (
-            <Copy className="mr-2 h-4 w-4" />
-          )}
-          {copied ? 'Copied!' : 'Copy Address'}
+      <DropdownMenuContent 
+        align="end" 
+        className={cn(
+          "w-56 p-1",
+          "bg-bg-secondary/95 backdrop-blur-xl",
+          "border border-border-default/50",
+          "shadow-xl shadow-black/20"
+        )}
+      >
+        <motion.div 
+          className="px-3 py-2"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="flex items-center gap-3">
+            {/* Wallet Avatar in dropdown */}
+            <div 
+              className="h-10 w-10 rounded-full overflow-hidden ring-2 ring-border-default/50"
+              style={{ 
+                background: getAvatarGradient(publicKey?.toBase58() || '')
+              }}
+            >
+              <div className="h-full w-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white/80" />
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <p className="text-sm font-medium text-text-primary">Connected</p>
+              <p className="text-xs text-text-secondary">
+                {wallet?.adapter.name}
+              </p>
+            </div>
+            
+            {/* Connection status */}
+            <div className="flex items-center">
+              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            </div>
+          </div>
+          
+          {/* Address display */}
+          <div className="mt-3 p-2 bg-bg-tertiary/50 rounded-md">
+            <p className="text-xs text-text-secondary font-mono">
+              {publicKey && publicKey.toBase58()}
+            </p>
+          </div>
+        </motion.div>
+        <DropdownMenuSeparator className="bg-border-default/30" />
+        <DropdownMenuItem 
+          onClick={copyAddress}
+          className="group cursor-pointer transition-colors hover:bg-accent/10"
+        >
+          <AnimatePresence mode="wait">
+            {copied ? (
+              <motion.div
+                key="check"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 180 }}
+                transition={{ duration: 0.2 }}
+                className="mr-2"
+              >
+                <Check className="h-4 w-4 text-success" />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="copy"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mr-2"
+              >
+                <Copy className="h-4 w-4" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <span className="text-sm">
+            {copied ? 'Copied!' : 'Copy Address'}
+          </span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSwitchWallet}>
-          <Wallet className="mr-2 h-4 w-4" />
-          Switch Wallet
+        
+        <DropdownMenuItem 
+          onClick={handleSwitchWallet}
+          className="group cursor-pointer transition-colors hover:bg-accent/10"
+        >
+          <Wallet className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+          <span className="text-sm">Switch Wallet</span>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDisconnect} className="text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          Disconnect
+        
+        <DropdownMenuSeparator className="bg-border-default/30" />
+        
+        <DropdownMenuItem 
+          onClick={handleDisconnect} 
+          className="group cursor-pointer text-destructive hover:bg-destructive/10 transition-colors"
+        >
+          <LogOut className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 group-hover:-translate-x-0.5" />
+          <span className="text-sm">Disconnect</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
