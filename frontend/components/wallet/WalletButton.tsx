@@ -21,6 +21,11 @@ import {
   pulseVariants,
   animationConfig 
 } from '@/lib/animations'
+import { 
+  getFocusRingClass,
+  useAnnounce,
+  KEYS
+} from '@/lib/accessibility'
 
 export default function WalletButton() {
   const { publicKey, disconnect, connecting, connected, wallet, connect } = useWallet()
@@ -28,6 +33,7 @@ export default function WalletButton() {
   const [mounted, setMounted] = useState(false)
   const [copied, setCopied] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
+  const announce = useAnnounce()
 
   // Debug logging for wallet state changes
   useEffect(() => {
@@ -56,12 +62,19 @@ export default function WalletButton() {
     }
   }, [wallet, connected, connecting, connect])
   
-  // Clear error when connection succeeds
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 4)}...${address.slice(-4)}`
+  }
+
+  // Clear error when connection succeeds and announce to screen readers
   useEffect(() => {
     if (connected && connectionError) {
       setConnectionError(null)
     }
-  }, [connected, connectionError])
+    if (connected && publicKey) {
+      announce(`Wallet connected. Address: ${formatAddress(publicKey.toBase58())}`, 'polite')
+    }
+  }, [connected, connectionError, publicKey, announce])
 
   useEffect(() => {
     setMounted(true)
@@ -122,10 +135,6 @@ export default function WalletButton() {
     }
   }
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`
-  }
-
   // Generate a gradient avatar based on wallet address
   const getAvatarGradient = (address: string) => {
     if (!address) return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
@@ -140,10 +149,12 @@ export default function WalletButton() {
       try {
         await navigator.clipboard.writeText(publicKey.toBase58())
         setCopied(true)
+        announce('Wallet address copied to clipboard', 'assertive')
         setTimeout(() => setCopied(false), 2000)
       } catch (error) {
         if (process.env.NODE_ENV !== 'test') {
           console.error('Failed to copy address:', error)
+          announce('Failed to copy address', 'assertive')
         }
       }
     }
@@ -164,12 +175,16 @@ export default function WalletButton() {
               disabled={connecting}
               variant={connectionError ? "destructive" : "default"}
               data-testid="connect-wallet-button"
+              aria-label={connecting ? 'Connecting to wallet' : connectionError ? 'Retry wallet connection' : 'Connect your Solana wallet'}
+              aria-busy={connecting}
+              aria-describedby={connectionError ? 'wallet-error-message' : undefined}
               className={cn(
                 "relative overflow-hidden shadow-sm transition-all",
                 "bg-gradient-to-r from-solana-purple to-solana-green",
                 "hover:shadow-lg hover:shadow-solana-purple/20",
                 "border border-white/10",
-                connectionError && "from-red-500 to-red-600"
+                connectionError && "from-red-500 to-red-600",
+                getFocusRingClass()
               )}
             >
               <AnimatePresence mode="wait">
@@ -241,6 +256,9 @@ export default function WalletButton() {
           <AnimatePresence>
             {connectionError && (
               <motion.div
+                id="wallet-error-message"
+                role="alert"
+                aria-live="assertive"
                 initial={{ opacity: 0, y: -5, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: "auto" }}
                 exit={{ opacity: 0, y: -5, height: 0 }}
@@ -269,12 +287,16 @@ export default function WalletButton() {
           >
             <Button 
               variant="outline" 
+              aria-label={`Wallet menu. Connected as ${publicKey ? formatAddress(publicKey.toBase58()) : 'unknown'}`}
+              aria-haspopup="menu"
+              aria-expanded={false}
               className={cn(
                 "group relative overflow-hidden",
                 "bg-bg-secondary/50 backdrop-blur-sm",
                 "border border-border-default hover:border-solana-purple/50",
                 "shadow-sm hover:shadow-md hover:shadow-solana-purple/10",
-                "transition-all duration-200"
+                "transition-all duration-200",
+                getFocusRingClass()
               )}
               data-testid="wallet-dropdown-button"
             >
@@ -296,7 +318,7 @@ export default function WalletButton() {
                     background: getAvatarGradient(publicKey?.toBase58() || '')
                   }}
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
                   <User className="h-3 w-3 text-white/80" />
                 </div>
                 
@@ -306,6 +328,8 @@ export default function WalletButton() {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3 }}
+                  aria-label="Wallet connected"
+                  role="status"
                 >
                   <motion.div
                     className="absolute inset-0 rounded-full bg-success"
@@ -396,7 +420,15 @@ export default function WalletButton() {
         <DropdownMenuSeparator className="bg-border-default/30" />
         <DropdownMenuItem 
           onClick={copyAddress}
-          className="group cursor-pointer transition-colors hover:bg-accent/10"
+          onKeyDown={(e) => {
+            if (e.key === KEYS.ENTER || e.key === KEYS.SPACE) {
+              e.preventDefault()
+              copyAddress()
+            }
+          }}
+          className="group cursor-pointer transition-colors hover:bg-accent/10 focus:bg-accent/10 focus:outline-none"
+          role="menuitem"
+          aria-label="Copy wallet address to clipboard"
         >
           <AnimatePresence mode="wait">
             {copied ? (
@@ -430,7 +462,15 @@ export default function WalletButton() {
         
         <DropdownMenuItem 
           onClick={handleSwitchWallet}
-          className="group cursor-pointer transition-colors hover:bg-accent/10"
+          onKeyDown={(e) => {
+            if (e.key === KEYS.ENTER || e.key === KEYS.SPACE) {
+              e.preventDefault()
+              handleSwitchWallet()
+            }
+          }}
+          className="group cursor-pointer transition-colors hover:bg-accent/10 focus:bg-accent/10 focus:outline-none"
+          role="menuitem"
+          aria-label="Switch to a different wallet"
         >
           <Wallet className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
           <span className="text-sm">Switch Wallet</span>
@@ -439,8 +479,16 @@ export default function WalletButton() {
         <DropdownMenuSeparator className="bg-border-default/30" />
         
         <DropdownMenuItem 
-          onClick={handleDisconnect} 
-          className="group cursor-pointer text-destructive hover:bg-destructive/10 transition-colors"
+          onClick={handleDisconnect}
+          onKeyDown={(e) => {
+            if (e.key === KEYS.ENTER || e.key === KEYS.SPACE) {
+              e.preventDefault()
+              handleDisconnect()
+            }
+          }}
+          className="group cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 transition-colors focus:outline-none"
+          role="menuitem"
+          aria-label="Disconnect wallet"
         >
           <LogOut className="mr-2 h-4 w-4 transition-transform group-hover:scale-110 group-hover:-translate-x-0.5" />
           <span className="text-sm">Disconnect</span>

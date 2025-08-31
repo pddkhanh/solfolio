@@ -12,6 +12,7 @@ import MockWalletInjector from '@/components/providers/MockWalletInjector'
 import { ThemeProvider } from '@/contexts/ThemeProvider'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { PageTransition } from '@/components/layout/PageTransition'
+import { SkipNavigation } from '@/components/ui/skip-navigation'
 
 // Configure Inter font with all required weights
 const inter = Inter({
@@ -50,9 +51,15 @@ export default function RootLayout({
                 <WalletPersistenceProvider>
                   <WebSocketProvider>
                     <div className="relative flex min-h-screen flex-col">
+                      <SkipNavigation />
                       <Header />
                       <PositionChangeNotifications />
-                      <main className="flex-1">
+                      <main 
+                        id="main-content"
+                        className="flex-1"
+                        role="main"
+                        aria-label="Main content"
+                      >
                         <PageTransition>
                           {children}
                         </PageTransition>

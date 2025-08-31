@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { motion, useScroll, useTransform } from 'framer-motion'
@@ -16,6 +16,13 @@ import {
   staggerItem,
   animationConfig 
 } from '@/lib/animations'
+import { 
+  KEYS, 
+  ARIA_ROLES, 
+  useFocusVisible,
+  useArrowNavigation,
+  getFocusRingClass
+} from '@/lib/accessibility'
 
 // Dynamically import WalletButton to prevent SSR issues
 const WalletButton = dynamic(
@@ -48,6 +55,11 @@ export default function Header() {
   const { connectionStatus, error, reconnect } = useWebSocketContext()
   const pathname = usePathname()
   const { scrollY } = useScroll()
+  const navRef = useRef<HTMLElement>(null)
+  const [focusedNavIndex, setFocusedNavIndex] = useState(-1)
+  
+  // Enable focus visible styles
+  useFocusVisible()
   
   // Transform scroll position for header effects
   const headerBackdropBlur = useTransform(scrollY, [0, 50], [8, 12])
@@ -68,11 +80,24 @@ export default function Header() {
   }, [])
 
   const navItems = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/portfolio', label: 'Portfolio' },
-    { href: '/protocols', label: 'Protocols' },
-    { href: '/analytics', label: 'Analytics' },
+    { href: '/', label: 'Dashboard', ariaLabel: 'Go to dashboard' },
+    { href: '/portfolio', label: 'Portfolio', ariaLabel: 'View your portfolio' },
+    { href: '/protocols', label: 'Protocols', ariaLabel: 'Browse DeFi protocols' },
+    { href: '/analytics', label: 'Analytics', ariaLabel: 'View analytics and insights' },
   ]
+  
+  // Keyboard navigation for nav items
+  const { handleKeyDown } = useArrowNavigation(navItems.length, 'horizontal')
+  
+  const handleNavKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
+    handleKeyDown(e.nativeEvent, (newIndex) => {
+      setFocusedNavIndex(newIndex)
+      const navLinks = navRef.current?.querySelectorAll('a')
+      if (navLinks && navLinks[newIndex]) {
+        (navLinks[newIndex] as HTMLElement).focus()
+      }
+    })
+  }, [handleKeyDown])
 
   // Handle scroll effect
   useEffect(() => {
@@ -107,6 +132,8 @@ export default function Header() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: animationConfig.ease.default }}
+      role={ARIA_ROLES.BANNER}
+      aria-label="Main navigation"
     >
       {/* Glassmorphism background */}
       <motion.div 
@@ -128,7 +155,14 @@ export default function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: animationConfig.ease.default }}
           >
-            <Link href="/" className="flex items-center space-x-2 group">
+            <Link 
+              href="/" 
+              className={cn(
+                "flex items-center space-x-2 group rounded-lg",
+                getFocusRingClass()
+              )}
+              aria-label="SolFolio - Go to homepage"
+            >
               <motion.div 
                 className="relative h-10 w-10 rounded-lg bg-solana-gradient-primary shadow-glow-purple"
                 whileHover={{ 
@@ -137,6 +171,7 @@ export default function Header() {
                   transition: { duration: 0.3 }
                 }}
                 whileTap={{ scale: 0.95 }}
+                aria-hidden="true"
               >
                 {/* Animated glow effect */}
                 <motion.div
@@ -163,10 +198,13 @@ export default function Header() {
 
           {/* Desktop Navigation with animations */}
           <motion.nav 
+            ref={navRef}
             className="hidden md:flex items-center space-x-1"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
+            role={ARIA_ROLES.NAVIGATION}
+            aria-label="Main navigation"
           >
             {navItems.map((item, index) => (
               <motion.div
@@ -176,7 +214,14 @@ export default function Header() {
               >
                 <Link
                   href={item.href}
-                  className="group relative px-4 py-2"
+                  className={cn(
+                    "group relative px-4 py-2 rounded-lg",
+                    getFocusRingClass()
+                  )}
+                  aria-label={item.ariaLabel}
+                  aria-current={isActiveRoute(item.href) ? 'page' : undefined}
+                  onKeyDown={(e) => handleNavKeyDown(e, index)}
+                  tabIndex={focusedNavIndex === index ? 0 : -1}
                 >
                   <motion.span
                     className={cn(
@@ -201,6 +246,7 @@ export default function Header() {
                         stiffness: 380,
                         damping: 30,
                       }}
+                      aria-hidden="true"
                     />
                   )}
                   
@@ -210,6 +256,7 @@ export default function Header() {
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
+                    aria-hidden="true"
                   />
                 </Link>
               </motion.div>

@@ -13,6 +13,13 @@ import { Sparkline, generateMockPriceData } from '@/components/ui/sparkline';
 import { staggerContainer, staggerItem, fadeInUp, cardHoverVariants } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { PortfolioOverviewSkeleton } from './PortfolioOverviewSkeleton';
+import { 
+  useSkipTarget,
+  getChangeAriaLabel,
+  getLoadingAriaLabel,
+  useAnnounce,
+  prefersReducedMotion
+} from '@/lib/accessibility';
 
 interface PortfolioStats {
   totalValue: number;
@@ -33,6 +40,9 @@ export function PortfolioOverview() {
   const [stats, setStats] = useState<PortfolioStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const skipTargetRef = useSkipTarget('portfolio-overview');
+  const announce = useAnnounce();
+  const reduceMotion = prefersReducedMotion();
 
   useEffect(() => {
     if (connected && publicKey) {
@@ -93,7 +103,7 @@ export function PortfolioOverview() {
       const data = await response.json();
       
       // Handle empty response gracefully
-      setStats({
+      const newStats = {
         totalValue: data.totalValueUSD || 0,
         totalTokens: data.totalAccounts || 0,
         change24h: data.totalChange24h || 0,
@@ -105,7 +115,15 @@ export function PortfolioOverview() {
         sparklineData: data.sparklineData || generateMockPriceData(20),
         totalPositions: data.totalPositions || 0,
         totalProtocols: data.totalProtocols || 0
-      });
+      };
+      setStats(newStats);
+      
+      // Announce portfolio value to screen readers
+      announce(
+        `Portfolio loaded. Total value: ${formatUSD(newStats.totalValue)}. ` +
+        `24 hour change: ${newStats.change24h >= 0 ? 'up' : 'down'} ${Math.abs(newStats.changePercent24h || 0).toFixed(2)} percent.`,
+        'polite'
+      );
     } catch (err) {
       console.error('Error fetching portfolio stats:', err);
       
@@ -130,6 +148,8 @@ export function PortfolioOverview() {
         <Card 
           data-testid="portfolio-overview-card"
           className="relative overflow-hidden border-border-default bg-gradient-to-br from-bg-secondary to-bg-tertiary"
+          role="region"
+          aria-label="Portfolio overview - wallet not connected"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-green-500/5" />
           <CardHeader className="relative">
@@ -145,8 +165,8 @@ export function PortfolioOverview() {
               transition={{ delay: 0.2 }}
               className="text-center py-12"
             >
-              <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">
+              <Wallet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
+              <p className="text-muted-foreground" role="status">
                 Connect your wallet to view your portfolio
               </p>
             </motion.div>
@@ -157,7 +177,11 @@ export function PortfolioOverview() {
   }
 
   if (loading) {
-    return <PortfolioOverviewSkeleton />;
+    return (
+      <div role="status" aria-live="polite" aria-label={getLoadingAriaLabel('portfolio data')}>
+        <PortfolioOverviewSkeleton />
+      </div>
+    );
   }
 
   if (error) {
@@ -171,6 +195,8 @@ export function PortfolioOverview() {
           data-testid="portfolio-overview-card" 
           data-error="true"
           className="relative overflow-hidden border-red-500/20 bg-gradient-to-br from-bg-secondary to-bg-tertiary"
+          role="alert"
+          aria-live="assertive"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-red-600/5" />
           <CardHeader className="relative">
@@ -182,7 +208,8 @@ export function PortfolioOverview() {
               data-testid="error-message"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: reduceMotion ? 0 : 0.2 }}
+              role="alert"
             >
               {error}
             </motion.p>
@@ -208,6 +235,8 @@ export function PortfolioOverview() {
           data-testid="portfolio-overview-card" 
           data-empty="true"
           className="relative overflow-hidden border-border-default bg-gradient-to-br from-bg-secondary to-bg-tertiary"
+          role="region"
+          aria-label="Portfolio overview - empty portfolio"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-green-500/5" />
           <CardHeader className="relative">
@@ -227,7 +256,7 @@ export function PortfolioOverview() {
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
               >
-                <Wallet className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <Wallet className="h-16 w-16 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
               </motion.div>
               <p className="text-muted-foreground mb-2 font-medium">No tokens or positions found</p>
               <p className="text-sm text-muted-foreground">
@@ -255,8 +284,12 @@ export function PortfolioOverview() {
         animate="rest"
       >
         <Card 
+          ref={skipTargetRef}
           data-testid="portfolio-overview-card"
           className="relative overflow-hidden border-border-default bg-gradient-to-br from-bg-secondary to-bg-tertiary backdrop-blur-xl"
+          role="region"
+          aria-label="Portfolio overview"
+          aria-live="polite"
         >
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-green-500/5 pointer-events-none" />
@@ -264,16 +297,18 @@ export function PortfolioOverview() {
           <CardHeader className="relative pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-500" />
-                Portfolio Overview
+                <Sparkles className="h-5 w-5 text-purple-500" aria-hidden="true" />
+                <span id="portfolio-title">Portfolio Overview</span>
               </CardTitle>
               {stats.sparklineData && stats.sparklineData.length > 0 && (
-                <Sparkline 
-                  data={stats.sparklineData}
-                  width={80}
-                  height={24}
-                  strokeColor={isPositiveChange ? '#14F195' : '#FF4747'}
-                />
+                <div aria-label="Portfolio performance sparkline chart">
+                  <Sparkline 
+                    data={stats.sparklineData}
+                    width={80}
+                    height={24}
+                    strokeColor={isPositiveChange ? '#14F195' : '#FF4747'}
+                  />
+                </div>
               )}
             </div>
           </CardHeader>
@@ -292,15 +327,17 @@ export function PortfolioOverview() {
                 className="sm:col-span-2 lg:col-span-1 p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-transparent border border-purple-500/20"
               >
                 <div className="flex items-center gap-2 text-sm text-purple-400 mb-2">
-                  <DollarSign className="h-4 w-4" />
-                  <span className="font-medium">Total Value</span>
+                  <DollarSign className="h-4 w-4" aria-hidden="true" />
+                  <span className="font-medium" id="total-value-label">Total Value</span>
                 </div>
                 <div className="flex items-baseline gap-2">
                   <CountUpUSD
                     value={stats.totalValue}
                     className="text-3xl font-bold text-white"
-                    duration={1500}
+                    duration={reduceMotion ? 0 : 1500}
                     enableScrollSpy={false}
+                    aria-labelledby="total-value-label"
+                    aria-live="polite"
                   />
                 </div>
                 {stats.sparklineData && (
@@ -327,11 +364,11 @@ export function PortfolioOverview() {
               >
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                   {isPositiveChange ? (
-                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    <TrendingUp className="h-4 w-4 text-green-500" aria-hidden="true" />
                   ) : (
-                    <TrendingDown className="h-4 w-4 text-red-500" />
+                    <TrendingDown className="h-4 w-4 text-red-500" aria-hidden="true" />
                   )}
-                  <span className="font-medium">24h Change</span>
+                  <span className="font-medium" id="change-24h-label">24h Change</span>
                 </div>
                 <div className="space-y-1">
                   <div className={cn(
@@ -342,7 +379,8 @@ export function PortfolioOverview() {
                     <CountUpUSD
                       value={Math.abs(stats.change24h || 0)}
                       className=""
-                      duration={1200}
+                      duration={reduceMotion ? 0 : 1200}
+                      aria-label={getChangeAriaLabel(stats.totalValue, stats.change24h || 0, stats.changePercent24h || 0)}
                     />
                   </div>
                   <div className="text-sm opacity-80">

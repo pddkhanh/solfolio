@@ -74,6 +74,25 @@
     @apply outline-none ring-2 ring-solana-purple ring-offset-2 ring-offset-bg-primary;
   }
   
+  /* Enhanced keyboard navigation styles */
+  .keyboard-navigation *:focus {
+    @apply outline-none ring-2 ring-solana-purple ring-offset-2 ring-offset-bg-primary;
+  }
+  
+  /* Skip navigation link styles */
+  .sr-only:focus {
+    @apply not-sr-only absolute top-4 left-4 z-50 px-4 py-2 bg-primary text-white rounded-lg;
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --border-default: rgba(255, 255, 255, 0.5);
+      --text-primary: #ffffff;
+      --text-secondary: #e0e0e0;
+    }
+  }
+  
   /* Reduce motion for accessibility */
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -84,6 +103,39 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+    
+    /* Disable specific animations */
+    .motion-safe\:animate-* {
+      animation: none !important;
+    }
+    
+    .motion-safe\:transition-* {
+      transition: none !important;
+    }
+  }
+  
+  /* Focus trap styles for modals */
+  [data-focus-trap] {
+    @apply relative;
+  }
+  
+  /* Accessible hidden content */
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+  
+  /* Screen reader only text that becomes visible on focus */
+  .sr-only-focusable:focus,
+  .sr-only-focusable:active {
+    @apply not-sr-only;
   }
 }
 

@@ -9,6 +9,17 @@ import WalletButton from './WalletButton'
 jest.mock('@solana/wallet-adapter-react')
 jest.mock('@/contexts/WalletContextProvider')
 
+// Mock accessibility module
+jest.mock('@/lib/accessibility', () => ({
+  getFocusRingClass: jest.fn(() => ''),
+  useAnnounce: jest.fn(() => jest.fn()),
+  KEYS: {
+    ENTER: 'Enter',
+    SPACE: ' ',
+    ESCAPE: 'Escape',
+  }
+}))
+
 const mockUseWallet = useWallet as jest.MockedFunction<typeof useWallet>
 const mockUseWalletModal = useWalletModal as jest.MockedFunction<typeof useWalletModal>
 
