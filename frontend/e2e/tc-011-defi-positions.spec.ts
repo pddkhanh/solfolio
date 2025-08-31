@@ -168,12 +168,30 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
 
-    // Connect wallet first
-    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(1000)
+    // Check if wallet is already connected (from injection)
+    const isConnected = await page.getByText(/\w{4,}\.{3}\w{4,}/).isVisible({ timeout: 1000 }).catch(() => false)
+    
+    if (!isConnected) {
+      // Connect wallet if not already connected
+      const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+      await connectButton.click()
+      await page.waitForTimeout(500)
+      
+      // Wait for modal to open and check if Phantom option is available
+      const modalTitle = page.getByText('Connect Your Wallet')
+      const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+      
+      if (isModalVisible) {
+        // Try to find and click Phantom option (case insensitive)
+        const phantomButton = page.getByRole('button').filter({ hasText: /phantom/i })
+        const isPhantomVisible = await phantomButton.first().isVisible({ timeout: 2000 }).catch(() => false)
+        
+        if (isPhantomVisible) {
+          await phantomButton.first().click()
+          await page.waitForTimeout(1000)
+        }
+      }
+    }
 
     // Wait for positions to load
     await page.waitForTimeout(2000)
@@ -257,12 +275,29 @@ test.describe('TC-011: View Staking Positions', () => {
     await page.goto('http://localhost:3000/portfolio')
     await page.waitForLoadState('networkidle')
 
-    // Connect wallet
-    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-    await connectButton.click()
-    await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    // Check if wallet is already connected
+    const isConnected = await page.getByText(/\w{4,}\.{3}\w{4,}/).isVisible({ timeout: 1000 }).catch(() => false)
+    
+    if (!isConnected) {
+      // Connect wallet
+      const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+      await connectButton.click()
+      await page.waitForTimeout(500)
+      
+      // Wait for modal and click Phantom if visible
+      const modalTitle = page.getByText('Connect Your Wallet')
+      const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+      
+      if (isModalVisible) {
+        const phantomButton = page.getByRole('button').filter({ hasText: /phantom/i })
+        const isPhantomVisible = await phantomButton.first().isVisible({ timeout: 2000 }).catch(() => false)
+        
+        if (isPhantomVisible) {
+          await phantomButton.first().click()
+          await page.waitForTimeout(2000)
+        }
+      }
+    }
 
     // Verify empty state message
     testLogger.step('Verifying empty state message...')
@@ -282,8 +317,15 @@ test.describe('TC-011: View Staking Positions', () => {
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
     await connectButton.click()
     await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      await page.getByRole('button', { name: /phantom/i }).click()
+      await page.waitForTimeout(2000)
+    }
 
     // Wait for positions to load - check for either heading
     const defiHeading = page.getByText('DeFi Positions').first()
@@ -326,8 +368,15 @@ test.describe('TC-011: View Staking Positions', () => {
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
     await connectButton.click()
     await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      await page.getByRole('button', { name: /phantom/i }).click()
+      await page.waitForTimeout(2000)
+    }
 
     // Verify error handling
     testLogger.step('Verifying error handling...')
@@ -395,8 +444,15 @@ test.describe('TC-011: View Staking Positions', () => {
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
     await connectButton.click()
     await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      await page.getByRole('button', { name: /phantom/i }).click()
+      await page.waitForTimeout(2000)
+    }
 
     // Verify accessibility structure
     testLogger.step('Verifying accessibility structure...')
@@ -439,8 +495,15 @@ test.describe('TC-011: View Staking Positions', () => {
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
     await connectButton.click()
     await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      await page.getByRole('button', { name: /phantom/i }).click()
+      await page.waitForTimeout(2000)
+    }
 
     // Verify each card shows required elements
     testLogger.step('Verifying position card elements...')
@@ -491,8 +554,15 @@ test.describe('TC-011: View Staking Positions', () => {
     const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
     await connectButton.click()
     await page.waitForTimeout(500)
-    await page.getByRole('button', { name: /phantom/i }).click()
-    await page.waitForTimeout(2000)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      await page.getByRole('button', { name: /phantom/i }).click()
+      await page.waitForTimeout(2000)
+    }
 
     // Wait for positions to load first
     await expect(page.getByText('Marinade Finance').first()).toBeVisible({ timeout: 10000 })

@@ -210,12 +210,29 @@ async function setupPortfolioPage(page: Page) {
   await page.goto('http://localhost:3000/portfolio')
   await page.waitForLoadState('networkidle')
 
-  // Connect wallet
-  const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
-  await connectButton.click()
-  await page.waitForTimeout(500)
-  await page.getByRole('button', { name: /phantom/i }).click()
-  await page.waitForTimeout(1000)
+  // Check if wallet is already connected
+  const isConnected = await page.getByText(/\w{4,}\.{3}\w{4,}/).isVisible({ timeout: 1000 }).catch(() => false)
+  
+  if (!isConnected) {
+    // Connect wallet
+    const connectButton = page.getByRole('button', { name: /connect wallet/i }).first()
+    await connectButton.click()
+    await page.waitForTimeout(500)
+    
+    // Wait for modal and click Phantom if visible
+    const modalTitle = page.getByText('Connect Your Wallet')
+    const isModalVisible = await modalTitle.isVisible({ timeout: 2000 }).catch(() => false)
+    
+    if (isModalVisible) {
+      const phantomButton = page.getByRole('button').filter({ hasText: /phantom/i })
+      const isPhantomVisible = await phantomButton.first().isVisible({ timeout: 2000 }).catch(() => false)
+      
+      if (isPhantomVisible) {
+        await phantomButton.first().click()
+        await page.waitForTimeout(1000)
+      }
+    }
+  }
 }
 
 test.describe('TC-012: Display Position Metrics', () => {
