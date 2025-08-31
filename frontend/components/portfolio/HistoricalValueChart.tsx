@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 // Note: Using native select until shadcn/ui select component is added
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { formatUSD, formatNumber } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, LineChart } from 'lucide-react';
 
 interface HistoricalDataPoint {
   timestamp: string;
@@ -250,12 +252,37 @@ export function HistoricalValueChart() {
 
   if (!connected) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Value History</CardTitle>
-          <CardDescription>Connect your wallet to view historical portfolio value</CardDescription>
-        </CardHeader>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Portfolio Value History
+            </CardTitle>
+            <CardDescription>Track your portfolio performance over time</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-wallet"
+              icon={<LineChart className="w-16 h-16" />}
+              title="Connect to View History"
+              description="Track your portfolio's performance over time with beautiful charts and insights"
+              action={{
+                label: "Connect Wallet",
+                onClick: () => {
+                  const button = document.querySelector('[data-testid="wallet-connect-button"]') as HTMLButtonElement;
+                  if (button) button.click();
+                },
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -290,9 +317,17 @@ export function HistoricalValueChart() {
             <Skeleton className="h-[300px] w-full" />
           </div>
         ) : error ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>{error}</p>
-          </div>
+          <EmptyState
+            variant="error"
+            title="Unable to Load Chart"
+            description={error}
+            action={{
+              label: "Try Again",
+              onClick: () => fetchCurrentValue(),
+            }}
+            className="py-8"
+            animated={true}
+          />
         ) : historicalData && historicalData.dataPoints.length > 0 ? (
           <div className="space-y-4">
             {/* Value and Change Display */}
@@ -351,9 +386,20 @@ export function HistoricalValueChart() {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No historical data available</p>
-          </div>
+          <EmptyState
+            variant="custom"
+            icon={<LineChart className="w-16 h-16" />}
+            title="No Historical Data"
+            description={currentPortfolioValue > 0 
+              ? "Historical data will be available soon. Check back later to see your portfolio's performance over time." 
+              : "Add tokens to your wallet to start tracking your portfolio history"}
+            action={currentPortfolioValue === 0 ? {
+              label: "Get Started",
+              onClick: () => window.open('https://jupiter.ag', '_blank'),
+            } : undefined}
+            className="py-8"
+            animated={true}
+          />
         )}
       </CardContent>
     </Card>

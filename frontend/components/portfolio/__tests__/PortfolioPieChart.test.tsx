@@ -40,7 +40,7 @@ describe('PortfolioPieChart', () => {
     render(<PortfolioPieChart />);
 
     expect(screen.getByText('Portfolio Distribution')).toBeInTheDocument();
-    expect(screen.getByText('Connect your wallet to view portfolio distribution')).toBeInTheDocument();
+    expect(screen.getByText('Connect Wallet to View Distribution')).toBeInTheDocument();
   });
 
   it('should show loading state while fetching data', async () => {
@@ -75,7 +75,7 @@ describe('PortfolioPieChart', () => {
     render(<PortfolioPieChart />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load portfolio data')).toBeInTheDocument();
+      expect(screen.getByText('Unable to Load Chart')).toBeInTheDocument();
     });
   });
 
@@ -100,7 +100,7 @@ describe('PortfolioPieChart', () => {
     render(<PortfolioPieChart />);
 
     await waitFor(() => {
-      expect(screen.getByText('No tokens found in your wallet')).toBeInTheDocument();
+      expect(screen.getByText('No Data to Display')).toBeInTheDocument();
     });
   });
 
@@ -223,7 +223,7 @@ describe('PortfolioPieChart', () => {
     render(<PortfolioPieChart />);
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to load portfolio data')).toBeInTheDocument();
+      expect(screen.getByText('Unable to Load Chart')).toBeInTheDocument();
     });
   });
 
@@ -238,7 +238,7 @@ describe('PortfolioPieChart', () => {
 
     rerender(<PortfolioPieChart />);
 
-    expect(screen.getByText('Connect your wallet to view portfolio distribution')).toBeInTheDocument();
+    expect(screen.getByText('Connect Wallet to View Distribution')).toBeInTheDocument();
 
     // Simulate wallet connection
     (useWallet as jest.Mock).mockReturnValue({

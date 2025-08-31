@@ -118,7 +118,7 @@ describe('ProtocolBreakdown', () => {
 
     render(<ProtocolBreakdown />);
 
-    expect(screen.getByText('Connect your wallet to view protocol breakdown')).toBeInTheDocument();
+    expect(screen.getByText('Connect to View Protocol Distribution')).toBeInTheDocument();
   });
 
   it('should fetch and display protocol breakdown when wallet is connected', async () => {
@@ -276,7 +276,7 @@ describe('ProtocolBreakdown', () => {
     render(<ProtocolBreakdown />);
 
     await waitFor(() => {
-      expect(screen.getByText('No protocol positions found')).toBeInTheDocument();
+      expect(screen.getByText('No Protocol Positions Yet')).toBeInTheDocument();
     });
   });
 

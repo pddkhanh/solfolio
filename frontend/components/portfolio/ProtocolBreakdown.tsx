@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import { formatUSD, formatNumber } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Layers, DollarSign, Percent } from 'lucide-react';
+import { TrendingUp, Layers, DollarSign, Percent, BarChart3 } from 'lucide-react';
 
 interface ProtocolData {
   protocol: string;
@@ -142,17 +144,37 @@ export function ProtocolBreakdown() {
 
   if (!connected) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Protocol Breakdown</CardTitle>
-          <CardDescription>Distribution across DeFi protocols</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Connect your wallet to view protocol breakdown
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Protocol Breakdown
+            </CardTitle>
+            <CardDescription>Distribution across DeFi protocols</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-wallet"
+              icon={<BarChart3 className="w-16 h-16" />}
+              title="Connect to View Protocol Distribution"
+              description="See how your portfolio is distributed across different DeFi protocols"
+              action={{
+                label: "Connect Wallet",
+                onClick: () => {
+                  const button = document.querySelector('[data-testid="wallet-connect-button"]') as HTMLButtonElement;
+                  if (button) button.click();
+                },
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -182,31 +204,68 @@ export function ProtocolBreakdown() {
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Protocol Breakdown</CardTitle>
-          <CardDescription>Distribution across DeFi protocols</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive text-center py-8">{error}</p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-red-500/10">
+          <CardHeader className="bg-gradient-to-r from-red-500/5 to-orange-500/5">
+            <CardTitle className="text-red-500">Protocol Breakdown</CardTitle>
+            <CardDescription>Distribution across DeFi protocols</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="error"
+              title="Unable to Load Protocol Data"
+              description={error}
+              action={{
+                label: "Try Again",
+                onClick: () => fetchProtocolBreakdown(),
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   if (!data || !data.protocols || data.protocols.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Protocol Breakdown</CardTitle>
-          <CardDescription>Distribution across DeFi protocols</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No protocol positions found
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Protocol Breakdown
+            </CardTitle>
+            <CardDescription>Distribution across DeFi protocols</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-positions"
+              icon={<BarChart3 className="w-16 h-16" />}
+              title="No Protocol Positions Yet"
+              description="Start interacting with DeFi protocols to see your position distribution here"
+              action={{
+                label: "Explore Protocols",
+                onClick: () => window.open('https://defillama.com/chain/Solana', '_blank'),
+              }}
+              secondaryAction={{
+                label: "Learn DeFi",
+                onClick: () => window.open('https://solana.com/defi', '_blank'),
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
