@@ -501,6 +501,125 @@ export const swipeVariants: Variants = {
 };
 
 // ============================
+// Mobile Navigation Variants
+// ============================
+
+// Full-screen mobile menu overlay
+export const mobileMenuOverlayVariants: Variants = {
+  initial: {
+    opacity: 0,
+  },
+  animate: {
+    opacity: 1,
+    transition: {
+      duration: animationConfig.duration.normal,
+      ease: animationConfig.ease.default,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: animationConfig.duration.fast,
+      ease: animationConfig.ease.easeIn,
+      delay: 0.1, // Slight delay to let menu slide out first
+    },
+  },
+};
+
+// Slide-in mobile menu
+export const mobileMenuVariants: Variants = {
+  initial: {
+    x: '100%',
+  },
+  animate: {
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      mass: 0.8,
+    },
+  },
+  exit: {
+    x: '100%',
+    transition: {
+      duration: animationConfig.duration.normal,
+      ease: animationConfig.ease.easeIn,
+    },
+  },
+};
+
+// Mobile menu items with stagger
+export const mobileMenuItemVariants: Variants = {
+  initial: {
+    opacity: 0,
+    x: 50,
+  },
+  animate: (custom: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      delay: custom * 0.05 + 0.1, // Stagger with base delay
+      duration: animationConfig.duration.slow,
+      ease: animationConfig.ease.default,
+    },
+  }),
+  exit: {
+    opacity: 0,
+    x: 50,
+    transition: {
+      duration: animationConfig.duration.fast,
+      ease: animationConfig.ease.easeIn,
+    },
+  },
+};
+
+// Hamburger menu icon animation
+export const hamburgerLineVariants = {
+  closed: {
+    rotate: 0,
+    y: 0,
+  },
+  open: {
+    rotate: 45,
+    y: 0,
+  },
+};
+
+export const hamburgerTopLineVariants: Variants = {
+  closed: {
+    rotate: 0,
+    y: 0,
+  },
+  open: {
+    rotate: 45,
+    y: 6,
+  },
+};
+
+export const hamburgerMiddleLineVariants: Variants = {
+  closed: {
+    opacity: 1,
+    x: 0,
+  },
+  open: {
+    opacity: 0,
+    x: -20,
+  },
+};
+
+export const hamburgerBottomLineVariants: Variants = {
+  closed: {
+    rotate: 0,
+    y: 0,
+  },
+  open: {
+    rotate: -45,
+    y: -6,
+  },
+};
+
+// ============================
 // Utility Functions
 // ============================
 

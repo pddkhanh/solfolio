@@ -1,20 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { Menu, X } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { useWebSocketContext } from '@/contexts/WebSocketProvider'
 import ConnectionStatus from '@/components/websocket/ConnectionStatus'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import HamburgerButton from './HamburgerButton'
+import MobileMenu from './MobileMenu'
 import { cn } from '@/lib/utils'
 import { 
-  fadeInUp, 
   staggerContainer, 
   staggerItem,
-  buttonHoverVariants,
   animationConfig 
 } from '@/lib/animations'
 
@@ -31,6 +30,18 @@ const WalletButton = dynamic(
   }
 )
 
+// Dynamic import for wallet connection state
+const WalletConnectionHandler = dynamic(
+  () => import('@/components/wallet/WalletButton').then(mod => ({ 
+    default: mod.default,
+    useWalletConnection: () => {
+      // This will be replaced with actual wallet state when available
+      return { isConnected: false, connect: () => {} }
+    }
+  })),
+  { ssr: false }
+)
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
@@ -41,6 +52,20 @@ export default function Header() {
   // Transform scroll position for header effects
   const headerBackdropBlur = useTransform(scrollY, [0, 50], [8, 12])
   const headerOpacity = useTransform(scrollY, [0, 50], [0.8, 0.95])
+  
+  // Handle menu toggle
+  const toggleMenu = useCallback(() => {
+    setIsMenuOpen(prev => !prev)
+  }, [])
+  
+  const closeMenu = useCallback(() => {
+    setIsMenuOpen(false)
+  }, [])
+  
+  // Mock wallet connection handler (will be replaced with actual implementation)
+  const handleWalletConnect = useCallback(() => {
+    console.log('Wallet connection triggered')
+  }, [])
 
   const navItems = [
     { href: '/', label: 'Dashboard' },
@@ -232,103 +257,21 @@ export default function Header() {
               <WalletButton />
             </motion.div>
 
-            {/* Mobile menu button with animation */}
-            <motion.button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-              variants={buttonHoverVariants}
-              initial="rest"
-              whileHover="hover"
-              whileTap="tap"
-              animate={isMenuOpen ? { rotate: 180 } : { rotate: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <AnimatePresence mode="wait">
-                {isMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ opacity: 0, rotate: -180 }}
-                    animate={{ opacity: 1, rotate: 0 }}
-                    exit={{ opacity: 0, rotate: 180 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-5 w-5" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ opacity: 0, rotate: 180 }}
-                    animate={{ opacity: 1, rotate: 0 }}
-                    exit={{ opacity: 0, rotate: -180 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.button>
+            {/* Mobile menu button with animated hamburger */}
+            <HamburgerButton 
+              isOpen={isMenuOpen}
+              onClick={toggleMenu}
+            />
           </motion.div>
         </div>
 
-        {/* Mobile Navigation with animations */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              className="md:hidden absolute left-0 right-0 top-[72px] bg-bg-primary/95 backdrop-blur-xl border-b border-border-default/50 shadow-xl"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: animationConfig.ease.default }}
-            >
-              <motion.nav 
-                className="flex flex-col p-4"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                {navItems.map((item, index) => (
-                  <motion.div
-                    key={item.href}
-                    variants={fadeInUp}
-                    custom={index}
-                  >
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200",
-                        isActiveRoute(item.href)
-                          ? "bg-accent/10 text-text-primary"
-                          : "text-text-secondary hover:text-text-primary hover:bg-accent/5"
-                      )}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <span className="relative">
-                        {item.label}
-                        {isActiveRoute(item.href) && (
-                          <motion.div
-                            className="absolute -left-4 top-0 bottom-0 w-1 bg-solana-gradient-primary rounded-full"
-                            layoutId="activeMobileIndicator"
-                            transition={{
-                              type: "spring",
-                              stiffness: 380,
-                              damping: 30,
-                            }}
-                          />
-                        )}
-                      </span>
-                    </Link>
-                  </motion.div>
-                ))}
-                <motion.div 
-                  variants={fadeInUp}
-                  className="pt-4 mt-4 border-t border-border-default/50"
-                >
-                  <WalletButton />
-                </motion.div>
-              </motion.nav>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Enhanced Mobile Navigation Menu */}
+        <MobileMenu 
+          isOpen={isMenuOpen}
+          onClose={closeMenu}
+          onWalletConnect={handleWalletConnect}
+          isWalletConnected={false} // Will be replaced with actual wallet state
+        />
       </div>
     </motion.header>
   )

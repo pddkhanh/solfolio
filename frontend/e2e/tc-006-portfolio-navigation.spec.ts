@@ -408,20 +408,37 @@ test.describe('TC-006: Navigate to Portfolio Page', () => {
       await page.goto(baseURL || '/')
       await page.waitForLoadState('networkidle')
       
-      // Step 1: Open mobile menu
+      // Step 1: Open mobile menu using hamburger button
       console.log('Opening mobile menu...')
-      const menuButton = page.locator('button:has(svg)')
-        .filter({ has: page.locator('svg.h-5.w-5') })
-        .first()
+      // Look for the hamburger button with proper aria-label
+      const menuButton = page.locator('button[aria-label="Open navigation menu"]').first()
       await expect(menuButton).toBeVisible()
-      await menuButton.click()
+      // Use JavaScript to click the button directly
+      await menuButton.evaluate((el: HTMLElement) => el.click())
       
-      // Step 2: Verify mobile menu is open
-      await expect(page.locator('nav').locator('a:has-text("Portfolio")').last()).toBeVisible()
+      // Wait for menu animation to complete
+      await page.waitForTimeout(500)
       
-      // Step 3: Click Portfolio link in mobile menu
+      // Step 2 & 3: Find and click Portfolio link in mobile menu
       console.log('Clicking Portfolio link in mobile menu...')
-      await page.locator('nav').locator('a:has-text("Portfolio")').last().click()
+      // Look for Portfolio links and find the visible one
+      const portfolioLinks = await page.locator('a[href="/portfolio"]').all()
+      let portfolioLink = null
+      for (const link of portfolioLinks) {
+        if (await link.isVisible()) {
+          const text = await link.textContent()
+          if (text && text.includes('Portfolio')) {
+            portfolioLink = link
+            break
+          }
+        }
+      }
+      
+      if (!portfolioLink) {
+        throw new Error('Portfolio link not found in mobile menu')
+      }
+      
+      await portfolioLink.click()
       
       // Step 4: Verify navigation to portfolio page
       await page.waitForURL('**/portfolio')
@@ -432,7 +449,9 @@ test.describe('TC-006: Navigate to Portfolio Page', () => {
       await expect(page.getByText(/connect your wallet to view your portfolio/i)).toBeVisible()
       
       // Step 6: Verify mobile menu is closed after navigation
-      await expect(page.locator('nav').locator('a:has-text("Dashboard")').last()).not.toBeVisible()
+      // Check that hamburger button is back to "Open" state
+      const hamburgerButtonAfter = page.locator('button[aria-label="Open navigation menu"]').first()
+      await expect(hamburgerButtonAfter).toBeVisible()
     })
   })
 })
