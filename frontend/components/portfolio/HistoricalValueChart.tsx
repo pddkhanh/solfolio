@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-// Note: Using native select until shadcn/ui select component is added
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { formatUSD, formatNumber } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Minus, LineChart } from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  ReferenceLine
+} from 'recharts';
+import { formatUSD, formatNumber, cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown, Minus, LineChart, Clock } from 'lucide-react';
 
 interface HistoricalDataPoint {
   timestamp: string;
@@ -28,9 +36,10 @@ interface HistoricalData {
   period: string;
 }
 
-type TimePeriod = '24h' | '7d' | '30d' | '90d' | 'all';
+type TimePeriod = '1h' | '24h' | '7d' | '30d' | '90d' | 'all';
 
 const TIME_PERIOD_LABELS: Record<TimePeriod, string> = {
+  '1h': '1 Hour',
   '24h': '24 Hours',
   '7d': '7 Days',
   '30d': '30 Days',
@@ -38,20 +47,57 @@ const TIME_PERIOD_LABELS: Record<TimePeriod, string> = {
   'all': 'All Time',
 };
 
-// Custom tooltip component
+// Time period button configuration for styling
+const TIME_PERIOD_CONFIG: Record<TimePeriod, { label: string; shortLabel: string }> = {
+  '1h': { label: '1 Hour', shortLabel: '1H' },
+  '24h': { label: '24 Hours', shortLabel: '24H' },
+  '7d': { label: '7 Days', shortLabel: '7D' },
+  '30d': { label: '30 Days', shortLabel: '30D' },
+  '90d': { label: '90 Days', shortLabel: '90D' },
+  'all': { label: 'All Time', shortLabel: 'ALL' },
+};
+
+// Enhanced custom tooltip with glassmorphism effect
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload[0]) {
     const data = payload[0];
+    const isPositive = data.payload.percentageChange >= 0;
+    
     return (
-      <div className="bg-background border rounded-lg shadow-lg p-3">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="font-semibold">{formatUSD(data.value)}</p>
-        {data.payload.percentageChange !== undefined && (
-          <p className={`text-sm ${data.payload.percentageChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-            {data.payload.percentageChange >= 0 ? '+' : ''}{formatNumber(data.payload.percentageChange)}%
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.15 }}
+        className="relative"
+      >
+        <div className="bg-background/95 backdrop-blur-lg border border-border-default rounded-lg shadow-xl p-3 min-w-[180px]">
+          <div className="flex items-center gap-2 mb-1">
+            <Clock className="w-3 h-3 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground font-medium">{label}</p>
+          </div>
+          <p className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            {formatUSD(data.value)}
           </p>
-        )}
-      </div>
+          {data.payload.percentageChange !== undefined && (
+            <div className="flex items-center gap-1 mt-1">
+              {isPositive ? (
+                <TrendingUp className="w-3 h-3 text-green-500" />
+              ) : (
+                <TrendingDown className="w-3 h-3 text-red-500" />
+              )}
+              <p className={cn(
+                "text-sm font-medium",
+                isPositive ? 'text-green-500' : 'text-red-500'
+              )}>
+                {isPositive ? '+' : ''}{formatNumber(data.payload.percentageChange)}%
+              </p>
+            </div>
+          )}
+        </div>
+        {/* Tooltip arrow */}
+        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-background/95 border-b border-r border-border-default rotate-45" />
+      </motion.div>
     );
   }
   return null;
@@ -66,6 +112,10 @@ const generateMockData = (period: TimePeriod, currentValue: number): HistoricalD
   let hoursPerInterval: number;
   
   switch (period) {
+    case '1h':
+      intervals = 12;
+      hoursPerInterval = 0.083; // 5 minutes
+      break;
     case '24h':
       intervals = 24;
       hoursPerInterval = 1;
@@ -127,9 +177,9 @@ const generateMockData = (period: TimePeriod, currentValue: number): HistoricalD
 };
 
 function formatDateForPeriod(date: Date, period: TimePeriod): string {
-  const options: Intl.DateTimeFormatOptions = {};
-  
   switch (period) {
+    case '1h':
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     case '24h':
       return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     case '7d':
@@ -151,6 +201,9 @@ export function HistoricalValueChart() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPortfolioValue, setCurrentPortfolioValue] = useState<number>(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hoveredDataPoint, setHoveredDataPoint] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   // Fetch current portfolio value
   useEffect(() => {
@@ -162,10 +215,15 @@ export function HistoricalValueChart() {
     }
   }, [connected, publicKey]);
 
-  // Generate historical data when period or value changes
+  // Generate historical data when period or value changes with smooth transition
   useEffect(() => {
     if (currentPortfolioValue > 0 && publicKey) {
-      generateHistoricalData();
+      setIsTransitioning(true);
+      const timer = setTimeout(() => {
+        generateHistoricalData();
+        setIsTransitioning(false);
+      }, 150);
+      return () => clearTimeout(timer);
     }
   }, [period, currentPortfolioValue, publicKey]);
 
@@ -287,35 +345,91 @@ export function HistoricalValueChart() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Portfolio Value History</CardTitle>
-            <CardDescription>Track your portfolio performance over time</CardDescription>
-          </div>
-          <select 
-            value={period} 
-            onChange={(e) => setPeriod(e.target.value as TimePeriod)}
-            className="w-[120px] px-3 py-2 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            {Object.entries(TIME_PERIOD_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
+            <CardTitle className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Portfolio Value History
+            </CardTitle>
+            <CardDescription>Track your portfolio performance over time</CardDescription>
+          </motion.div>
+          
+          {/* Enhanced time period selector with animation */}
+          <motion.div 
+            className="flex gap-1 p-1 bg-background/50 backdrop-blur-sm rounded-lg border border-border-default"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            {Object.entries(TIME_PERIOD_CONFIG).map(([value, config], index) => (
+              <motion.button
+                key={value}
+                onClick={() => setPeriod(value as TimePeriod)}
+                className={cn(
+                  "relative px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+                  "hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50",
+                  period === value
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:bg-background/80"
+                )}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index * 0.05 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {period === value && (
+                  <motion.div
+                    layoutId="activePeriod"
+                    className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-md border border-primary/30"
+                    initial={false}
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30
+                    }}
+                  />
+                )}
+                <span className="relative z-10 hidden sm:inline">{config.label}</span>
+                <span className="relative z-10 sm:hidden">{config.shortLabel}</span>
+              </motion.button>
             ))}
-          </select>
+          </motion.div>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="space-y-4">
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <div className="flex items-center justify-between">
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-6 w-24" />
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-32 bg-gradient-to-r from-gray-800 to-gray-700" />
+                <Skeleton className="h-4 w-24 bg-gradient-to-r from-gray-800 to-gray-700" />
+              </div>
+              <Skeleton className="h-6 w-20 bg-gradient-to-r from-gray-800 to-gray-700" />
             </div>
-            <Skeleton className="h-[300px] w-full" />
-          </div>
+            <div className="relative h-[320px] w-full overflow-hidden rounded-lg">
+              <Skeleton className="h-full w-full bg-gradient-to-r from-gray-800 to-gray-700" />
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                animate={{ x: [-1000, 1000] }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+              />
+            </div>
+          </motion.div>
         ) : error ? (
           <EmptyState
             variant="error"
@@ -329,62 +443,180 @@ export function HistoricalValueChart() {
             animated={true}
           />
         ) : historicalData && historicalData.dataPoints.length > 0 ? (
-          <div className="space-y-4">
-            {/* Value and Change Display */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{formatUSD(currentPortfolioValue)}</p>
-                <div className={`flex items-center gap-1 ${trendColor}`}>
-                  <TrendIcon className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {historicalData.changeAmount >= 0 ? '+' : ''}
-                    {formatUSD(historicalData.changeAmount)}
-                  </span>
-                  <span className="text-sm">
-                    ({historicalData.changePercentage >= 0 ? '+' : ''}
-                    {formatNumber(historicalData.changePercentage)}%)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Chart */}
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart
-                data={historicalData.dataPoints}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={period}
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Enhanced Value and Change Display */}
+              <motion.div 
+                className="flex items-center justify-between"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
               >
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  domain={chartDomain}
-                  tick={{ fontSize: 12 }}
-                  className="text-muted-foreground"
-                  tickFormatter={(value) => `$${formatNumber(value)}`}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#colorValue)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+                <div>
+                  <motion.p 
+                    className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    {formatUSD(currentPortfolioValue)}
+                  </motion.p>
+                  <motion.div 
+                    className={cn("flex items-center gap-2 mt-1", trendColor)}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <motion.div
+                      animate={{ 
+                        y: historicalData.changePercentage > 0 ? [0, -2, 0] : historicalData.changePercentage < 0 ? [0, 2, 0] : 0
+                      }}
+                      transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                    >
+                      <TrendIcon className="h-4 w-4" />
+                    </motion.div>
+                    <span className="text-sm font-semibold">
+                      {historicalData.changeAmount >= 0 ? '+' : ''}
+                      {formatUSD(historicalData.changeAmount)}
+                    </span>
+                    <span className="text-sm opacity-80">
+                      ({historicalData.changePercentage >= 0 ? '+' : ''}
+                      {formatNumber(historicalData.changePercentage)}%)
+                    </span>
+                  </motion.div>
+                </div>
+                <motion.div
+                  className="text-right"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <p className="text-xs text-muted-foreground">{TIME_PERIOD_LABELS[period]}</p>
+                  <p className="text-xs text-muted-foreground/70">Performance</p>
+                </motion.div>
+              </motion.div>
+
+              {/* Enhanced Chart with Solana gradients */}
+              <motion.div
+                ref={chartRef}
+                className="relative"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: isTransitioning ? 0.5 : 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <ResponsiveContainer width="100%" height={320}>
+                  <AreaChart
+                    data={historicalData.dataPoints}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    onMouseMove={(e: any) => {
+                      if (e && e.activeTooltipIndex !== undefined && typeof e.activeTooltipIndex === 'number') {
+                        setHoveredDataPoint(e.activeTooltipIndex);
+                      }
+                    }}
+                    onMouseLeave={() => setHoveredDataPoint(null)}
+                  >
+                    <defs>
+                      {/* Solana gradient */}
+                      <linearGradient id="solanaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#9945FF" stopOpacity={0.4} />
+                        <stop offset="50%" stopColor="#14F195" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#14F195" stopOpacity={0} />
+                      </linearGradient>
+                      {/* Line gradient */}
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#9945FF" />
+                        <stop offset="100%" stopColor="#14F195" />
+                      </linearGradient>
+                      {/* Positive gradient */}
+                      <linearGradient id="positiveGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#14F195" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#14F195" stopOpacity={0} />
+                      </linearGradient>
+                      {/* Negative gradient */}
+                      <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FF4747" stopOpacity={0.3} />
+                        <stop offset="100%" stopColor="#FF4747" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    
+                    <CartesianGrid 
+                      strokeDasharray="3 3" 
+                      stroke="rgba(255, 255, 255, 0.05)"
+                      vertical={false}
+                    />
+                    
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.5)' }}
+                      stroke="rgba(255, 255, 255, 0.1)"
+                      interval="preserveStartEnd"
+                      tickMargin={8}
+                    />
+                    
+                    <YAxis
+                      domain={chartDomain}
+                      tick={{ fontSize: 11, fill: 'rgba(255, 255, 255, 0.5)' }}
+                      stroke="rgba(255, 255, 255, 0.1)"
+                      tickFormatter={(value) => `$${formatNumber(value)}`}
+                      width={60}
+                    />
+                    
+                    {/* Reference line at starting value */}
+                    {historicalData && (
+                      <ReferenceLine 
+                        y={historicalData.previousValue} 
+                        stroke="rgba(255, 255, 255, 0.2)"
+                        strokeDasharray="5 5"
+                        label={{ 
+                          value: "Start", 
+                          position: "left",
+                          style: { fill: 'rgba(255, 255, 255, 0.3)', fontSize: 10 }
+                        }}
+                      />
+                    )}
+                    
+                    {/* Hover crosshair */}
+                    {hoveredDataPoint !== null && historicalData && (
+                      <ReferenceLine 
+                        x={historicalData.dataPoints[hoveredDataPoint]?.date}
+                        stroke="rgba(255, 255, 255, 0.15)"
+                        strokeDasharray="3 3"
+                      />
+                    )}
+                    
+                    <Tooltip 
+                      content={<CustomTooltip />}
+                      cursor={{
+                        stroke: 'rgba(153, 69, 255, 0.2)',
+                        strokeWidth: 1,
+                        strokeDasharray: '5 5'
+                      }}
+                      animationDuration={200}
+                      animationEasing="ease-out"
+                    />
+                    
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="url(#lineGradient)"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill={historicalData.changePercentage >= 0 ? "url(#solanaGradient)" : "url(#negativeGradient)"}
+                      animationDuration={600}
+                      animationEasing="ease-out"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </motion.div>
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <EmptyState
             variant="custom"
