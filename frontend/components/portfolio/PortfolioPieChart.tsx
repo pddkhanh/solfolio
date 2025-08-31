@@ -2,10 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { formatUSD, formatNumber } from '@/lib/utils';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
 interface TokenBalance {
   mint: string;
@@ -180,17 +183,36 @@ export function PortfolioPieChart() {
 
   if (!connected) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Distribution</CardTitle>
-          <CardDescription>Token allocation by value</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Connect your wallet to view portfolio distribution
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Portfolio Distribution
+            </CardTitle>
+            <CardDescription>Token allocation by value</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-wallet"
+              title="Connect Wallet to View Distribution"
+              description="See your token allocation breakdown in a beautiful interactive chart"
+              action={{
+                label: "Connect Wallet",
+                onClick: () => {
+                  const button = document.querySelector('[data-testid="wallet-connect-button"]') as HTMLButtonElement;
+                  if (button) button.click();
+                },
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
@@ -210,31 +232,64 @@ export function PortfolioPieChart() {
 
   if (error) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Distribution</CardTitle>
-          <CardDescription>Token allocation by value</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive text-center py-8">{error}</p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-red-500/10">
+          <CardHeader className="bg-gradient-to-r from-red-500/5 to-orange-500/5">
+            <CardTitle className="text-red-500">Portfolio Distribution</CardTitle>
+            <CardDescription>Token allocation by value</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="error"
+              title="Unable to Load Chart"
+              description={error}
+              action={{
+                label: "Try Again",
+                onClick: () => fetchBalances(),
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   if (!balances || chartData.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Portfolio Distribution</CardTitle>
-          <CardDescription>Token allocation by value</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No tokens found in your wallet
-          </p>
-        </CardContent>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="overflow-hidden border-purple-500/10">
+          <CardHeader className="bg-gradient-to-r from-purple-500/5 to-green-500/5">
+            <CardTitle className="bg-gradient-to-r from-purple-500 to-green-500 bg-clip-text text-transparent">
+              Portfolio Distribution
+            </CardTitle>
+            <CardDescription>Token allocation by value</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <EmptyState
+              variant="no-tokens"
+              icon={<PieChartIcon className="w-16 h-16" />}
+              title="No Data to Display"
+              description="Start adding tokens to your wallet to see your portfolio distribution"
+              action={{
+                label: "Get Started",
+                onClick: () => window.open('https://jupiter.ag', '_blank'),
+              }}
+              className="py-12"
+              animated={true}
+            />
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 

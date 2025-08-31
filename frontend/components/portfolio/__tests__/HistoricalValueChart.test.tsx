@@ -52,7 +52,7 @@ describe('HistoricalValueChart', () => {
       render(<HistoricalValueChart />);
       
       expect(screen.getByText('Portfolio Value History')).toBeInTheDocument();
-      expect(screen.getByText('Connect your wallet to view historical portfolio value')).toBeInTheDocument();
+      expect(screen.getByText('Connect to View History')).toBeInTheDocument();
     });
 
     it('should not render the chart', () => {
@@ -244,7 +244,7 @@ describe('HistoricalValueChart', () => {
       render(<HistoricalValueChart />);
 
       await waitFor(() => {
-        expect(screen.getByText('No historical data available')).toBeInTheDocument();
+        expect(screen.getByText('No Historical Data')).toBeInTheDocument();
       });
     });
 
@@ -263,7 +263,7 @@ describe('HistoricalValueChart', () => {
       render(<HistoricalValueChart />);
 
       await waitFor(() => {
-        expect(screen.getByText('No historical data available')).toBeInTheDocument();
+        expect(screen.getByText('No Historical Data')).toBeInTheDocument();
       });
     });
   });
