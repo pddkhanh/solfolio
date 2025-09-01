@@ -60,11 +60,17 @@ jest.mock('@/hooks/useAdvancedFilters', () => ({
 // Mock framer-motion
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, initial, animate, exit, transition, ...props }: any) => <div {...props}>{children}</div>,
-    button: ({ children, onClick, initial, animate, exit, transition, whileHover, whileTap, ...props }: any) => (
+    div: ({ children, initial, animate, exit, transition, variants, whileHover, whileTap, whileFocus, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, onClick, initial, animate, exit, transition, whileHover, whileTap, whileFocus, variants, ...props }: any) => (
       <button onClick={onClick} {...props}>
         {children}
       </button>
+    ),
+    input: ({ children, initial, animate, exit, transition, whileHover, whileTap, whileFocus, variants, ...props }: any) => (
+      <input {...props}>{children}</input>
+    ),
+    select: ({ children, initial, animate, exit, transition, whileHover, whileTap, whileFocus, variants, ...props }: any) => (
+      <select {...props}>{children}</select>
     ),
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
@@ -89,6 +95,28 @@ describe('FilterPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset mock values to defaults
+    mockUseAdvancedFilters.filters = {
+      searchQuery: '',
+      tokenTypes: [],
+      protocols: [],
+      chains: [],
+      positionTypes: [],
+      valueRange: null,
+      apyRange: null,
+      hideSmallBalances: false,
+      hideZeroBalances: true,
+      showOnlyStaked: false,
+      showOnlyActive: false,
+      sortBy: 'value' as const,
+      sortOrder: 'desc' as const,
+      viewMode: 'list' as const,
+      groupBy: 'none' as const,
+    };
+    mockUseAdvancedFilters.hasActiveFilters = false;
+    mockUseAdvancedFilters.activeFilterCount = 0;
+    mockUseAdvancedFilters.presets = [];
+    mockUseAdvancedFilters.activePresetId = null;
   });
 
   it('renders filter panel header', () => {

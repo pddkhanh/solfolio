@@ -94,11 +94,11 @@ describe('FilterDrawer', () => {
   it('calls onClose when X button is clicked', () => {
     render(<FilterDrawer {...defaultProps} isOpen={true} />);
 
-    // Find the close button by looking for X icon or close functionality
-    const closeButton = screen.getByRole('button', { name: /close/i }) || 
-                       screen.getAllByRole('button').find(btn => 
-                         btn.querySelector('svg') || btn.textContent?.includes('×')
-                       );
+    // Find the close button - it's the first button that contains an SVG (X icon)
+    const allButtons = screen.getAllByRole('button');
+    const closeButton = allButtons.find(btn => 
+      btn.querySelector('svg') || btn.getAttribute('aria-label')?.includes('close')
+    );
 
     if (closeButton) {
       fireEvent.click(closeButton);
