@@ -27,6 +27,8 @@ export interface UseWebSocketReturn {
   connectionStatus: ConnectionStatus;
   isConnected: boolean;
   error: string | null;
+  reconnectAttempt: number;
+  maxReconnectAttempts: number;
   subscribeToPrices: () => void;
   unsubscribeFromPrices: () => void;
   subscribeToWallet: (walletAddress: string) => void;
@@ -199,6 +201,7 @@ export const useWebSocket = (serverUrl?: string): UseWebSocketReturn => {
         socketRef.current?.off('price:update', callback);
       };
     }
+    return () => {}; // Return empty function when socket is not connected
   }, []);
 
   const onWalletUpdate = useCallback((callback: (data: WalletUpdate) => void) => {
@@ -208,6 +211,7 @@ export const useWebSocket = (serverUrl?: string): UseWebSocketReturn => {
         socketRef.current?.off('wallet:update', callback);
       };
     }
+    return () => {}; // Return empty function when socket is not connected
   }, []);
 
   const onPositionUpdate = useCallback((callback: (data: PositionUpdate) => void) => {
@@ -217,6 +221,7 @@ export const useWebSocket = (serverUrl?: string): UseWebSocketReturn => {
         socketRef.current?.off('position:update', callback);
       };
     }
+    return () => {}; // Return empty function when socket is not connected
   }, []);
 
   return {
@@ -224,6 +229,8 @@ export const useWebSocket = (serverUrl?: string): UseWebSocketReturn => {
     connectionStatus,
     isConnected: connectionStatus === 'connected',
     error,
+    reconnectAttempt: reconnectAttempts.current,
+    maxReconnectAttempts,
     subscribeToPrices,
     unsubscribeFromPrices,
     subscribeToWallet,
