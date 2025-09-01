@@ -9,7 +9,12 @@ import WebSocketProvider from '@/contexts/WebSocketProvider'
 import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 import MockWalletInjector from '@/components/providers/MockWalletInjector'
-import WalletConnectModal from '@/components/wallet/WalletConnectModal'
+import dynamic from 'next/dynamic'
+
+const WalletConnectModal = dynamic(
+  () => import('@/components/wallet/WalletConnectModal'),
+  { ssr: false }
+)
 import { ThemeProvider } from '@/contexts/ThemeProvider'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { PageTransition } from '@/components/layout/PageTransition'
