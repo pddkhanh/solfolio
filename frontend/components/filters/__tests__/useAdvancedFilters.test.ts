@@ -231,6 +231,13 @@ describe('useAdvancedFilters', () => {
   });
 
   it('handles localStorage errors gracefully', () => {
+    // Suppress console.error for this test since we expect errors
+    const originalConsoleError = console.error;
+    const consoleSpy = jest.fn();
+    console.error = consoleSpy;
+
+    // Temporarily mock localStorage to throw an error
+    const originalGetItem = localStorageMock.getItem;
     localStorageMock.getItem.mockImplementation(() => {
       throw new Error('Storage error');
     });
@@ -239,6 +246,20 @@ describe('useAdvancedFilters', () => {
     const { result } = renderHook(() => useAdvancedFilters());
 
     expect(result.current.filters).toEqual(DEFAULT_FILTER_STATE);
+    
+    // Verify errors were caught
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to load filter state'),
+      expect.any(Error)
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to load filter presets'),
+      expect.any(Error)
+    );
+    
+    // Restore original mock and console
+    localStorageMock.getItem = originalGetItem;
+    console.error = originalConsoleError;
   });
 
   it('provides filter and sort utility functions', () => {

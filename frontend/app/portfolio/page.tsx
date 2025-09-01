@@ -1,7 +1,7 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useWalletModal } from '@solana/wallet-adapter-react-ui';
+import { useWalletModal } from '@/contexts/WalletContextProvider';
 import { Button } from '@/components/ui/button';
 
 import { PortfolioOverview } from '@/components/portfolio/PortfolioOverview';
