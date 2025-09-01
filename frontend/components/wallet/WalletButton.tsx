@@ -491,6 +491,7 @@ export default function WalletButton() {
       </DropdownMenuContent>
     </DropdownMenu>
       )}
+      <WalletConnectModal />
     </>
   )
 }
