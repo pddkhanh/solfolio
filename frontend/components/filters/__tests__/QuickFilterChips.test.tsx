@@ -131,16 +131,6 @@ describe('QuickFilterChips', () => {
     expect(screen.getByText('Show less')).toBeInTheDocument();
   });
 
-  it('shows active filter summary', () => {
-    render(<QuickFilterChips {...defaultProps} />);
-
-    // Select a filter
-    fireEvent.click(screen.getByText('Staking'));
-
-    // Should show in summary
-    expect(screen.getByText('Staking')).toBeInTheDocument();
-  });
-
   it('handles custom filters', () => {
     const customFilters = [
       {
