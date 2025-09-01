@@ -3,7 +3,7 @@
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useWalletModal } from '@/contexts/WalletContextProvider'
 import { Button } from '@/components/ui/button'
-import WalletConnectModal from './WalletConnectModal'
+// WalletConnectModal is rendered in app/layout.tsx to avoid duplication
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -491,7 +491,6 @@ export default function WalletButton() {
       </DropdownMenuContent>
     </DropdownMenu>
       )}
-      <WalletConnectModal />
     </>
   )
 }
