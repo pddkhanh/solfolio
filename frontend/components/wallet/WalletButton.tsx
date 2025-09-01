@@ -108,11 +108,12 @@ export default function WalletButton() {
   }
 
   const handleConnect = () => {
-    console.log('[WalletButton] Opening wallet modal...')
-    console.log('[WalletButton] Available wallets:', wallet?.adapter.name)
-    console.log('[WalletButton] Wallet state:', { connected, connecting, publicKey: publicKey?.toString() })
+    console.log('[WalletButton] Connect button clicked')
+    console.log('[WalletButton] Current modal visibility:', visible)
+    console.log('[WalletButton] Setting modal visibility to true')
     setConnectionError(null)
     setVisible(true)
+    console.log('[WalletButton] Modal visibility set, should be visible now')
   }
 
   const handleDisconnect = async () => {
@@ -160,9 +161,9 @@ export default function WalletButton() {
     }
   }
 
-  if (!connected) {
-    return (
-      <>
+  return (
+    <>
+      {!connected ? (
         <div className="flex flex-col items-end gap-2">
           <motion.div
             variants={buttonHoverVariants}
@@ -270,14 +271,8 @@ export default function WalletButton() {
             )}
           </AnimatePresence>
         </div>
-        <WalletConnectModal />
-      </>
-    )
-  }
-
-  return (
-    <>
-      <DropdownMenu>
+      ) : (
+        <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <motion.div
             variants={buttonHoverVariants}
@@ -495,7 +490,8 @@ export default function WalletButton() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-    <WalletConnectModal />
+      )}
+      <WalletConnectModal />
     </>
   )
 }
