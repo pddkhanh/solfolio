@@ -9,6 +9,7 @@ import WebSocketProvider from '@/contexts/WebSocketProvider'
 import PositionChangeNotifications from '@/components/notifications/PositionChangeNotification'
 import WalletErrorBoundary from '@/components/wallet/WalletErrorBoundary'
 import MockWalletInjector from '@/components/providers/MockWalletInjector'
+import WalletConnectModal from '@/components/wallet/WalletConnectModal'
 import { ThemeProvider } from '@/contexts/ThemeProvider'
 import { GlobalErrorBoundary } from '@/components/error/GlobalErrorBoundary'
 import { PageTransition } from '@/components/layout/PageTransition'
@@ -53,6 +54,7 @@ export default function RootLayout({
                     <div className="relative flex min-h-screen flex-col">
                       <SkipNavigation />
                       <Header />
+                      <WalletConnectModal />
                       <PositionChangeNotifications />
                       <main 
                         id="main-content"
