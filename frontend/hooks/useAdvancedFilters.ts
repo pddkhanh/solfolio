@@ -237,7 +237,8 @@ export function useAdvancedFilters(): UseAdvancedFiltersReturn {
     if (filters.valueRange) count++;
     if (filters.apyRange) count++;
     if (filters.hideSmallBalances) count++;
-    if (filters.hideZeroBalances) count++;
+    // Only count hideZeroBalances if it's different from default
+    if (filters.hideZeroBalances !== DEFAULT_FILTER_STATE.hideZeroBalances) count++;
     if (filters.showOnlyStaked) count++;
     if (filters.showOnlyActive) count++;
     

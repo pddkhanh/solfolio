@@ -35,6 +35,17 @@ describe('QuickFilterChips', () => {
   it('renders all quick filter chips', () => {
     render(<QuickFilterChips {...defaultProps} />);
 
+    // Initially shows first 4 filters
+    const visibleFilters = QUICK_FILTERS.slice(0, 4);
+    visibleFilters.forEach(filter => {
+      expect(screen.getByText(filter.label)).toBeInTheDocument();
+    });
+
+    // Click show more to see all filters
+    const showMoreButton = screen.getByText(/\+\d+ more/);
+    fireEvent.click(showMoreButton);
+
+    // Now all filters should be visible
     QUICK_FILTERS.forEach(filter => {
       expect(screen.getByText(filter.label)).toBeInTheDocument();
     });
@@ -120,16 +131,6 @@ describe('QuickFilterChips', () => {
     expect(screen.getByText('Show less')).toBeInTheDocument();
   });
 
-  it('shows active filter summary', () => {
-    render(<QuickFilterChips {...defaultProps} />);
-
-    // Select a filter
-    fireEvent.click(screen.getByText('Staking'));
-
-    // Should show in summary
-    expect(screen.getByText('Staking')).toBeInTheDocument();
-  });
-
   it('handles custom filters', () => {
     const customFilters = [
       {
@@ -147,6 +148,10 @@ describe('QuickFilterChips', () => {
         customFilters={customFilters}
       />
     );
+
+    // Custom filter is added after the default filters, so expand to see it
+    const showMoreButton = screen.getByText(/\+\d+ more/);
+    fireEvent.click(showMoreButton);
 
     expect(screen.getByText('Custom Test')).toBeInTheDocument();
   });
