@@ -19,7 +19,12 @@
     "test:e2e:testmode": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --reporter=list",
     "test:e2e:testmode:ui": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --ui",
     "test:e2e:testmode:debug": "NEXT_PUBLIC_E2E_TEST_MODE=true playwright test --debug --headed",
-    "dev:testmode": "NEXT_PUBLIC_E2E_TEST_MODE=true next dev"
+    "dev:testmode": "NEXT_PUBLIC_E2E_TEST_MODE=true next dev",
+    "dev:check": "./scripts/check-dev-server.sh check",
+    "dev:start-if-needed": "./scripts/check-dev-server.sh start",
+    "dev:health": "./scripts/check-dev-server.sh health",
+    "dev:background": "nohup next dev > dev.log 2>&1 & echo 'Dev server started in background. Check dev.log for output.'",
+    "dev:stop": "pkill -f 'next dev' || echo 'No dev server running'"
   },
   "engines": {
     "node": ">=22.0.0",
