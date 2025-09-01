@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { pageVariants, staggerContainer } from '@/lib/animations';
@@ -17,31 +17,33 @@ interface PageTransitionProps {
 export function PageTransition({ children, className = '' }: PageTransitionProps) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
+  const [mounted, setMounted] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+    // Check for reduced motion preference on client only
+    setReduceMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
   
   useEffect(() => {
     // Track page changes for analytics or other purposes
-    if (previousPathname.current !== pathname) {
+    if (mounted && previousPathname.current !== pathname) {
       console.log(`Page transition: ${previousPathname.current} -> ${pathname}`);
       previousPathname.current = pathname;
       
       // Scroll to top on page change
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [pathname]);
+  }, [pathname, mounted]);
   
-  // Check for reduced motion preference
-  const shouldReduceMotion = () => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  };
-  
-  // If reduced motion is preferred, render without animations
-  if (shouldReduceMotion()) {
+  // During SSR or before mount, render without animations to prevent hydration mismatch
+  if (!mounted || reduceMotion) {
     return <div className={className}>{children}</div>;
   }
   
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait">
       <motion.div
         key={pathname}
         variants={pageVariants}
