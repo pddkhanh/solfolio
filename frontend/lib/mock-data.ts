@@ -222,3 +222,16 @@ export const getMockPortfolioStats = () => {
 export const isMockMode = () => {
   return process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 };
+
+// Helper functions for export functionality
+export const getMockTokenList = (count?: number): MockToken[] => {
+  return count ? MOCK_TOKENS.slice(0, count) : MOCK_TOKENS;
+};
+
+export const getMockPositions = (count?: number): (MockPosition & { status: string })[] => {
+  const positionsWithStatus = MOCK_POSITIONS.map(pos => ({
+    ...pos,
+    status: 'Active'
+  }));
+  return count ? positionsWithStatus.slice(0, count) : positionsWithStatus;
+};
