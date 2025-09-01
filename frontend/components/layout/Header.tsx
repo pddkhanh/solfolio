@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useWebSocketContext } from "@/contexts/WebSocketProvider";
 import ConnectionStatus from "@/components/websocket/ConnectionStatus";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -55,16 +55,11 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { connectionStatus, error, reconnect } = useWebSocketContext();
   const pathname = usePathname();
-  const { scrollY } = useScroll();
   const navRef = useRef<HTMLElement>(null);
   const [focusedNavIndex, setFocusedNavIndex] = useState(-1);
 
   // Enable focus visible styles
   useFocusVisible();
-
-  // Transform scroll position for header effects
-  const headerBackdropBlur = useTransform(scrollY, [0, 50], [8, 12]);
-  const headerOpacity = useTransform(scrollY, [0, 50], [0.8, 0.95]);
 
   // Handle menu toggle
   const toggleMenu = useCallback(() => {
@@ -152,11 +147,8 @@ export default function Header() {
       aria-label="Main navigation"
     >
       {/* Glassmorphism background */}
-      <motion.div
+      <div
         className="absolute inset-0 bg-bg-primary/80 backdrop-blur-xl"
-        style={{
-          opacity: headerOpacity,
-        }}
       />
 
       {/* Gradient border effect */}
@@ -189,18 +181,9 @@ export default function Header() {
                 whileTap={{ scale: 0.95 }}
                 aria-hidden="true"
               >
-                {/* Animated glow effect */}
-                <motion.div
+                {/* Glow effect */}
+                <div
                   className="absolute inset-0 rounded-lg bg-solana-gradient-primary opacity-50 blur-xl"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 0.3, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
                 />
               </motion.div>
               <motion.span
