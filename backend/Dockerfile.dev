@@ -18,11 +18,12 @@ WORKDIR /app/backend
 # Install dependencies (including dev dependencies for ts-node)
 RUN pnpm install --frozen-lockfile
 
-# Copy application files
-COPY backend/ ./
+# Note: Source code is mounted via docker-compose volumes, not copied
 
-# Generate Prisma client
-RUN pnpm prisma generate
+# Generate Prisma client (if using Prisma)
+# This would need the schema file, but since we're mounting volumes,
+# the prisma generate should be done at runtime instead
+# RUN pnpm prisma generate
 
 # Expose port
 EXPOSE 3001
