@@ -107,24 +107,31 @@ async function injectMockWallet(page: Page) {
 
 test.describe('TC-001: Wallet Connection User Flows', () => {
   test.beforeEach(async ({ page, baseURL }) => {
+    // Set viewport to desktop size to ensure wallet button is visible in header
+    await page.setViewportSize({ width: 1280, height: 720 })
+    
     // Inject mock wallet before navigating
     await injectMockWallet(page)
     
     // Navigate to homepage using baseURL from config
-    await page.goto(baseURL || '/')
+    await page.goto(baseURL || '/', { waitUntil: 'domcontentloaded' })
     
-    // Wait for app to load
-    await page.waitForLoadState('networkidle')
-    await page.waitForTimeout(1000)
+    // Wait for React hydration and wallet button to appear
+    await page.waitForTimeout(3000)
+    
+    // Wait for wallet button to be visible (either in header or hero)
+    await page.waitForSelector('button:has-text("Connect Wallet")', { timeout: 10000 })
   })
   
   test('Flow 1: Complete wallet connection journey - Happy path', async ({ page }) => {
     // Step 1: Verify initial state - no wallet connected
-    await expect(page.getByRole('button', { name: 'Connect Wallet' }).first()).toBeVisible()
+    // Find the Connect Wallet button (could be in header or hero section)
+    const connectButton = page.locator('button:has-text("Connect Wallet")').first()
+    await expect(connectButton).toBeVisible()
     
     // Step 2: Open wallet modal
     console.log('Opening wallet modal...')
-    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await connectButton.click()
     await page.waitForTimeout(500)
     
     // Step 3: Verify modal content and all wallet options
@@ -146,15 +153,15 @@ test.describe('TC-001: Wallet Connection User Flows', () => {
     
     // Step 5: Reopen and test backdrop click
     console.log('Testing backdrop click...')
-    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
+    await page.locator('button:has-text("Connect Wallet")').first().click()
     await page.waitForTimeout(500)
     await page.locator('.fixed.inset-0').first().click({ position: { x: 10, y: 10 }, force: true })
     await expect(page.getByText('Connect Your Wallet')).not.toBeVisible()
     
     // Step 6: Connect to wallet
     console.log('Connecting to Phantom wallet...')
-    await page.getByRole('button', { name: 'Connect Wallet' }).first().click()
-    await page.waitForTimeout(500)
+    await page.locator('button:has-text("Connect Wallet")').first().click()
+    await page.waitForTimeout(1000)
     await page.getByRole('button', { name: /Phantom/ }).click()
     
     // Step 7: Wait for and verify connection

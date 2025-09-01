@@ -123,8 +123,13 @@ make l          # logs
 ```bash
 cd frontend
 
-# Development
-pnpm run dev          # Development server
+# Development Server Management
+pnpm run dev:check         # Check if dev server is running
+pnpm run dev:start-if-needed  # Start dev server only if not running
+pnpm run dev:health        # Check dev server health
+pnpm run dev:background    # Start dev server in background (won't block terminal)
+pnpm run dev:stop          # Stop the dev server
+pnpm run dev               # Development server (⚠️ BLOCKS TERMINAL - use dev:background instead)
 pnpm run build        # Production build
 pnpm run lint         # Linting
 pnpm run format       # Format code with Prettier
@@ -253,6 +258,23 @@ Follow the iterative approach in `docs/work-breakdown.md`:
 - Phase 7 (Days 17-18): Performance and polish
 - Phase 8 (Days 19-20): Production deployment
 - Phase 9 (Days 21-22): Monitoring and launch
+
+## Important Development Tips
+
+### Avoiding Terminal Blocks
+**IMPORTANT**: The `pnpm run dev` command starts a Next.js development server that runs indefinitely and will block your terminal. To avoid this:
+
+1. **Use background mode**: Run `pnpm run dev:background` instead to start the server in the background
+2. **Check if running**: Use `pnpm run dev:check` to see if the server is already running
+3. **Start if needed**: Use `pnpm run dev:start-if-needed` to only start if not running
+4. **Stop server**: Use `pnpm run dev:stop` to kill the dev server
+
+### For E2E Testing
+When running E2E tests, the dev server should already be running. Use:
+```bash
+pnpm run dev:start-if-needed  # Ensure server is running
+pnpm run test:e2e              # Run tests
+```
 
 ## Important Considerations
 
