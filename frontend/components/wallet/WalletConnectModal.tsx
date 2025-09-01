@@ -21,9 +21,15 @@ export default function WalletConnectModal() {
   const [error, setError] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
 
+  // Debug logging
+  useEffect(() => {
+    console.log('[WalletConnectModal] Modal visibility changed:', visible)
+  }, [visible])
+
   // Reset state when modal opens
   useEffect(() => {
     if (visible) {
+      console.log('[WalletConnectModal] Modal opened, resetting state')
       setSelectedWallet(null)
       setError(null)
       setIsConnecting(false)
