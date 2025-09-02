@@ -22,6 +22,10 @@ coverage/
 out/
 build/
 dist/
+prototype/.next/
+prototype/out/
+prototype/build/
+prototype/dist/
 
 # Production
 *.pid
@@ -55,6 +59,8 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+prototype/next-env.d.ts
+prototype/*.tsbuildinfo
 
 # Logs
 logs/
@@ -185,3 +191,11 @@ out/
 # Claude Code
 .claude/settings.local.json
 .claude/*.local.*
+
+# Prototype specific
+prototype/node_modules/
+prototype/.env
+prototype/.env.local
+prototype/.env.*.local
+prototype/coverage/
+prototype/.nyc_output/
