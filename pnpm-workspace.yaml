@@ -1,7 +1,0 @@
-packages:
-  - "frontend"
-  - "backend"
-  - "websocket"
-  - "proto"
-  - "packages/*"
-  - "services/*"
